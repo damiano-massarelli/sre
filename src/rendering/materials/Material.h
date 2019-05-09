@@ -1,7 +1,6 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 #include "Shader.h"
-#include <glad/glad.h>
 #include <string>
 #include <memory>
 #include <vector>
@@ -9,8 +8,6 @@
 class Material
 {
     public:
-        int drawMode = GL_TRIANGLES;
-
         Shader shader;
 
         Material(const std::string& vertexShader, const std::string& fragmentShader);

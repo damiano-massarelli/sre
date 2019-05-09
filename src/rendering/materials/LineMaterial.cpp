@@ -2,7 +2,7 @@
 
 LineMaterial::LineMaterial() : Material{"shaders/lineVS.glsl", "shaders/lineFS.glsl"}
 {
-    drawMode = GL_LINES;
+
 }
 
 void LineMaterial::use()

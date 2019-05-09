@@ -1,10 +1,12 @@
 #include "MeshLoader.h"
 #include <glad/glad.h>
 
-Mesh MeshLoader::createMesh(float vertexData[], std::uint32_t numOfVertices, std::uint32_t indices[], std::uint32_t numOfIndices)
+Mesh MeshLoader::createMesh(float vertexData[], std::uint32_t numOfVertices, std::uint32_t indices[], std::uint32_t numOfIndices, int drawMode)
 {
     Mesh mesh{0, 0, 0};
+    mesh.drawMode = drawMode;
     mesh.mVertexNumber = numOfVertices;
+    mesh.mIndicesNumber = numOfIndices;
 
     glGenVertexArrays(1, &mesh.mVao);
 
@@ -18,6 +20,7 @@ Mesh MeshLoader::createMesh(float vertexData[], std::uint32_t numOfVertices, std
     glBufferData(GL_ARRAY_BUFFER, 8 * numOfVertices * sizeof(float), vertexData, GL_STATIC_DRAW);
 
     if (numOfIndices != 0) {
+        mesh.usesIndices = true;
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.mEbo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(std::uint32_t) * numOfIndices, indices, GL_STATIC_DRAW);
     }
