@@ -17,6 +17,9 @@ class GameObject
     private:
         std::vector<std::shared_ptr<Component>> mComponents;
 
+        std::vector<Mesh> mMeshes;
+        std::vector<MaterialPtr> mMaterials;
+
         /**
           * Called when this game object is removed.
           * All clean up operations are performed in this method */
@@ -24,12 +27,12 @@ class GameObject
 
     public:
         Transform transform;
-        std::vector<Mesh> mMeshes;
-        std::vector<MaterialPtr> mMaterials;
 
         GameObject(const Mesh& mesh, MaterialPtr material);
 
         GameObject() = default;
+
+        void addMesh(const Mesh& mesh, const MaterialPtr& material);
 
         /**
           * Adds a component to this game object.

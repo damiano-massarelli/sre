@@ -173,7 +173,12 @@ void RenderSystem::render()
 
             glBindVertexArray(mesh.mVao);
 
-            glDrawArrays(material->drawMode, 0, mesh.mVertexNumber);
+            if (mesh.usesIndices)
+                glDrawElements(mesh.drawMode, mesh.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
+            else
+                glDrawArrays(mesh.drawMode, 0, mesh.mVertexNumber);
+
+            glBindVertexArray(0);
         }
     }
 }
