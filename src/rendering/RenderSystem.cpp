@@ -173,10 +173,10 @@ void RenderSystem::render()
 
             glBindVertexArray(mesh.mVao);
 
-            if (mesh.usesIndices)
-                glDrawElements(mesh.drawMode, mesh.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
+            if (mesh.mUsesIndices)
+                glDrawElements(mesh.mDrawMode, mesh.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
             else
-                glDrawArrays(mesh.drawMode, 0, mesh.mVertexNumber);
+                glDrawArrays(mesh.mDrawMode, 0, mesh.mVertexNumber);
 
             glBindVertexArray(0);
         }

@@ -28,9 +28,9 @@ class Mesh
         std::uint32_t mVbo = 0;
         std::uint32_t mEbo = 0;
 
-        bool usesIndices = false;
+        bool mUsesIndices = false;
 
-        int drawMode = GL_TRIANGLES;
+        int mDrawMode = GL_TRIANGLES;
 
         /// whether or not this class stores information about its vertices
         bool mHasVertexData = false;
@@ -44,10 +44,21 @@ class Mesh
     public:
         Mesh() = default;
 
+        /**
+          * Returns vertex data for this mesh.
+          * In case vertex data is not stored in this mesh an empty vector is
+          * returned and hasVertexData should return false
+          * @sa GameObjectLoader::keepVertexData
+          * @return a vector of Vertex containing data for each vertex */
         const std::vector<Vertex>& getVertexData() const;
 
+        /**
+          * Checks whether this mesh has vertex data.
+          * @return true if vertex data is stored in this mesh, false otherwise. */
         bool hasVertexData() const;
 
+        /**
+          * Frees the memory held by this mesh */
         void cleanUp();
 };
 

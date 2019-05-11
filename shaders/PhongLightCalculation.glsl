@@ -26,8 +26,11 @@ vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float
     // specular component
     vec3 rayToCamera = normalize(cameraPosition - fragPosition);
     vec3 reflectedLight = reflect(-rayToLight, fragNormal);
-    float specularIntensity = pow(max(dot(reflectedLight, rayToCamera), 0.0f), shininess);
-    outcolor += light.specularColor * specularColor * specularIntensity;
+
+    if (shininess != 0) { // Phong or Lambert material? if shininess == 0 it is Lambert
+        float specularIntensity = pow(max(dot(reflectedLight, rayToCamera), 0.0f), shininess);
+        outcolor += (light.specularColor * specularColor * specularIntensity);
+    }
 
     float attenuation = 1.0f;
     if (light.type == LIGHT_TYPE_POINT || light.type == LIGHT_TYPE_SPOT)
@@ -37,7 +40,6 @@ vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float
         float theta = dot(-rayToLight, light.direction);
         attenuation *= clamp((theta - light.spotAngles.y) / (light.spotAngles.x - light.spotAngles.y), 0.0f, 1.0f);
     }
-
     // be careful when alpha is used
     return outcolor * attenuation;
 }

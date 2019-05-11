@@ -10,20 +10,17 @@ Texture Texture::load(const std::string& path)
 
     int width;
     int height;
-    int numCh;
-    std::uint8_t* data = stbi_load(path.c_str(), &width, &height, &numCh, 0);
+    std::uint8_t* data = stbi_load(path.c_str(), &width, &height, nullptr, STBI_rgb_alpha);
     if (data == nullptr) {
         std::cerr << "unable to load texture " << path << "\n";
-        return Texture{0, ""};
+        return Texture{0};
     }
 
     std::uint32_t texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    GLint format = numCh == 3 ? GL_RGB : GL_RGBA;
-
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -32,12 +29,22 @@ Texture Texture::load(const std::string& path)
     stbi_image_free(data);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    return Texture{texture, "not_set"};
+    return Texture{texture};
+}
+
+Texture::Texture(std::uint32_t id) : mTextureId{id}
+{
+
+}
+
+uint32_t Texture::getId()
+{
+    return mTextureId;
 }
 
 bool Texture::isValid() const
 {
-    return id != 0;
+    return mTextureId != 0;
 }
 
 Texture::operator bool() const
