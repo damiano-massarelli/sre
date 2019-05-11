@@ -39,14 +39,14 @@ void PhongMaterial::use()
     if (diffuseMap) {
         shader.setInt("material.useDiffuseMap", 1);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap.id);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap.getId());
     } else
         shader.setInt("material.useDiffuseMap", 0);
 
     if (specularMap) {
         shader.setInt("material.useSpecularMap", 1);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularMap.id);
+        glBindTexture(GL_TEXTURE_2D, specularMap.getId());
     } else
         shader.setInt("material.useSpecularMap", 0);
 }

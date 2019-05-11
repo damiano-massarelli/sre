@@ -92,7 +92,7 @@ struct DetachComponent : public Component, public EventListener {
 int main(int argc, char* argv[]) {
     Engine::init();
 
-    Engine::renderSys.createWindow(800, 600);
+    Engine::renderSys.createWindow(1920, 1080);
 
 
     auto camera = Engine::renderSys.createGameObject();
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
 
-    GameObjectLoader::fromFile("battery.obj");
+    GameObjectLoader().fromFile("table2.obj");
 
 
     auto light = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), std::make_shared<LightMaterial>());
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     auto light2 = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), std::make_shared<LightMaterial>());
     light2->addComponent(std::make_shared<Light>(light2));
-    Engine::renderSys.addLight(light2);
+    //Engine::renderSys.addLight(light2);
     light2->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light2->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
 
@@ -125,12 +125,12 @@ int main(int argc, char* argv[]) {
 
     auto light3 = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), std::make_shared<LightMaterial>());
     light3->addComponent(std::make_shared<Light>(light3, Light::Type::DIRECTIONAL));
-    light3->transform.setPosition(glm::vec3{0.0f, 10.0f, 0.0f});
-    Engine::renderSys.addLight(light3);
+    light3->transform.setPosition(glm::vec3{0.0f, 10.0f, 5.0f});
+    //Engine::renderSys.addLight(light3);
     light3->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light3->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
-    light3->getComponent<Light>()->innerAngle = glm::radians(15.0f);
-    light3->getComponent<Light>()->outerAngle = glm::radians(18.0f);
+    light3->getComponent<Light>()->innerAngle = glm::radians(25.0f);
+    light3->getComponent<Light>()->outerAngle = glm::radians(28.0f);
     light3->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
 
 

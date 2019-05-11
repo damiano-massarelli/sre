@@ -3,8 +3,10 @@
 #include "MeshLoader.h"
 #include "PhongMaterial.h"
 #include "Transform.h"
+#include <glad/glad.h>
 #include <iostream>
 #include <cstdint>
+#include <map>
 
 GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
 {
@@ -39,15 +41,22 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiMesh* mesh, const a
         vertexData.insert(vertexData.end(), {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z});
         v.position = glm::vec3{mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
 
-        // normal
-        vertexData.insert(vertexData.end(), {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z});
-        v.normal = glm::vec3{mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
+        // normal, if not present 0, 0, 0 is used
+        if (mesh->HasNormals()) {
+            vertexData.insert(vertexData.end(), {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z});
+            v.normal = glm::vec3{mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
+        } else {
+            std::cout << "cannot find normals, setting them to (0, 0, 0)\n";
+            vertexData.insert(vertexData.end(), {0.0f, 0.0f, 0.0f});
+            v.normal = glm::vec3{0.0f, 0.0f, 0.0f};
+        }
 
         // if texture coordinates are not available just put (0, 0)
         if (mesh->mTextureCoords[0]) {
             vertexData.insert(vertexData.end(), {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y});
             v.texCoord = glm::vec2{mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
         } else {
+            std::cout << "cannot find uv coords, setting them to (0, 0)\n";
             vertexData.insert(vertexData.end(), {0.0f, 0.0f});
             v.texCoord = glm::vec2{0.0f, 0.0f};
         }
@@ -98,13 +107,57 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_SPECULAR, color))
         phongBuilder.setSpecularColor(glm::vec3{color.r, color.g, color.b});
 
+    float shininess = 0.0f;
+    if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS, shininess)) {
+        phongBuilder.setShininess(shininess);
+    }
+
+    phongBuilder.setDiffuseMap(loadTexture(material, aiTextureType_DIFFUSE));
+    phongBuilder.setSpecularMap(loadTexture(material, aiTextureType_SPECULAR));
+
+    MaterialPtr loadedMaterial = phongBuilder.build();
+
+    int twosided = 0;
+    if (AI_SUCCESS == material->Get(AI_MATKEY_TWOSIDED, twosided))
+        loadedMaterial->isTwoSided = static_cast<int>(twosided);
+
+    // Another check to see if the material is transparent
+    float opacity = 1.0f;
+    if (AI_SUCCESS == material->Get(AI_MATKEY_OPACITY, opacity))
+        loadedMaterial->isTwoSided = opacity < 1.0f;
+
     return phongBuilder.build();
+}
+
+Texture GameObjectLoader::loadTexture(aiMaterial* material, aiTextureType type)
+{
+    std::map<int, int> aiMapMode2glMapMode{
+        {aiTextureMapMode_Wrap, GL_REPEAT},
+        {aiTextureMapMode_Clamp, GL_CLAMP_TO_EDGE},
+        {aiTextureMapMode_Mirror, GL_MIRRORED_REPEAT},
+        {aiTextureMapMode_Decal, GL_REPEAT} // not supported
+    };
+
+    // Only one texture supported
+    if(material->GetTextureCount(type) != 0) {
+        aiString path;
+        aiTextureMapMode mapModeU, mapModeV;
+        material->Get(AI_MATKEY_TEXTURE(type, 0), path);
+        std::cout << "loading texture " << path.C_Str() << "\n";
+        material->Get(AI_MATKEY_MAPPINGMODE_U(type, 0), mapModeU);
+        material->Get(AI_MATKEY_MAPPINGMODE_V(type, 0), mapModeV);
+
+
+        return Texture::load(std::string{path.C_Str()});
+    }
+
+    return Texture{};
 }
 
 GameObjectEH GameObjectLoader::fromFile(const std::string& path)
 {
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path, aiProcess_GenSmoothNormals | aiProcess_Triangulate);
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenUVCoords);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cerr << "Error loading mesh " << importer.GetErrorString() << "\n";
         return GameObjectEH{};

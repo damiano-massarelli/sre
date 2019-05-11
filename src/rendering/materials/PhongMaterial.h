@@ -30,6 +30,9 @@ class PhongMaterialBuilder {
         std::string diffuseMapPath;
         std::string specularMapPath;
 
+        Texture diffuseMap;
+        Texture specularMap;
+
         bool specularColorSet = false;
         glm::vec3 specularColor{1.0f, 1.0f, 1.0f};
 
@@ -42,16 +45,21 @@ class PhongMaterialBuilder {
         MaterialPtr build() {
             auto material = std::make_shared<PhongMaterial>();
 
-            if (diffuseMapPath != "") {
+            if (diffuseMapPath != "")
                 material->setDiffuseMap(Texture::load(diffuseMapPath));
-                if (!diffuseColorSet)
-                    diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
+
+            if (diffuseMap) {
+                material->setDiffuseMap(diffuseMap);
+                diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
             }
 
             if (specularMapPath != "") {
                 material->setSpecularMap(Texture::load(specularMapPath));
-                if (!specularColorSet)
-                    specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
+            }
+
+            if (specularMap) {
+                material->setSpecularMap(specularMap);
+                specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
             }
 
             material->diffuseColor = diffuseColor;
@@ -66,8 +74,18 @@ class PhongMaterialBuilder {
             return *this;
         }
 
+        PhongMaterialBuilder& setDiffuseMap(const Texture& texture) {
+            diffuseMap = texture;
+            return *this;
+        }
+
         PhongMaterialBuilder& setSpecularMap(const std::string& path) {
             specularMapPath = path;
+            return *this;
+        }
+
+        PhongMaterialBuilder& setSpecularMap(const Texture& texture) {
+            specularMap = texture;
             return *this;
         }
 
