@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstdint>
 #include <map>
+#include <cstdlib>
 
 GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
 {
@@ -83,22 +84,10 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiMesh* mesh, const a
 
 MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene)
 {
-    if (mesh->mMaterialIndex == 0) return nullptr;
+    //if (mesh->mMaterialIndex == 0) return nullptr;
 
     PhongMaterialBuilder phongBuilder;
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
-    if (material->GetTextureCount(aiTextureType_DIFFUSE)) {
-        aiString path;
-        material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
-        phongBuilder.setDiffuseMap(std::string{path.C_Str()});
-    }
-
-    if (material->GetTextureCount(aiTextureType_SPECULAR)) {
-        aiString path;
-        material->GetTexture(aiTextureType_SPECULAR, 0, &path);
-        phongBuilder.setDiffuseMap(std::string{path.C_Str()});
-    }
 
     aiColor3D color{0.f,0.f,0.f};
     if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, color))
@@ -108,12 +97,12 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
         phongBuilder.setSpecularColor(glm::vec3{color.r, color.g, color.b});
 
     float shininess = 0.0f;
-    if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS, shininess)) {
+    phongBuilder.setShininess(shininess); // defaults to 0
+    if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS, shininess))
         phongBuilder.setShininess(shininess);
-    }
 
-    phongBuilder.setDiffuseMap(loadTexture(material, aiTextureType_DIFFUSE));
-    phongBuilder.setSpecularMap(loadTexture(material, aiTextureType_SPECULAR));
+    phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE));
+    phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR));
 
     MaterialPtr loadedMaterial = phongBuilder.build();
 
@@ -129,7 +118,7 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     return phongBuilder.build();
 }
 
-Texture GameObjectLoader::loadTexture(aiMaterial* material, aiTextureType type)
+Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type)
 {
     std::map<int, int> aiMapMode2glMapMode{
         {aiTextureMapMode_Wrap, GL_REPEAT},
@@ -143,12 +132,31 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, aiTextureType type)
         aiString path;
         aiTextureMapMode mapModeU, mapModeV;
         material->Get(AI_MATKEY_TEXTURE(type, 0), path);
-        std::cout << "loading texture " << path.C_Str() << "\n";
         material->Get(AI_MATKEY_MAPPINGMODE_U(type, 0), mapModeU);
         material->Get(AI_MATKEY_MAPPINGMODE_V(type, 0), mapModeV);
 
+        int mapModeS = aiMapMode2glMapMode[mapModeU];
+        int mapModeT = aiMapMode2glMapMode[mapModeV];
 
-        return Texture::load(std::string{path.C_Str()});
+        const char* texturePath = path.C_Str();
+        /* check whether or not this is an embedded texture. If that's the case
+         * load it from memory. The name of embedded textures starts with
+         * '*' followed by a number that can be used to index scene->mTextures
+         * This texture is then converted to bytes read by Texture */
+        if (texturePath[0] == '*') {
+            aiTexture* texture = scene->mTextures[std::atoi(texturePath + 1)];
+            std::uint8_t* textureData = reinterpret_cast<unsigned char*>(texture->pcData);
+            if (texture->mHeight == 0)
+                return Texture::loadFromMemory(textureData, texture->mWidth, mapModeS, mapModeT);
+
+            else
+                return Texture::loadFromMemory(textureData, texture->mWidth * texture->mHeight, mapModeS, mapModeT);
+
+        } else {
+            return Texture::loadFromFile(std::string{texturePath},
+                                 mapModeS,
+                                 mapModeT);
+        }
     }
 
     return Texture{};

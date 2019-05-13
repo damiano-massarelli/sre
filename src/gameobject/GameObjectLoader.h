@@ -14,10 +14,13 @@
 class GameObjectLoader
 {
     private:
+        /** The current working directory */
+        //std::filesystem::path mWorkingDir;
+
         GameObjectEH processNode(aiNode* node, const aiScene* scene);
         void processMesh(const GameObjectEH& go, aiMesh* mesh, const aiScene* scene);
         MaterialPtr processMaterial(aiMesh* mesh, const aiScene* scene);
-        Texture loadTexture(aiMaterial* material, aiTextureType type);
+        Texture loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type);
 
     public:
         /**

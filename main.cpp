@@ -92,7 +92,7 @@ struct DetachComponent : public Component, public EventListener {
 int main(int argc, char* argv[]) {
     Engine::init();
 
-    Engine::renderSys.createWindow(1920, 1080);
+    Engine::renderSys.createWindow(800, 600);
 
 
     auto camera = Engine::renderSys.createGameObject();
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
 
-    GameObjectLoader().fromFile("table2.obj");
+    GameObjectLoader().fromFile("tbl.fbx");
 
 
     auto light = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), std::make_shared<LightMaterial>());
