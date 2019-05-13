@@ -4,17 +4,37 @@
 #include <iostream>
 #include <glad/glad.h>
 
-Texture Texture::load(const std::string& path)
+Texture Texture::loadFromFile(const std::string& path, int wrapS, int wrapT)
 {
     stbi_set_flip_vertically_on_load(true);
 
-    int width;
-    int height;
-    std::uint8_t* data = stbi_load(path.c_str(), &width, &height, nullptr, STBI_rgb_alpha);
+    int width, height, cmp;
+    std::uint8_t* data = stbi_load(path.c_str(), &width, &height, &cmp, STBI_rgb_alpha);
+    Texture texture;
     if (data == nullptr) {
         std::cerr << "unable to load texture " << path << "\n";
-        return Texture{0};
+        return texture;
+    } else {
+        texture = Texture::load(data, width, height, wrapS, wrapT);
+        stbi_image_free(data);
     }
+
+    return texture;
+}
+
+Texture Texture::loadFromMemory(std::uint8_t* data, std::int32_t len, int wrapS, int wrapT)
+{
+    stbi_set_flip_vertically_on_load(true);
+
+    int width, height, cmp;
+    std::uint8_t* convertedData = stbi_load_from_memory(data, len, &width, &height, &cmp, STBI_rgb_alpha);
+    return Texture::load(convertedData, width, height, wrapS, wrapT);
+}
+
+Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int wrapT)
+{
+    if (data == nullptr)
+        return Texture{0};
 
     std::uint32_t texture;
     glGenTextures(1, &texture);
@@ -23,10 +43,11 @@ Texture Texture::load(const std::string& path)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
 
-    stbi_image_free(data);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     return Texture{texture};

@@ -46,7 +46,7 @@ class PhongMaterialBuilder {
             auto material = std::make_shared<PhongMaterial>();
 
             if (diffuseMapPath != "")
-                material->setDiffuseMap(Texture::load(diffuseMapPath));
+                material->setDiffuseMap(Texture::loadFromFile(diffuseMapPath));
 
             if (diffuseMap) {
                 material->setDiffuseMap(diffuseMap);
@@ -54,7 +54,7 @@ class PhongMaterialBuilder {
             }
 
             if (specularMapPath != "") {
-                material->setSpecularMap(Texture::load(specularMapPath));
+                material->setSpecularMap(Texture::loadFromFile(specularMapPath));
             }
 
             if (specularMap) {
