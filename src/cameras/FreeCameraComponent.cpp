@@ -34,11 +34,11 @@ void FreeCameraComponent::onEvent(SDL_Event e)
         if (keys[SDL_SCANCODE_S])
             transform.moveBy(-camLookDirection * delta * moveSpeed);
         if (keys[SDL_SCANCODE_D])
-            transform.moveBy(camRight * delta * moveSpeed);
-        if (keys[SDL_SCANCODE_A])
             transform.moveBy(-camRight * delta * moveSpeed);
+        if (keys[SDL_SCANCODE_A])
+            transform.moveBy(camRight * delta * moveSpeed);
     } if (e.type == SDL_MOUSEMOTION && tracking) {
-        heading -= e.motion.xrel * xMouseSensitivity;
+        heading += e.motion.xrel * xMouseSensitivity;
         pitch -= e.motion.yrel * yMouseSensitivity;
     } if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_t) {
         tracking = !tracking;

@@ -8,8 +8,15 @@
 #include <exception>
 #include <algorithm>
 #include <iostream>
+#include <algorithm>
 
-#include <glm/gtx/string_cast.hpp>
+#include "PhongMaterial.h"
+
+struct OrderedRenderingData {
+    Mesh mesh;
+    MaterialPtr material;
+    float order;
+};
 
 RenderSystem::RenderSystem() : mGameObjectsHL{mGameObjects}, camera{&mGameObjectsHL, 0, 0}
 {
@@ -41,7 +48,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     SDL_GL_CreateContext(mWindow);
 
     // Use v-sync
-    SDL_GL_SetSwapInterval(1);
+    //SDL_GL_SetSwapInterval(1);
 
     if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
         std::cout << "Failed to initialize GLAD\n";
@@ -77,6 +84,11 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
 
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
+    //glFrontFace(GL_CCW);
 }
 
 void RenderSystem::update()
@@ -146,13 +158,17 @@ void RenderSystem::render()
         glm::mat4 inverseRotation = glm::transpose(glm::toMat4(camera->transform.getRotation()));
         view = inverseRotation * view;
     }
+
+    /* Inverts the view so that we watch in the direction of camera->transform.forward() */
     glm::mat4 invert{
-        glm::vec4{1, 0, 0, 0},
+        glm::vec4{-1, 0, 0, 0},
         glm::vec4{0, 1, 0, 0},
         glm::vec4{0, 0, -1, 0},
         glm::vec4{0, 0, 0, 1}
     };
     view = invert * view;
+
+
     /* Sets the camera matrix to a ubo so that it is shared */
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
@@ -160,15 +176,21 @@ void RenderSystem::render()
 
     updateLights();
 
+    std::vector<OrderedRenderingData> orderedRender;
     for (auto const& go : mGameObjects) {
         for (std::size_t meshIndex = 0; meshIndex < go.mMeshes.size(); meshIndex++) {
             MaterialPtr material = go.mMaterials[meshIndex];
             Mesh mesh = go.mMeshes[meshIndex];
-            if (material != nullptr) {
+            if (material) {
                 Material* mat = material.get();
                 mat->use();
 
                 mat->shader.setMat4("model", go.transform.modelToWorld());
+            }
+
+            if (material->needsOrderedRendering()) {
+                orderedRender.push_back({mesh, material, material->renderOrder(go.transform.getPosition())});
+                continue;
             }
 
             glBindVertexArray(mesh.mVao);
@@ -179,8 +201,31 @@ void RenderSystem::render()
                 glDrawArrays(mesh.mDrawMode, 0, mesh.mVertexNumber);
 
             glBindVertexArray(0);
+
+            if (material) material->after();
         }
     }
+
+    std::sort(orderedRender.begin(), orderedRender.end(), [](const auto& ord, const auto& ord2) {return ord.order > ord2.order;});
+    for (auto& ord : orderedRender) {
+        auto material = ord.material;
+        auto mesh = ord.mesh;
+
+        material->use();
+        auto col = static_cast<PhongMaterial*>(material.get())->diffuseColor;
+        std::cout << ord.order << " " << col.r << " " << col.g << " " << col.b << "\n";
+
+        glBindVertexArray(mesh.mVao);
+
+        if (mesh.mUsesIndices)
+            glDrawElements(mesh.mDrawMode, mesh.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
+        else
+            glDrawArrays(mesh.mDrawMode, 0, mesh.mVertexNumber);
+
+        glBindVertexArray(0);
+        material->after();
+    }
+    std::cout << "\n\n";
 }
 
 GameObjectEH RenderSystem::createGameObject(const Mesh& mesh, MaterialPtr material)

@@ -3,12 +3,24 @@
 #include "MeshLoader.h"
 #include "PhongMaterial.h"
 #include "Transform.h"
-#include <glad/glad.h>
 #include <iostream>
 #include <cstdint>
-#include <map>
 #include <cstdlib>
 #include <string>
+#include <glm/gtx/matrix_decompose.hpp>
+
+/** Transpose the assimp aiMatrix4x4 which is a row major matrix
+  * @param a row major assimp matrix
+  * @return a column major glm matrix */
+glm::mat4 convertMatrix(const aiMatrix4x4 &aiMat)
+{
+    return {
+        aiMat.a1, aiMat.b1, aiMat.c1, aiMat.d1,
+        aiMat.a2, aiMat.b2, aiMat.c2, aiMat.d2,
+        aiMat.a3, aiMat.b3, aiMat.c3, aiMat.d3,
+        aiMat.a4, aiMat.b4, aiMat.c4, aiMat.d4
+    };
+}
 
 GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
 {
@@ -26,6 +38,17 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
         go->transform.addChild(processNode(node->mChildren[i], scene));
     }
 
+    /* assimp only provides the transformation matrix relative to the parent node
+     * hence we need to extract position, rotation and scale to obtain the local
+     * components of that matrix */
+    glm::vec3 position, scale, skew;
+    glm::quat rotation;
+    glm::vec4 perspective;
+    glm::decompose(convertMatrix(node->mTransformation) , scale, rotation, position, skew, perspective);
+
+    go->transform.setPosition(position);
+    go->transform.setRotation(rotation);
+    go->transform.setScale(scale);
     return go;
 }
 
@@ -108,19 +131,21 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE));
     phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR));
 
-    MaterialPtr loadedMaterial = phongBuilder.build();
+    PhongMaterialPtr loadedMaterial = phongBuilder.build();
 
     int twosided = 0;
     if (AI_SUCCESS == material->Get(AI_MATKEY_TWOSIDED, twosided))
-        loadedMaterial->isTwoSided = static_cast<int>(twosided);
+        loadedMaterial->isTwoSided = static_cast<bool>(twosided);
 
     // Another check to see if the material is transparent
     float opacity = 1.0f;
     if (AI_SUCCESS == material->Get(AI_MATKEY_OPACITY, opacity)) {
+        std::cout << opacity << "\n";
+        loadedMaterial->opacity = opacity;
         loadedMaterial->isTwoSided = opacity < 1.0f;
     }
 
-    return phongBuilder.build();
+    return loadedMaterial;
 }
 
 Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type)
@@ -170,7 +195,7 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
 GameObjectEH GameObjectLoader::fromFile(const std::string& path)
 {
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenUVCoords);
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cerr << "Error loading mesh " << importer.GetErrorString() << "\n";
         return GameObjectEH{};
