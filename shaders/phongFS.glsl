@@ -8,6 +8,8 @@ struct PhongMaterial {
     vec3 specularColor;
 
     float shininess;
+
+    float opacity;
 };
 
 in vec2 texCoord;
@@ -24,6 +26,8 @@ layout (std140) uniform Lights {
 };
 
 void main() {
+    if (material.opacity == 0.0f) discard;
+
     vec3 diffuseColor = material.diffuseColor;
     if (material.useDiffuseMap)
         diffuseColor *= vec3(texture2D(material.diffuse, texCoord));
@@ -36,5 +40,6 @@ void main() {
     for (int i = 0; i < numLights; i++) {
         color += phongComputeColor(lights[i], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition);
     }
-    FragColor = vec4(color, 1.0f);
+
+    FragColor = vec4(color, material.opacity);
 }

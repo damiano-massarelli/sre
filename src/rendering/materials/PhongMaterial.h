@@ -3,6 +3,7 @@
 #include "Material.h"
 #include "Texture.h"
 #include <glm/common.hpp>
+#include <memory>
 
 class PhongMaterial : public Material
 {
@@ -20,10 +21,20 @@ class PhongMaterial : public Material
         glm::vec3 specularColor{1.0f, 1.0f, 1.0f};
         float shininess = 32.0f;
 
+        float opacity = 1.0f;
+
         virtual void use() override;
+
+        virtual void after() override;
+
+        virtual bool needsOrderedRendering() override;
+
+        virtual float renderOrder(const glm::vec3& position) override;
 
         virtual ~PhongMaterial();
 };
+
+using PhongMaterialPtr = std::shared_ptr<PhongMaterial>;
 
 class PhongMaterialBuilder {
     private:
@@ -42,7 +53,7 @@ class PhongMaterialBuilder {
         float shininess = 32;
 
     public:
-        MaterialPtr build() {
+        PhongMaterialPtr build() {
             auto material = std::make_shared<PhongMaterial>();
 
             if (diffuseMapPath != "")

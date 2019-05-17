@@ -26,13 +26,14 @@ void PhongMaterial::setSpecularMap(const Texture& texture)
     shader.setInt(specularMap.nameInShader, 1);
 }
 
-
 void PhongMaterial::use()
 {
     shader.use();
     shader.setVec3("material.diffuseColor", diffuseColor);
     shader.setVec3("material.specularColor", specularColor);
     shader.setFloat("material.shininess", shininess);
+
+    shader.setFloat("material.opacity", opacity);
 
     shader.setVec3("cameraPosition", Engine::renderSys.camera->transform.getPosition());
 
@@ -49,6 +50,30 @@ void PhongMaterial::use()
         glBindTexture(GL_TEXTURE_2D, specularMap.getId());
     } else
         shader.setInt("material.useSpecularMap", 0);
+}
+
+void PhongMaterial::after()
+{
+    // unbind textures
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+bool PhongMaterial::needsOrderedRendering()
+{
+    return opacity < 1.0f;
+}
+
+float PhongMaterial::renderOrder(const glm::vec3& position)
+{
+    auto cam = Engine::renderSys.camera;
+    if (cam)
+        return glm::distance2(position, cam->transform.getPosition());
+    else
+        return position.z;
 }
 
 PhongMaterial::~PhongMaterial()

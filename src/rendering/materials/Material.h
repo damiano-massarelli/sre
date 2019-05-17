@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <glm/common.hpp>
 
 /**
   * A Material contains all the properties used to define the appareance of an object */
@@ -39,6 +40,25 @@ class Material
           * shader.
           */
         virtual void use() = 0;
+
+        /**
+          * Called after the material is used.
+          * Should reset the state that can be altered in use() */
+        virtual void after() {};
+
+        /**
+          * Specify whether Mesh%es with this material need to be rendered in order.
+          * Some Mesh%es need to be drawn in a certain order (e.g transparent ones)
+          * their materials should return true. The order in which Mesh%es are rendered
+          * is determined by the value of renderOrder()
+          * @return true if the corresponding mesh needs to be drawn in a certain order, false otherwise */
+        virtual bool needsOrderedRendering() {return false;};
+
+        /**
+          * Provides a value to order Mesh%es.
+          * @param position the position of the GameObject to which this material belongs
+          * @return the render order (smaller value => rendered first) */
+        virtual float renderOrder(const glm::vec3& position) {return 0.0f;};
 
         virtual ~Material();
 };
