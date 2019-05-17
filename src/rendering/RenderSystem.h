@@ -16,6 +16,7 @@ class RenderSystem
         SDL_Window* mWindow = nullptr;
 
         std::vector<GameObject> mGameObjects;
+
         HandleList<GameObject> mGameObjectsHL;
 
         glm::mat4 mProjection{1.0f};
@@ -57,7 +58,7 @@ class RenderSystem
         void createWindow(std::uint32_t width, std::uint32_t height, float fovy = glm::radians(45.0f), float nearPlane = 0.1f, float farPlane = 100.0f);
 
         /**
-          * Creates a game object with a given mesh and the corresponding material
+          * Creates a GameObject with a given Mesh and the corresponding Material
           * @param mesh the mesh used by this game object
           * @param material the material used to render the mesh
           * @return a handle to the created game object */
@@ -69,14 +70,14 @@ class RenderSystem
         GameObjectEH createGameObject();
 
         /**
-          * Removes a game object.
-          * All the external handles referencing this game object will become invalid.
+          * Removes a game object and all its children.
+          * All the external handles referencing these GameObject will become invalid.
           * @param go the game object to remove */
         void remove(const GameObjectEH& go);
 
         /**
           * Adds a light to the scene
-          * if the object does not have a light component it is silently
+          * if the GameObject does not have a Light component it is silently
           * discarded.
           * @param light a light component
           */

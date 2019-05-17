@@ -19,6 +19,9 @@ bool Mesh::hasVertexData() const
 void Mesh::cleanUp()
 {
     glDeleteBuffers(1, &mVbo);
+    mVbo = 0;
     glDeleteBuffers(1, &mEbo);
+    mEbo = 0;
     glDeleteVertexArrays(1, &mVao);
+    mVao = 0;
 }
