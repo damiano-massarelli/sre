@@ -21,12 +21,14 @@ class GameObject
         std::vector<MaterialPtr> mMaterials;
 
         /**
-          * Called when this game object is removed.
-          * All clean up operations are performed in this method */
-        void remove();
+          * Cleans up this GameObject's resources (e.g Mesh).
+          * Unlike remove() it does not remove this GameObject's children */
+        void cleanUp();
 
     public:
         Transform transform;
+
+        std::string name = "gameobject";
 
         GameObject(const Mesh& mesh, MaterialPtr material);
 

@@ -19,5 +19,7 @@ float axisGizmoVertices[] {
 GameObjectEH MeshCreator::axisGizmo()
 {
     Mesh gizmo = MeshLoader::createMesh(axisGizmoVertices, 6, nullptr, 0, GL_LINES);
-    return Engine::renderSys.createGameObject(gizmo, std::make_shared<LineMaterial>());
+    auto go = Engine::renderSys.createGameObject(gizmo, std::make_shared<LineMaterial>());
+    go->name = "axisGizmo";
+    return go;
 }

@@ -5,22 +5,40 @@
 #include <cstdint>
 #include <stack>
 #include <memory>
+#include <map>
 
+/**
+  * A Handle manages the relationship between a HandleList and a data vector.
+  * \sa HandleList */
 struct Handle {
+    /** The index for this element in the data vector */
     std::uint32_t index;
+
+    /** The generation of this element */
     std::uint32_t generation;
 };
 
+/**
+  * An ExternalHandle is a reference to an element in the data vector.
+  * Elements in a data vector can be referenced from the outside of a handle
+  * list through an ExternalHandle
+  * \sa HandleList */
 struct ExternalHandle {
+    /** the index of this element in the HandleList */
     std::uint32_t mHandleIndex;
+
+    /** The generation of this element */
     std::uint32_t mGeneration;
 
+    /**
+      * Creates a new ExternalHandle with a certain index and generation. */
     ExternalHandle(std::uint32_t index, std::uint32_t generation) : mHandleIndex{index}, mGeneration{generation} {}
 
     virtual ~ExternalHandle() = default;
 };
 
 using ExternalHandlePtr = std::shared_ptr<ExternalHandle>;
+
 
 template <class T>
 class HandleList
@@ -30,15 +48,16 @@ class HandleList
 
         std::vector<Handle> mHandles;
         std::queue<std::uint32_t> mFreeSlots;
-        std::stack<std::uint32_t> mLastPositions;
+        std::map<std::uint32_t, std::uint32_t> dataIndex2handleIndex;
 
         std::uint32_t mGeneration = 1;
 
     public:
         HandleList(std::vector<T>& data) : mData{data} {}
 
-        void add(const T&& data, std::uint32_t& outHandleIndex, std::uint32_t& outHandleGeneration) {
-            Handle h{static_cast<std::uint32_t>(mData.size()), mGeneration};
+        void add(const T& data, std::uint32_t& outHandleIndex, std::uint32_t& outHandleGeneration) {
+            std::uint32_t dataIndex = static_cast<std::uint32_t>(mData.size());
+            Handle h{dataIndex, mGeneration};
             mGeneration++;
 
             mData.push_back(data);
@@ -54,29 +73,26 @@ class HandleList
                 mHandles[handleIndex] = h;
             }
 
-            mLastPositions.push(handleIndex);
+            dataIndex2handleIndex[dataIndex] = handleIndex;
 
             outHandleIndex = handleIndex;
             outHandleGeneration = (mGeneration - 1);
         }
 
         void remove(std::uint32_t handleIndex, std::uint32_t handleGeneration) {
-            if (!isValid(handleIndex, handleGeneration))
-                throw std::runtime_error("Access to an invalid or deleted handle");
+            if (handleIndex >= mHandles.size() || mHandles[handleIndex].generation != handleGeneration)
+                throw "Accessing invalid or deleted handle";
 
-            std::uint32_t posOfLast = mLastPositions.top();
-            mLastPositions.pop();
-
-            // deletes data
-            std::uint32_t dataIndexOfLast = mHandles[posOfLast].index;
             std::uint32_t dataIndexToRemove = mHandles[handleIndex].index;
 
             // swaps values
-            std::iter_swap(mData.begin() + dataIndexOfLast, mData.begin() + dataIndexToRemove);
+            std::uint32_t lastDataIndex = mData.size() - 1;
+            std::iter_swap(mData.begin() + lastDataIndex, mData.begin() + dataIndexToRemove);
             mData.erase(mData.end() - 1, mData.end());
 
             // swaps handle data
-            mHandles[posOfLast].index = mHandles[handleIndex].index;
+            mHandles[dataIndex2handleIndex[lastDataIndex]].index = mHandles[handleIndex].index;
+            dataIndex2handleIndex[mHandles[handleIndex].index] = dataIndex2handleIndex[lastDataIndex];
             mHandles[handleIndex].generation = 0;
 
             if (handleIndex == mHandles.size() - 1)

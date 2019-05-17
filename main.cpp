@@ -89,13 +89,14 @@ struct DetachComponent : public Component, public EventListener {
 
 };
 
+
 int main(int argc, char* argv[]) {
     Engine::init();
 
     Engine::renderSys.createWindow(800, 600);
 
-
     auto camera = Engine::renderSys.createGameObject();
+    camera->name = "camera";
     camera->transform.moveBy(glm::vec3{0.0f, 0.0f, 30.0f});
     Engine::renderSys.camera = camera;
 
@@ -104,10 +105,10 @@ int main(int argc, char* argv[]) {
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
 
-    GameObjectLoader().fromFile("tbl.fbx");
-
+    auto eh = GameObjectLoader().fromFile("data/tblTransparent.fbx");
 
     auto light = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), std::make_shared<LightMaterial>());
+    light->name = "light";
     light->addComponent(std::make_shared<Light>(light));
     light->transform.setPosition(glm::vec3{0.0f, 3.0f, 0.0f});
     Engine::renderSys.addLight(light);
@@ -116,17 +117,19 @@ int main(int argc, char* argv[]) {
     light->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
 
     auto light2 = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), std::make_shared<LightMaterial>());
+    light2->name = "light2";
     light2->addComponent(std::make_shared<Light>(light2));
-    //Engine::renderSys.addLight(light2);
+    Engine::renderSys.addLight(light2);
     light2->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light2->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
 
     light2->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
 
     auto light3 = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), std::make_shared<LightMaterial>());
+    light3->name = "light3";
     light3->addComponent(std::make_shared<Light>(light3, Light::Type::DIRECTIONAL));
     light3->transform.setPosition(glm::vec3{0.0f, 10.0f, 5.0f});
-    //Engine::renderSys.addLight(light3);
+    Engine::renderSys.addLight(light3);
     light3->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light3->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light3->getComponent<Light>()->innerAngle = glm::radians(25.0f);
@@ -138,6 +141,8 @@ int main(int argc, char* argv[]) {
     gizmo->transform.setParent(light3);
     gizmo->transform.setPosition(light3->transform.getPosition());
     light3->transform.setRotation(glm::quat{glm::vec3{glm::radians(90.0f), 0.0f, 0.0f}});
+
+    Engine::renderSys.remove(eh);
 
     Engine::start();
 

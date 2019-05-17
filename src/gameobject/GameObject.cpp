@@ -18,14 +18,8 @@ void GameObject::addComponent(const std::shared_ptr<Component>& component)
     mComponents.push_back(component);
 }
 
-void GameObject::remove()
+void GameObject::cleanUp()
 {
-    // informs the parent that it is not its child anymore
-    transform.removeParent();
-
-    for (auto& child : transform.getChildren())
-        Engine::renderSys.remove(child);
-
     // removes all meshes from memory
     for (auto& mesh : mMeshes)
         mesh.cleanUp();

@@ -8,10 +8,12 @@
 #include <cstdint>
 #include <map>
 #include <cstdlib>
+#include <string>
 
 GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
 {
     GameObjectEH go = Engine::renderSys.createGameObject();
+    go->name = std::string{node->mName.C_Str()};
 
     std::cout << "at node " << node->mName.C_Str() << "\n";
     for (std::uint32_t i = 0; i < node->mNumMeshes; ++i) {
@@ -96,6 +98,8 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_SPECULAR, color))
         phongBuilder.setSpecularColor(glm::vec3{color.r, color.g, color.b});
 
+    //if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_TRANSPARENT, color))
+
     float shininess = 0.0f;
     phongBuilder.setShininess(shininess); // defaults to 0
     if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS, shininess))
@@ -112,8 +116,9 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 
     // Another check to see if the material is transparent
     float opacity = 1.0f;
-    if (AI_SUCCESS == material->Get(AI_MATKEY_OPACITY, opacity))
+    if (AI_SUCCESS == material->Get(AI_MATKEY_OPACITY, opacity)) {
         loadedMaterial->isTwoSided = opacity < 1.0f;
+    }
 
     return phongBuilder.build();
 }

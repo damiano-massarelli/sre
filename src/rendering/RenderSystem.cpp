@@ -14,6 +14,7 @@
 RenderSystem::RenderSystem() : mGameObjectsHL{mGameObjects}, camera{&mGameObjectsHL, 0, 0}
 {
     camera = createGameObject();
+    camera->name = "defaultCamera";
 }
 
 void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -90,8 +91,7 @@ void RenderSystem::update()
 
 void RenderSystem::updateLights()
 {
-
-    std::size_t numLight = std::min((std::size_t)10, mLights.size());
+    std::size_t numLight = std::min((std::size_t)MAX_LIGHT_NUMBER, mLights.size());
     glBindBuffer(GL_UNIFORM_BUFFER, mUboLights);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(std::size_t), (void*)&numLight);
     for (std::size_t i = 0; i < numLight; i++) {
@@ -199,9 +199,27 @@ GameObjectEH RenderSystem::createGameObject()
 
 void RenderSystem::remove(const GameObjectEH& go)
 {
-    if (go)
-        go->remove();
-    mGameObjectsHL.remove(go.mHandleIndex, go.mGeneration);
+    /* GameObjects form a hierarchy through their transform objects. Removing GameObjects recursively
+     * (a parent calls remove on its children) is, however, impossible. In fact, while we are operating on
+     * a GameObject living in a vector (mGameObjects) we also change this vector by deleting its children. When
+     * control goes back to the parent GameObject the vector it is living in might be moved somewhere else in memory
+     * thus invalidating pointers (among which the this pointer). The solution here is to batch delete a node and
+     * all its children. Another solution might be to delete the parent first and then its children */
+
+    go->transform.removeParent(); // breaks the hierarchy here
+    std::vector<GameObjectEH> toRemove{go};
+
+    // fills this vector with all the GameObjects in the hierarchy
+    for (std::size_t i = 0; i < toRemove.size(); ++i) {
+        const auto& children = (toRemove[i])->transform.getChildren();
+        toRemove.insert(toRemove.end(), children.begin(), children.end());
+    }
+
+    // cleans up and removes all the GameObjects in the hierarchy
+    for (auto& rem : toRemove) {
+        rem->cleanUp();
+        mGameObjectsHL.remove(rem.mHandleIndex, rem.mGeneration);
+    }
 }
 
 void RenderSystem::addLight(const GameObjectEH& light)
@@ -216,8 +234,10 @@ void RenderSystem::addLight(const GameObjectEH& light)
 
 RenderSystem::~RenderSystem()
 {
+    // no need to remove them, just clean up what they
+    // allocated.
     for (auto& go : mGameObjects)
-        go.remove();
+        go.cleanUp();
 
     // Delete uniform buffers
     glDeleteBuffers(1, &mUboCommonMat);
