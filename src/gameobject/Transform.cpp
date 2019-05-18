@@ -98,6 +98,63 @@ const glm::vec3& Transform::getScale() const
     return mScale;
 }
 
+void Transform::setLocalPosition(const glm::vec3& localPosition)
+{
+    glm::vec3 parentPos{0.0f};
+    if (mParent)
+        parentPos = mParent->transform.getPosition();
+    setPosition(parentPos + localPosition);
+}
+
+void Transform::setLocalRotation(const glm::quat& localRotation)
+{
+    glm::quat parentRot{1.0f, 0.0f, 0.0f, 0.0f};
+    glm::vec3 parentPos{0.0f};
+    if (mParent) {
+        Transform& transform = mParent->transform;
+        parentRot = transform.getRotation();
+        parentPos = transform.getPosition();
+    }
+    setRotation(parentRot * localRotation, parentPos);
+}
+
+void Transform::setLocalScale(const glm::vec3 localScale)
+{
+    glm::vec3 parentScale{1.0f, 1.0f, 1.0f};
+    glm::vec3 parentPos{0.0f};
+    if (mParent) {
+        Transform& transform = mParent->transform;
+        parentScale = transform.getScale();
+        parentPos = transform.getPosition();
+    }
+    setScale(parentScale * localScale, parentPos);
+}
+
+glm::vec3 Transform::getLocalPosition() const
+{
+    glm::vec3 parentPos{0.0f};
+    if (mParent)
+        parentPos = mParent->transform.getPosition();
+    return getPosition() - parentPos;
+}
+
+glm::quat Transform::getLocalRotation() const
+{
+    glm::quat parentRot{1.0f, 0.0f, 0.0f, 0.0f};
+    if (mParent)
+        parentRot = mParent->transform.getRotation();
+    return getRotation() * glm::conjugate(parentRot);
+}
+
+glm::vec3 Transform::getLocalScale() const
+{
+    glm::vec3 parentScale{1.0f, 1.0f, 1.0f};
+    if (mParent)
+        parentScale = mParent->transform.getScale();
+    auto scale = getScale();
+    return glm::vec3{scale.x / parentScale.x, scale.y / parentScale.y, scale.z / parentScale.z};
+}
+
 glm::mat3 Transform::modelToUpright() const
 {
     return glm::toMat3(mRotation);
