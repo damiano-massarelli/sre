@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <glad/glad.h>
+#include <map>
 
 /**
  * A drawable image.
@@ -35,6 +36,15 @@ class Texture {
           * @param length of the buffer
           * @return the loaded texture */
         static Texture loadFromMemory(std::uint8_t* data, std::int32_t len, int wrapS = GL_REPEAT, int wrapT = GL_REPEAT);
+
+        /**
+          * Loads a cubmap from file.
+          * The paths parameter is a map in which the key is the side of the cube
+          * (front, bottom, top, back, left, right) and the values are the corresponding paths
+          * of the images for those sides.
+          * @param paths the paths of the images composing the cubemap.
+          * @return a new cubemap */
+        static Texture loadCubamapFromFile(const std::map<std::string, std::string>& paths);
 
         std::string nameInShader;
 

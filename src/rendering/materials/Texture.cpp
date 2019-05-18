@@ -31,6 +31,11 @@ Texture Texture::loadFromMemory(std::uint8_t* data, std::int32_t len, int wrapS,
     return Texture::load(convertedData, width, height, wrapS, wrapT);
 }
 
+Texture Texture::loadCubamapFromFile(const std::map<std::string, std::string>& paths)
+{
+
+}
+
 Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int wrapT)
 {
     if (data == nullptr)
