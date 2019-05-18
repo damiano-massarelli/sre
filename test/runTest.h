@@ -4,4 +4,5 @@
 
  //#define loadHierarchies
  //#define transformLocal
- #define basicTransparency
+ //#define basicTransparency
+#define skybox

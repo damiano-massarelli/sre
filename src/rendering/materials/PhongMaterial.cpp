@@ -35,6 +35,7 @@ void PhongMaterial::use()
 
     shader.setFloat("material.opacity", opacity);
 
+    // TODO remove data about camera should use a ubo
     shader.setVec3("cameraPosition", Engine::renderSys.camera->transform.getPosition());
 
     if (diffuseMap) {
