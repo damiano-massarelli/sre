@@ -48,7 +48,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     SDL_GL_CreateContext(mWindow);
 
     // Use v-sync
-    //SDL_GL_SetSwapInterval(1);
+    SDL_GL_SetSwapInterval(1);
 
     if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
         std::cout << "Failed to initialize GLAD\n";
@@ -212,8 +212,6 @@ void RenderSystem::render()
         auto mesh = ord.mesh;
 
         material->use();
-        auto col = static_cast<PhongMaterial*>(material.get())->diffuseColor;
-        std::cout << ord.order << " " << col.r << " " << col.g << " " << col.b << "\n";
 
         glBindVertexArray(mesh.mVao);
 
@@ -225,7 +223,6 @@ void RenderSystem::render()
         glBindVertexArray(0);
         material->after();
     }
-    std::cout << "\n\n";
 }
 
 GameObjectEH RenderSystem::createGameObject(const Mesh& mesh, MaterialPtr material)
