@@ -50,10 +50,22 @@ void PhongMaterial::use()
         glBindTexture(GL_TEXTURE_2D, specularMap.getId());
     } else
         shader.setInt("material.useSpecularMap", 0);
+
+    // disable backface culling
+    if (isTwoSided) {
+        glDepthMask(false);
+        glDisable(GL_CULL_FACE);
+    }
 }
 
 void PhongMaterial::after()
 {
+     // enable backface culling
+    if (isTwoSided) {
+        glDepthMask(true);
+        glEnable(GL_CULL_FACE);
+    }
+
     // unbind textures
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, 0);

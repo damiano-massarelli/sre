@@ -46,6 +46,10 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     glm::vec4 perspective;
     glm::decompose(convertMatrix(node->mTransformation) , scale, rotation, position, skew, perspective);
 
+    /* There is no need to use local transformations since when the following code is executed
+     * all the children have their position already set relative to the parent (thanks to the
+     * decomposed matrix). When the following transformations are applied they also affect the
+     * children of this node */
     go->transform.setPosition(position);
     go->transform.setRotation(rotation);
     go->transform.setScale(scale);

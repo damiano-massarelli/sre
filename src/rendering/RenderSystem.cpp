@@ -8,15 +8,8 @@
 #include <exception>
 #include <algorithm>
 #include <iostream>
-#include <algorithm>
-
+#include <map>
 #include "PhongMaterial.h"
-
-struct OrderedRenderingData {
-    Mesh mesh;
-    MaterialPtr material;
-    float order;
-};
 
 RenderSystem::RenderSystem() : mGameObjectsHL{mGameObjects}, camera{&mGameObjectsHL, 0, 0}
 {
@@ -86,9 +79,9 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //glEnable(GL_CULL_FACE);
-    //glCullFace(GL_BACK);
-    //glFrontFace(GL_CCW);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
 }
 
 void RenderSystem::update()
@@ -176,7 +169,7 @@ void RenderSystem::render()
 
     updateLights();
 
-    std::vector<OrderedRenderingData> orderedRender;
+    std::map<float, std::pair<Mesh, MaterialPtr>> orderedRender;
     for (auto const& go : mGameObjects) {
         for (std::size_t meshIndex = 0; meshIndex < go.mMeshes.size(); meshIndex++) {
             MaterialPtr material = go.mMaterials[meshIndex];
@@ -189,40 +182,38 @@ void RenderSystem::render()
             }
 
             if (material->needsOrderedRendering()) {
-                orderedRender.push_back({mesh, material, material->renderOrder(go.transform.getPosition())});
+                float order = material->renderOrder(go.transform.getPosition());
+                orderedRender[order] = std::make_pair(mesh, material);
                 continue;
             }
 
-            glBindVertexArray(mesh.mVao);
-
-            if (mesh.mUsesIndices)
-                glDrawElements(mesh.mDrawMode, mesh.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
-            else
-                glDrawArrays(mesh.mDrawMode, 0, mesh.mVertexNumber);
-
-            glBindVertexArray(0);
-
-            if (material) material->after();
+            draw(mesh, material);
         }
     }
 
-    std::sort(orderedRender.begin(), orderedRender.end(), [](const auto& ord, const auto& ord2) {return ord.order > ord2.order;});
-    for (auto& ord : orderedRender) {
-        auto material = ord.material;
-        auto mesh = ord.mesh;
+    // render meshed that need to be rendered in a specific order
+    for (auto ord = orderedRender.rbegin(); ord != orderedRender.rend(); ++ord) {
+        auto data = ord->second;
+        auto mesh = data.first;
+        auto material = data.second;
 
-        material->use();
-
-        glBindVertexArray(mesh.mVao);
-
-        if (mesh.mUsesIndices)
-            glDrawElements(mesh.mDrawMode, mesh.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
-        else
-            glDrawArrays(mesh.mDrawMode, 0, mesh.mVertexNumber);
-
-        glBindVertexArray(0);
-        material->after();
+        draw(mesh, material);
     }
+}
+
+void RenderSystem::draw(Mesh mesh, MaterialPtr material)
+{
+    material->use();
+    glBindVertexArray(mesh.mVao);
+
+    if (mesh.mUsesIndices)
+        glDrawElements(mesh.mDrawMode, mesh.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
+    else
+        glDrawArrays(mesh.mDrawMode, 0, mesh.mVertexNumber);
+
+    glBindVertexArray(0);
+
+    if (material) material->after();
 }
 
 GameObjectEH RenderSystem::createGameObject(const Mesh& mesh, MaterialPtr material)

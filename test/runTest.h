@@ -3,4 +3,5 @@
  * a specific test */
 
  //#define loadHierarchies
- #define transformLocal
+ //#define transformLocal
+ #define basicTransparency

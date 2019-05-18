@@ -35,6 +35,8 @@ class RenderSystem
 
         void render();
 
+        void draw(Mesh mesh, MaterialPtr material);
+
         // private constructor, only the engine can create a render system
         RenderSystem();
 
