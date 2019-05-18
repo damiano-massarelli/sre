@@ -20,6 +20,7 @@ out vec4 FragColor;
 
 uniform vec3 cameraPosition;
 uniform PhongMaterial material;
+
 layout (std140) uniform Lights {
     int numLights;
     Light lights[10];

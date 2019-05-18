@@ -33,7 +33,47 @@ Texture Texture::loadFromMemory(std::uint8_t* data, std::int32_t len, int wrapS,
 
 Texture Texture::loadCubamapFromFile(const std::map<std::string, std::string>& paths)
 {
+    std::map<std::string, int> side2glSide{
+        {"front", GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},
+        {"back", GL_TEXTURE_CUBE_MAP_POSITIVE_Z},
+        {"top", GL_TEXTURE_CUBE_MAP_POSITIVE_Y},
+        {"bottom", GL_TEXTURE_CUBE_MAP_NEGATIVE_Y},
+        {"right", GL_TEXTURE_CUBE_MAP_POSITIVE_X},
+        {"left", GL_TEXTURE_CUBE_MAP_NEGATIVE_X}
+    };
 
+    std::uint32_t cubemap;
+    glGenTextures(1, &cubemap);
+
+    stbi_set_flip_vertically_on_load(false);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+    int width, height, numCh;
+    for (auto typePath = paths.begin(); typePath != paths.end(); ++typePath) {
+        int side = 0;
+
+        if (side2glSide.count(typePath->first) != 0) {
+            side = side2glSide[typePath->first];
+        } else {
+            std::cout << "Unknown cubemap side " << typePath->first << "\n";
+            continue;
+        }
+
+        std::uint8_t* data = stbi_load((typePath->second).c_str(), &width, &height, &numCh, STBI_rgb_alpha);
+        if (data) {
+            glTexImage2D(side, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        }
+        else
+            std::cout << "unable to load texture " << typePath->second << "\n";
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return Texture{cubemap};
 }
 
 Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int wrapT)
