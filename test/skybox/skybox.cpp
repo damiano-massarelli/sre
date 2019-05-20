@@ -13,51 +13,6 @@
 
 #include <iostream>
 
-static float vertices[] = {
-    // positions          // normals           // texture coords
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-};
-
 struct MoveComponent : public Component, public EventListener {
 
     MoveComponent(const GameObjectEH& eh) : Component{eh} {
@@ -77,7 +32,6 @@ struct MoveComponent : public Component, public EventListener {
     }
 
 };
-#define skybox
 #ifdef skybox
 int main(int argc, char* argv[]) {
     Engine::init();
@@ -100,9 +54,9 @@ int main(int argc, char* argv[]) {
     .build();
 
 
-    auto parent = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), phong);
+    auto parent = Engine::renderSys.createGameObject(MeshCreator::cube(), phong);
     parent->addComponent(std::make_shared<MoveComponent>(parent));
-    auto child = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), phong);
+    auto child = Engine::renderSys.createGameObject(MeshCreator::cube(), phong);
     child->transform.setParent(parent);
     child->transform.setLocalPosition(glm::vec3{2, 0, 0});
     child->transform.setLocalRotation(glm::quat{ glm::vec3{0.0f, glm::radians(30.0f), 0.0f }});
@@ -116,10 +70,10 @@ int main(int argc, char* argv[]) {
                     {"right", "test_data/skybox/right.tga"},
                 });
     auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
-    auto box = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), skyboxMaterial);
+    auto box = Engine::renderSys.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
 
-    auto light = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), std::make_shared<LightMaterial>());
+    auto light = Engine::renderSys.createGameObject(MeshCreator::cube(), std::make_shared<LightMaterial>());
     light->name = "light";
     light->addComponent(std::make_shared<Light>(light));
     light->transform.setPosition(glm::vec3{0.0f, 3.0f, 0.0f});
@@ -128,7 +82,7 @@ int main(int argc, char* argv[]) {
     light->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
 
-    auto light2 = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), std::make_shared<LightMaterial>());
+    auto light2 = Engine::renderSys.createGameObject(MeshCreator::cube(), std::make_shared<LightMaterial>());
     light2->name = "light2";
     light2->addComponent(std::make_shared<Light>(light2));
     Engine::renderSys.addLight(light2);
@@ -137,7 +91,7 @@ int main(int argc, char* argv[]) {
 
     light2->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
 
-    auto light3 = Engine::renderSys.createGameObject(MeshLoader::createMesh(vertices, 36, nullptr, 0), std::make_shared<LightMaterial>());
+    auto light3 = Engine::renderSys.createGameObject(MeshCreator::cube(), std::make_shared<LightMaterial>());
     light3->name = "light3";
     light3->addComponent(std::make_shared<Light>(light3, Light::Type::DIRECTIONAL));
     light3->transform.setPosition(glm::vec3{0.0f, 0.0f, 15.0f});

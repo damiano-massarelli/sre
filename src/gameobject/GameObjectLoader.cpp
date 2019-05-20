@@ -60,6 +60,11 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiMesh* mesh, const a
 {
     // data regarding vertices: positions, normals, texture coords
     std::vector<float> vertexData;
+
+    std::vector<float> positions;
+    std::vector<float> normals;
+    std::vector<float> texCoords;
+
     std::vector<Vertex> vertices;
     std::vector<std::uint32_t> indices;
 
@@ -69,25 +74,30 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiMesh* mesh, const a
 
         // position
         vertexData.insert(vertexData.end(), {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z});
+        positions.insert(positions.end(), {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z});
         v.position = glm::vec3{mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
 
         // normal, if not present 0, 0, 0 is used
         if (mesh->HasNormals()) {
             vertexData.insert(vertexData.end(), {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z});
+            normals.insert(normals.end(), {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z});
             v.normal = glm::vec3{mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
         } else {
             std::cout << "cannot find normals, setting them to (0, 0, 0)\n";
             vertexData.insert(vertexData.end(), {0.0f, 0.0f, 0.0f});
+            normals.insert(normals.end(), {0.0f, 0.0f, 0.0f});
             v.normal = glm::vec3{0.0f, 0.0f, 0.0f};
         }
 
         // if texture coordinates are not available just put (0, 0)
         if (mesh->mTextureCoords[0]) {
             vertexData.insert(vertexData.end(), {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y});
+            texCoords.insert(texCoords.end(), {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y});
             v.texCoord = glm::vec2{mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
         } else {
             std::cout << "cannot find uv coords, setting them to (0, 0)\n";
             vertexData.insert(vertexData.end(), {0.0f, 0.0f});
+            texCoords.insert(texCoords.end(), {0.0f, 0.0f});
             v.texCoord = glm::vec2{0.0f, 0.0f};
         }
 
@@ -101,7 +111,14 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiMesh* mesh, const a
             indices.push_back(face.mIndices[j]);
     }
 
-    Mesh loadedMesh = MeshLoader::createMesh(vertexData.data(), vertices.size(), indices.data(), indices.size());
+    MeshLoader loader;
+    loader.loadData(positions.data(), positions.size(), 3);
+    loader.loadData(normals.data(), normals.size(), 3);
+    loader.loadData(texCoords.data(), texCoords.size(), 2);
+    loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
+
+    Mesh loadedMesh = loader.getMesh(vertices.size(), indices.size());
+
     MaterialPtr loadedMaterial = processMaterial(mesh, scene);
     if (loadedMaterial == nullptr) {
         std::cerr << "Mesh " << mesh->mName.C_Str() << "does not have a corresponding material, discarded\n";
