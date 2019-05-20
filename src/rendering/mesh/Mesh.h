@@ -25,8 +25,7 @@ class Mesh
 
     private:
         std::uint32_t mVao = 0;
-        std::uint32_t mVbo = 0;
-        std::uint32_t mEbo = 0;
+        std::vector<std::uint32_t> mBuffers;
 
         bool mUsesIndices = false;
 
@@ -39,7 +38,7 @@ class Mesh
         std::uint32_t mVertexNumber = 0;
         std::uint32_t mIndicesNumber = 0;
 
-        Mesh(std::uint32_t vao, std::uint32_t vbo, std::uint32_t ebo);
+        Mesh(std::uint32_t vao);
 
     public:
         Mesh() = default;

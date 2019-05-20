@@ -1,7 +1,7 @@
 #include "Mesh.h"
 #include <glad/glad.h>
 
-Mesh::Mesh(std::uint32_t vao, std::uint32_t vbo, std::uint32_t ebo) : mVao{vao}, mVbo{vbo}, mEbo{ebo}
+Mesh::Mesh(std::uint32_t vao) : mVao{vao}
 {
 
 }
@@ -18,10 +18,9 @@ bool Mesh::hasVertexData() const
 
 void Mesh::cleanUp()
 {
-    glDeleteBuffers(1, &mVbo);
-    mVbo = 0;
-    glDeleteBuffers(1, &mEbo);
-    mEbo = 0;
+    for (auto& buffer : mBuffers)
+        glDeleteBuffers(1, &buffer);
+
     glDeleteVertexArrays(1, &mVao);
     mVao = 0;
 }
