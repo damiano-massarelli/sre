@@ -1,7 +1,7 @@
 #include "Engine.h"
 #include "MeshLoader.h"
 #include "PhongMaterial.h"
-#include "LightMaterial.h"
+#include "PropMaterial.h"
 #include "SkyboxMaterial.h"
 
 #include "FreeCameraComponent.h"
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 
     Engine::renderSys.createWindow(1280, 720);
 
-    auto camera = Engine::renderSys.createGameObject();
+    auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
     camera->transform.moveBy(glm::vec3{0.0f, 0.0f, 30.0f});
     Engine::renderSys.camera = camera;
@@ -54,9 +54,9 @@ int main(int argc, char* argv[]) {
     .build();
 
 
-    auto parent = Engine::renderSys.createGameObject(MeshCreator::cube(), phong);
+    auto parent = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), phong);
     parent->addComponent(std::make_shared<MoveComponent>(parent));
-    auto child = Engine::renderSys.createGameObject(MeshCreator::cube(), phong);
+    auto child = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), phong);
     child->transform.setParent(parent);
     child->transform.setLocalPosition(glm::vec3{2, 0, 0});
     child->transform.setLocalRotation(glm::quat{ glm::vec3{0.0f, glm::radians(30.0f), 0.0f }});
@@ -70,10 +70,10 @@ int main(int argc, char* argv[]) {
                     {"right", "test_data/skybox/right.tga"},
                 });
     auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
-    auto box = Engine::renderSys.createGameObject(MeshCreator::cube(), skyboxMaterial);
+    auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
 
-    auto light = Engine::renderSys.createGameObject(MeshCreator::cube(), std::make_shared<LightMaterial>());
+    auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
     light->addComponent(std::make_shared<Light>(light));
     light->transform.setPosition(glm::vec3{0.0f, 3.0f, 0.0f});
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     light->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
 
-    auto light2 = Engine::renderSys.createGameObject(MeshCreator::cube(), std::make_shared<LightMaterial>());
+    auto light2 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light2->name = "light2";
     light2->addComponent(std::make_shared<Light>(light2));
     Engine::renderSys.addLight(light2);
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 
     light2->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
 
-    auto light3 = Engine::renderSys.createGameObject(MeshCreator::cube(), std::make_shared<LightMaterial>());
+    auto light3 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light3->name = "light3";
     light3->addComponent(std::make_shared<Light>(light3, Light::Type::DIRECTIONAL));
     light3->transform.setPosition(glm::vec3{0.0f, 0.0f, 15.0f});

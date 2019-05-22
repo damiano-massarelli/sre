@@ -15,10 +15,6 @@ class RenderSystem
     private:
         SDL_Window* mWindow = nullptr;
 
-        std::vector<GameObject> mGameObjects;
-
-        HandleList<GameObject> mGameObjectsHL;
-
         glm::mat4 mProjection{1.0f};
 
         /** reference for the common matrix ubo */
@@ -33,14 +29,15 @@ class RenderSystem
 
         void updateLights();
 
-        void render();
-
         void draw(Mesh mesh, MaterialPtr material);
 
         // private constructor, only the engine can create a render system
         RenderSystem();
 
     public:
+        /** Creates a new window */
+        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 200.0f);
+
         /** Maximum number of lights */
         static constexpr std::size_t MAX_LIGHT_NUMBER = 10;
 
@@ -57,26 +54,6 @@ class RenderSystem
         RenderSystem(const RenderSystem& rs) = delete;
         RenderSystem& operator=(const RenderSystem& rs) = delete;
 
-        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = glm::radians(45.0f), float nearPlane = 0.1f, float farPlane = 100.0f);
-
-        /**
-          * Creates a GameObject with a given Mesh and the corresponding Material
-          * @param mesh the mesh used by this game object
-          * @param material the material used to render the mesh
-          * @return a handle to the created game object */
-        GameObjectEH createGameObject(const Mesh& mesh, MaterialPtr material);
-
-        /**
-          * Creates an empty game object
-          * @return a handle to the created game */
-        GameObjectEH createGameObject();
-
-        /**
-          * Removes a game object and all its children.
-          * All the external handles referencing these GameObject will become invalid.
-          * @param go the game object to remove */
-        void remove(const GameObjectEH& go);
-
         /**
           * Adds a light to the scene
           * if the GameObject does not have a Light component it is silently
@@ -85,7 +62,7 @@ class RenderSystem
           */
         void addLight(const GameObjectEH& light);
 
-        void update();
+        void render(const std::vector<GameObject>& gameObjects);
 
         virtual ~RenderSystem();
 };

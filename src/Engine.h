@@ -3,6 +3,7 @@
 #include "RenderSystem.h"
 #include "EventManager.h"
 #include "EventListener.h"
+#include "GameObjectManager.h"
 #include "SDL.h"
 #include <cstdint>
 #include <memory>
@@ -20,8 +21,10 @@ class Engine : public EventListener
     public:
         Engine();
 
-        static RenderSystem renderSys;
         static EventManager eventManager;
+        static GameObjectManager gameObjectManager;
+        static RenderSystem renderSys;
+
 
         /**
           * Initializes the engine.

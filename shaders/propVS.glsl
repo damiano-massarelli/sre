@@ -10,7 +10,11 @@ layout (std140) uniform CommonMat {
     mat4 view;
 };
 
+out vec3 normal;
 
 void main() {
+    mat3 normalMatrix = mat3(transpose(inverse(view * model)));
+    normal = normalize(vec3(projection * vec4(normalMatrix * vNorm, 0.0)));
+
     gl_Position = projection * view * model * vec4(vPos, 1.0f);
 }

@@ -20,11 +20,6 @@ class GameObject
         std::vector<Mesh> mMeshes;
         std::vector<MaterialPtr> mMaterials;
 
-        /**
-          * Cleans up this GameObject's resources (e.g Mesh).
-          * Unlike remove() it does not remove this GameObject's children */
-        void cleanUp();
-
     public:
         Transform transform;
 
@@ -54,6 +49,13 @@ class GameObject
             }
             return nullptr;
         }
+
+        /**
+          * Cleans up this GameObject's resources (e.g Mesh).
+          * This method is automatically called by the GameObjectManager
+          * when a GameObject is removed. Attempting to use a cleaned up
+          * GameObject may result in undefined behavior */
+        void cleanUp();
 
         virtual ~GameObject();
 };
