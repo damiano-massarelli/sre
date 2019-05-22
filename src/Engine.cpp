@@ -6,9 +6,9 @@
 // Static member declarations:
 std::unique_ptr<Engine> Engine::instance;
 bool Engine::shouldQuit = false;
-EventManager Engine::eventManager;
 GameObjectManager Engine::gameObjectManager;
 RenderSystem Engine::renderSys;
+EventManager Engine::eventManager;
 
 Engine::Engine()
 {

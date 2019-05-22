@@ -21,10 +21,9 @@ class Engine : public EventListener
     public:
         Engine();
 
-        static EventManager eventManager;
         static GameObjectManager gameObjectManager;
         static RenderSystem renderSys;
-
+        static EventManager eventManager;
 
         /**
           * Initializes the engine.
