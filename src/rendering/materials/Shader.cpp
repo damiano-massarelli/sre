@@ -16,12 +16,22 @@ std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec)
 }
 
 Shader::Shader(const std::vector<std::string>& vertexPaths, const std::vector<std::string>& fragmentPaths)
+  : Shader{vertexPaths, std::vector<std::string>{}, fragmentPaths}
+{
+
+}
+
+Shader::Shader(const std::vector<std::string>& vertexPaths, const std::vector<std::string>& geometryPaths, const std::vector<std::string>& fragmentPaths)
 {
     std::uint32_t vertexShader = createShader(vertexPaths, GL_VERTEX_SHADER);
     std::uint32_t fragmentShader = createShader(fragmentPaths, GL_FRAGMENT_SHADER);
+    std::uint32_t geometryShader = 0;
+    if (geometryPaths.size() != 0)
+        geometryShader = createShader(geometryPaths, GL_GEOMETRY_SHADER);
 
     programId = glCreateProgram();
     glAttachShader(programId, vertexShader);
+    if (geometryShader != 0) glAttachShader(programId, geometryShader);
     glAttachShader(programId, fragmentShader);
     glLinkProgram(programId);
 
@@ -34,11 +44,19 @@ Shader::Shader(const std::vector<std::string>& vertexPaths, const std::vector<st
         std::cerr << "linking problem " << vertexPaths << "-" << fragmentPaths << ": " << infoLog << "\n";
     }
 
+    if (geometryShader != 0) glDeleteShader(geometryShader);
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 }
 
-Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) : Shader{std::vector<std::string>{vertexPath}, std::vector<std::string>{fragmentPath}}
+Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
+  : Shader{std::vector<std::string>{vertexPath}, std::vector<std::string>{fragmentPath}}
+{
+
+}
+
+Shader::Shader(const std::string& vertexPath, const std::string& geometryPath, const std::string& fragmentPath)
+  : Shader{std::vector<std::string>{vertexPath}, std::vector<std::string>{geometryPath}, std::vector<std::string>{fragmentPath}}
 {
 
 }

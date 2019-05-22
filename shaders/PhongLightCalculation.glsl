@@ -4,6 +4,8 @@
 vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float shininess, vec3 fragPosition, vec3 fragNormal, vec3 cameraPosition) {
     vec3 outcolor = vec3(0.0f);
 
+    fragNormal = normalize(fragNormal);
+
     // ambient component
     outcolor += diffuseColor * light.ambientColor;
 
@@ -23,11 +25,11 @@ vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float
     float diffuseIntensity = max(dot(fragNormal, rayToLight), 0.0f);
     outcolor += light.diffuseColor * diffuseColor * diffuseIntensity;
 
-    // specular component
-    vec3 rayToCamera = normalize(cameraPosition - fragPosition);
-    vec3 reflectedLight = reflect(-rayToLight, fragNormal);
-
     if (shininess != 0) { // Phong or Lambert material? if shininess == 0 it is Lambert
+        // specular component
+        vec3 rayToCamera = normalize(cameraPosition - fragPosition);
+        vec3 reflectedLight = reflect(-rayToLight, fragNormal);
+
         float specularIntensity = pow(max(dot(reflectedLight, rayToCamera), 0.0f), shininess);
         outcolor += (light.specularColor * specularColor * specularIntensity);
     }

@@ -10,10 +10,11 @@
 #include <iostream>
 #include <map>
 #include "PhongMaterial.h"
+#include "Engine.h"
 
-RenderSystem::RenderSystem() : mGameObjectsHL{mGameObjects}, camera{&mGameObjectsHL, 0, 0}
+RenderSystem::RenderSystem()
 {
-    camera = createGameObject();
+    camera = Engine::gameObjectManager.createGameObject();
     camera->name = "defaultCamera";
 }
 
@@ -84,16 +85,6 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     glFrontFace(GL_CCW);
 }
 
-void RenderSystem::update()
-{
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    render();
-
-    SDL_GL_SwapWindow(mWindow);
-}
-
 void RenderSystem::updateLights()
 {
     std::size_t numLight = std::min((std::size_t)MAX_LIGHT_NUMBER, mLights.size());
@@ -142,8 +133,11 @@ void RenderSystem::updateLights()
     }
 }
 
-void RenderSystem::render()
+void RenderSystem::render(const std::vector<GameObject>& gameObjects)
 {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);               // TODO move to master renderer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // TODO move to master renderer
+
     /* Camera calculations */
     glm::mat4 view = glm::mat4{1.0f};
     if (camera) {
@@ -170,7 +164,7 @@ void RenderSystem::render()
     updateLights();
 
     std::map<float, std::pair<Mesh, MaterialPtr>> orderedRender;
-    for (auto const& go : mGameObjects) {
+    for (auto const& go : gameObjects) {
         for (std::size_t meshIndex = 0; meshIndex < go.mMeshes.size(); meshIndex++) {
             MaterialPtr material = go.mMaterials[meshIndex];
             Mesh mesh = go.mMeshes[meshIndex];
@@ -199,6 +193,8 @@ void RenderSystem::render()
 
         draw(mesh, material);
     }
+
+    SDL_GL_SwapWindow(mWindow); // TODO move to master renderer
 }
 
 void RenderSystem::draw(Mesh mesh, MaterialPtr material)
@@ -216,45 +212,6 @@ void RenderSystem::draw(Mesh mesh, MaterialPtr material)
     if (material) material->after();
 }
 
-GameObjectEH RenderSystem::createGameObject(const Mesh& mesh, MaterialPtr material)
-{
-    std::uint32_t index, gen;
-    mGameObjectsHL.add(GameObject(mesh, material), index, gen);
-    return GameObjectEH(&mGameObjectsHL, index, gen);
-}
-
-GameObjectEH RenderSystem::createGameObject()
-{
-    std::uint32_t index, gen;
-    mGameObjectsHL.add(GameObject(), index, gen);
-    return GameObjectEH(&mGameObjectsHL, index, gen);
-}
-
-void RenderSystem::remove(const GameObjectEH& go)
-{
-    /* GameObjects form a hierarchy through their transform objects. Removing GameObjects recursively
-     * (a parent calls remove on its children) is, however, impossible. In fact, while we are operating on
-     * a GameObject living in a vector (mGameObjects) we also change this vector by deleting its children. When
-     * control goes back to the parent GameObject the vector it is living in might be moved somewhere else in memory
-     * thus invalidating pointers (among which the this pointer). The solution here is to batch delete a node and
-     * all its children. Another solution might be to delete the parent first and then its children */
-
-    go->transform.removeParent(); // breaks the hierarchy here
-    std::vector<GameObjectEH> toRemove{go};
-
-    // fills this vector with all the GameObjects in the hierarchy
-    for (std::size_t i = 0; i < toRemove.size(); ++i) {
-        const auto& children = (toRemove[i])->transform.getChildren();
-        toRemove.insert(toRemove.end(), children.begin(), children.end());
-    }
-
-    // cleans up and removes all the GameObjects in the hierarchy
-    for (auto& rem : toRemove) {
-        rem->cleanUp();
-        mGameObjectsHL.remove(rem.mHandleIndex, rem.mGeneration);
-    }
-}
-
 void RenderSystem::addLight(const GameObjectEH& light)
 {
     if (light->getComponent<Light>() == nullptr) {
@@ -267,11 +224,6 @@ void RenderSystem::addLight(const GameObjectEH& light)
 
 RenderSystem::~RenderSystem()
 {
-    // no need to remove them, just clean up what they
-    // allocated.
-    for (auto& go : mGameObjects)
-        go.cleanUp();
-
     // Delete uniform buffers
     glDeleteBuffers(1, &mUboCommonMat);
     glDeleteBuffers(1, &mUboLights);

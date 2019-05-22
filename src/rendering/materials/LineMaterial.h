@@ -9,6 +9,8 @@ class LineMaterial : public Material
 
         virtual void use() override;
 
+        virtual void after() override;
+
         virtual ~LineMaterial();
 };
 

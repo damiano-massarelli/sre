@@ -25,6 +25,14 @@ class Material
         Material(const std::string& vertexShader, const std::string& fragmentShader);
 
         /**
+          * Creates a new material using a vertexShader a fragmentShader and a geom shader.
+          * Shaders should be stored on disk.
+          * @param vertexShader the path of the vertex shader
+          * @param geomtryShader the path of the geometry shader
+          * @param fragmentShader the path of the fragment shader */
+        Material(const std::string& vertexShader, const std::string& geometryShader, const std::string& fragmentShader);
+
+        /**
           * Creates a new material using vertex shaders and fragment shader.
           * Vertex shaders and fragment shaders should be stored on disk.
           * The provided fragment shaders are combined together
@@ -33,6 +41,17 @@ class Material
           * @param vertexShaders the path of the vertex shaders
           * @param fragmentShaders the path of the fragment shaders */
         Material(const std::vector<std::string>& vertexShaders, const std::vector<std::string>& fragmentShaders);
+
+        /**
+          * Creates a new material using vertex shaders, fragment shader and a geom shader.
+          * Shaders should be stored on disk.
+          * The provided fragment shaders are combined together
+          * one after the other in the order specified in the vector.
+          * The same process is used for the vertex shaders and geometry shader.
+          * @param vertexShaders the paths of the vertex shaders
+          * @param geometryShaders the paths of the geometry shaders
+          * @param fragmentShaders the paths of the fragment shaders */
+        Material(const std::vector<std::string>& vertexShaders, const std::vector<std::string>& geometryShaders, const std::vector<std::string>& fragmentShaders);
 
         /**
           * Sets this material as the current material for rendering.

@@ -13,27 +13,7 @@
 #include <iostream>
 
 
-struct MoveComponent : public Component, public EventListener {
-
-    MoveComponent(const GameObjectEH& eh) : Component{eh} {
-        Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this, false);
-    }
-
-    virtual void onEvent(SDL_Event e) override {
-        const Uint8* keys = SDL_GetKeyboardState(nullptr);
-        if (keys[SDL_SCANCODE_RIGHT])
-            gameObject->transform.moveBy(glm::vec3{0.1f, 0.0f, 0.0f});
-        if (keys[SDL_SCANCODE_UP]) {
-            gameObject->transform.rotateBy(glm::quat{glm::vec3{0.0f, 0.15f, 0.0f}});
-        }
-        if (keys[SDL_SCANCODE_DOWN]) {
-            gameObject->transform.scaleBy(glm::vec3{1.0015f, 1.0015f, 1.0015f});
-        }
-    }
-
-};
-
-#ifdef transformLocal
+#ifdef meshCreator
 int main(int argc, char* argv[]) {
     Engine::init();
 
@@ -50,18 +30,24 @@ int main(int argc, char* argv[]) {
 
 
     MaterialPtr phong = PhongMaterialBuilder()
-    .setDiffuseMap("test_data/transform_local/container.png")
-    .setSpecularMap("test_data/transform_local/container_specular.png")
+    .setDiffuseMap("test_data/mesh_creator/uv.jpg")
+    .setShininess(32)
     .build();
 
 
-    auto parent = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), phong);
-    parent->addComponent(std::make_shared<MoveComponent>(parent));
-    auto child = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), phong);
-    child->transform.setParent(parent);
-    child->transform.setLocalPosition(glm::vec3{2, 0, 0});
-    child->transform.setLocalRotation(glm::quat{ glm::vec3{0.0f, glm::radians(30.0f), 0.0f }});
+    auto cone = Engine::gameObjectManager.createGameObject(MeshCreator::cone(), phong);
+    auto coneNormals = Engine::gameObjectManager.createGameObject(MeshCreator::cone(), std::make_shared<PropMaterial>(true));
+    coneNormals->transform.setParent(cone);
+    cone->transform.setPosition(glm::vec3{5, 0, 0});
 
+    auto cube = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), phong);
+    cube->transform.setPosition(glm::vec3{2.5, 0, 0});
+
+    auto cylinder = Engine::gameObjectManager.createGameObject(MeshCreator::cylinder(), phong);
+    cylinder->transform.setPosition(glm::vec3{-2.5, 0, 0});
+
+    auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(), phong);
+    sphere->transform.setPosition(glm::vec3{-5, 0, 0});
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
@@ -71,15 +57,6 @@ int main(int argc, char* argv[]) {
     light->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
-
-    auto light2 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
-    light2->name = "light2";
-    light2->addComponent(std::make_shared<Light>(light2));
-    Engine::renderSys.addLight(light2);
-    light2->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
-    light2->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
-
-    light2->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
 
     auto light3 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light3->name = "light3";
@@ -91,7 +68,6 @@ int main(int argc, char* argv[]) {
     light3->getComponent<Light>()->innerAngle = glm::radians(25.0f);
     light3->getComponent<Light>()->outerAngle = glm::radians(28.0f);
     light3->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
-
 
     auto gizmo = MeshCreator::axisGizmo();
     gizmo->transform.setParent(light3);

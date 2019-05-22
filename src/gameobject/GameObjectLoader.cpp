@@ -24,7 +24,7 @@ glm::mat4 convertMatrix(const aiMatrix4x4 &aiMat)
 
 GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
 {
-    GameObjectEH go = Engine::renderSys.createGameObject();
+    GameObjectEH go = Engine::gameObjectManager.createGameObject();
     go->name = std::string{node->mName.C_Str()};
 
     std::cout << "at node " << node->mName.C_Str() << "\n";

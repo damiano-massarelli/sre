@@ -20,7 +20,13 @@ class Shader
     public:
         Shader(const std::string& vertexPath, const std::string& fragmentPath);
 
+        Shader(const std::string& vertexPath, const std::string& geometryPath, const std::string& fragmentPath);
+
         Shader(const std::vector<std::string>& vertexPaths, const std::vector<std::string>& fragmentPaths);
+
+        Shader(const std::vector<std::string>& vertexPaths,
+               const std::vector<std::string>& geometryPaths,
+               const std::vector<std::string>& fragmentPaths);
 
         Shader(const Shader& shader) = delete;
 
