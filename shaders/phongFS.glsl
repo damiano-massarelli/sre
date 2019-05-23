@@ -18,12 +18,16 @@ in vec3 normal;
 
 out vec4 FragColor;
 
-uniform vec3 cameraPosition;
 uniform PhongMaterial material;
 
 layout (std140) uniform Lights {
     int numLights;
     Light lights[10];
+};
+
+layout (std140) uniform Camera {
+    vec3 cameraPosition;
+    vec3 cameraDirection;
 };
 
 void main() {
@@ -42,5 +46,7 @@ void main() {
         color += phongComputeColor(lights[i], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition);
     }
 
+    float fogFactor = exp(-pow(distance(position, cameraPosition) * 0.007f, 1.5f));
+    color = mix(color, vec3(0.2f), 1 - fogFactor);
     FragColor = vec4(color, material.opacity);
 }

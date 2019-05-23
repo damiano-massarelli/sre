@@ -6,6 +6,7 @@ PhongMaterial::PhongMaterial() : Material{{"shaders/phongVS.glsl"},
 {
     shader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
     shader.bindUniformBlock("Lights", Engine::renderSys.LIGHT_UNIFORM_BLOCK_INDEX);
+    shader.bindUniformBlock("Camera", Engine::renderSys.CAMERA_UNIFORM_BLOCK_INDEX);
 }
 
 void PhongMaterial::setDiffuseMap(const Texture& texture)
@@ -34,9 +35,6 @@ void PhongMaterial::use()
     shader.setFloat("material.shininess", shininess);
 
     shader.setFloat("material.opacity", opacity);
-
-    // TODO remove data about camera should use a ubo
-    shader.setVec3("cameraPosition", Engine::renderSys.camera->transform.getPosition());
 
     if (diffuseMap) {
         shader.setInt("material.useDiffuseMap", 1);

@@ -47,7 +47,7 @@ void GameObjectManager::remove(const GameObjectEH& go)
 
 void GameObjectManager::update()
 {
-    Engine::renderSys.render(mGameObjects);
+    Engine::gameObjectRenderer.render(mGameObjects);
 }
 
 GameObjectManager::~GameObjectManager()
