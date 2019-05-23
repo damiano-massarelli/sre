@@ -8,6 +8,7 @@ std::unique_ptr<Engine> Engine::instance;
 bool Engine::shouldQuit = false;
 GameObjectManager Engine::gameObjectManager;
 RenderSystem Engine::renderSys;
+GameObjectRenderer Engine::gameObjectRenderer;
 EventManager Engine::eventManager;
 
 Engine::Engine()
@@ -45,7 +46,11 @@ void Engine::start()
         eventManager.pushEnterFrameEvent(&elapsedSec);
         eventManager.dispatchEvents();
 
+        renderSys.prepareRendering();
+
         gameObjectManager.update();
+
+        renderSys.finalizeRendering();
     }
 }
 

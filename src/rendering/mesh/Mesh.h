@@ -20,7 +20,7 @@ struct Vertex {
 class Mesh
 {
     // Render system should be able to access this class data
-    friend class RenderSystem;
+    friend class GameObjectRenderer;
     friend class MeshLoader;
 
     private:

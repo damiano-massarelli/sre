@@ -34,10 +34,10 @@ float HeightMapTerrainHeightProvider::get(float x, float z) const
 
 glm::vec3 HeightMapTerrainHeightProvider::getNormal(float x, float z) const
 {
-    float heightL = get(x - 2.0f / mWidth, z);
-    float heightR = get(x + 2.0f / mWidth, z);
-    float heightU = get(x, z + 2.0f / mHeight);
-    float heightD = get(x, z - 2.0f / mHeight);
+    float heightL = get(x - 1.5f / mWidth, z);
+    float heightR = get(x + 1.5f / mWidth, z);
+    float heightU = get(x, z + 1.5f / mHeight);
+    float heightD = get(x, z - 1.5f / mHeight);
 
     return glm::normalize(glm::vec3{heightL - heightR, 2.0f, heightD - heightU});
 }

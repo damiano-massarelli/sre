@@ -42,7 +42,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     SDL_GL_CreateContext(mWindow);
 
     // Use v-sync
-    SDL_GL_SetSwapInterval(1);
+    //SDL_GL_SetSwapInterval(1);
 
     if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
         std::cout << "Failed to initialize GLAD\n";
@@ -75,7 +75,16 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     glBindBufferBase(GL_UNIFORM_BUFFER, LIGHT_UNIFORM_BLOCK_INDEX, mUboLights);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+    /* Uniform buffer object set up for camera */
+    glGenBuffers(1, &mUboCamera);
+    glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
 
+    // size for position and direction
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec3), nullptr, GL_STATIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA_UNIFORM_BLOCK_INDEX, mUboCamera);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    /* General OpenGL settings */
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -131,12 +140,26 @@ void RenderSystem::updateLights()
         // spot light angles
         glBufferSubData(GL_UNIFORM_BUFFER, base + 112, sizeof(glm::vec2), glm::value_ptr(spotAngles));
     }
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+void RenderSystem::updateCamera()
+{
+    glm::vec3 cameraPosition{0.0f};
+    glm::vec3 cameraDirection{0.0f, 0.0f, 1.0f};
+    if (camera) {
+        cameraPosition = camera->transform.getPosition();
+        cameraDirection = camera->transform.forward();
+    }
+    glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec3), glm::value_ptr(cameraPosition));
+    glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(cameraDirection));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-void RenderSystem::render(const std::vector<GameObject>& gameObjects)
+void RenderSystem::prepareRendering()
 {
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);               // TODO move to master renderer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // TODO move to master renderer
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /* Camera calculations */
     glm::mat4 view = glm::mat4{1.0f};
@@ -162,55 +185,15 @@ void RenderSystem::render(const std::vector<GameObject>& gameObjects)
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     updateLights();
-
-    std::map<float, std::pair<Mesh, MaterialPtr>> orderedRender;
-    for (auto const& go : gameObjects) {
-        for (std::size_t meshIndex = 0; meshIndex < go.mMeshes.size(); meshIndex++) {
-            MaterialPtr material = go.mMaterials[meshIndex];
-            Mesh mesh = go.mMeshes[meshIndex];
-            if (material) {
-                Material* mat = material.get();
-                mat->use();
-
-                mat->shader.setMat4("model", go.transform.modelToWorld());
-            }
-
-            if (material->needsOrderedRendering()) {
-                float order = material->renderOrder(go.transform.getPosition());
-                orderedRender[order] = std::make_pair(mesh, material);
-                continue;
-            }
-
-            draw(mesh, material);
-        }
-    }
-
-    // render meshed that need to be rendered in a specific order
-    for (auto ord = orderedRender.rbegin(); ord != orderedRender.rend(); ++ord) {
-        auto data = ord->second;
-        auto mesh = data.first;
-        auto material = data.second;
-
-        draw(mesh, material);
-    }
-
-    SDL_GL_SwapWindow(mWindow); // TODO move to master renderer
+    updateCamera();
 }
 
-void RenderSystem::draw(Mesh mesh, MaterialPtr material)
+void RenderSystem::finalizeRendering()
 {
-    material->use();
-    glBindVertexArray(mesh.mVao);
-
-    if (mesh.mUsesIndices)
-        glDrawElements(mesh.mDrawMode, mesh.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
-    else
-        glDrawArrays(mesh.mDrawMode, 0, mesh.mVertexNumber);
-
-    glBindVertexArray(0);
-
-    if (material) material->after();
+    SDL_GL_SwapWindow(mWindow);
 }
+
+
 
 void RenderSystem::addLight(const GameObjectEH& light)
 {

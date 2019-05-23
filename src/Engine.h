@@ -4,6 +4,7 @@
 #include "EventManager.h"
 #include "EventListener.h"
 #include "GameObjectManager.h"
+#include "GameObjectRenderer.h"
 #include "SDL.h"
 #include <cstdint>
 #include <memory>
@@ -21,8 +22,18 @@ class Engine : public EventListener
     public:
         Engine();
 
+        /** Manager for GameObject%s.
+          * Responsible for adding and removing GameObject%s */
         static GameObjectManager gameObjectManager;
+
+        /** Master Render System.
+          * Manages all the global rendering settings */
         static RenderSystem renderSys;
+
+        /** Renderer for GameObject%s */
+        static GameObjectRenderer gameObjectRenderer;
+
+        /** Manages all the events and EventListener%s */
         static EventManager eventManager;
 
         /**

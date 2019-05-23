@@ -12,7 +12,7 @@ class Component;
 
 class GameObject
 {
-    friend class RenderSystem;
+    friend class GameObjectRenderer;
 
     private:
         std::vector<std::shared_ptr<Component>> mComponents;

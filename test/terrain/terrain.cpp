@@ -14,7 +14,7 @@
 #include <runTest.h>
 
 #include <iostream>
-
+#include <random>
 
 #define terrain
 #ifdef terrain
@@ -40,9 +40,9 @@ int main(int argc, char* argv[]) {
 
     //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    HeightMapTerrainHeightProvider hProvider{"test_data/terrain/heightmap_2.png", -1, 1};
-    TerrainGenerator generator{};
-    Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), std::make_shared<PropMaterial>(true));
+    HeightMapTerrainHeightProvider hProvider{"test_data/terrain/heightmap_2.png", -10, 10};
+    TerrainGenerator generator{500, 500, 50, 50};
+    //Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), std::make_shared<PropMaterial>(true));
     Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), phong);
 
     auto skyTexture = Texture::loadCubamapFromFile({
@@ -55,6 +55,14 @@ int main(int argc, char* argv[]) {
                 });
     auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
     auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
+
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 eng(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(-500, 500); // define the range
+    for (int i = 0; i < 100; ++i) {
+        auto tree = GameObjectLoader().fromFile("test_data/terrain/tree.fbx");
+        tree->transform.setPosition(glm::vec3{distr(eng), 0.0f, distr(eng)});
+    }
 
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
