@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <functional>
 class RefCount
 {
 	private:
@@ -11,6 +12,8 @@ class RefCount
 		RefCount();
 
 		RefCount(const RefCount& rc);
+
+		std::function<void()> onRemove = nullptr;
 
 		bool shouldCleanUp() const;
 

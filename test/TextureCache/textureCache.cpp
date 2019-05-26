@@ -19,6 +19,21 @@
 #include <random>
 
 #ifdef textureCache
+
+struct Remover : public Component, public EventListener {
+	CrumbPtr crumb;
+	SDL_Keycode killKey;
+
+	Remover(const GameObjectEH& go, SDL_Keycode kk) : Component(go), killKey{ kk } {
+		crumb = Engine::eventManager.addListenerFor(SDL_KEYDOWN, this, true);
+	}
+
+	void onEvent(SDL_Event e) override {
+		if (e.key.keysym.sym == killKey)
+			Engine::gameObjectManager.remove(gameObject);
+	}
+};
+
 int main(int argc, char* argv[]) {
     Engine::init();
 
@@ -35,9 +50,11 @@ int main(int argc, char* argv[]) {
 
 
 	auto tb1 = GameObjectLoader().fromFile("test_data/texture_cache/table.obj");
+	tb1->addComponent(std::make_shared<Remover>(tb1, SDLK_1));
 
 	auto tb2 = GameObjectLoader().fromFile("test_data/texture_cache/table.obj");
 	tb2->transform.setPosition(glm::vec3{ 0, 0, -10 });
+	tb2->addComponent(std::make_shared<Remover>(tb2, SDLK_2));
 
     auto skyTexture = Texture::loadCubamapFromFile({
                     {"front", "test_data/skybox/front.tga"},

@@ -208,7 +208,7 @@ void RenderSystem::addLight(const GameObjectEH& light)
     mLights.push_back(light);
 }
 
-RenderSystem::~RenderSystem()
+void RenderSystem::cleanUp()
 {
     // Delete uniform buffers
     glDeleteBuffers(1, &mUboCommonMat);

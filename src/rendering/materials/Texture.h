@@ -52,8 +52,6 @@ class Texture {
           * @return a new cubemap */
         static Texture loadCubamapFromFile(const std::map<std::string, std::string>& paths);
 
-		std::string name;
-
         std::string nameInShader;
 
         /**

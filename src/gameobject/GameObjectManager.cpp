@@ -50,11 +50,13 @@ void GameObjectManager::update()
     Engine::gameObjectRenderer.render(mGameObjects);
 }
 
-GameObjectManager::~GameObjectManager()
+void GameObjectManager::cleanUp()
 {
     // no need to remove them, just clean up what they
     // allocated.
     for (auto& go : mGameObjects)
         go.cleanUp();
+
+	mGameObjects.clear();
 }
 

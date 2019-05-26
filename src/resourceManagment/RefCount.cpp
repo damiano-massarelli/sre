@@ -8,6 +8,7 @@ void RefCount::copy(const RefCount& rc)
 		// working on new refs
 		refs = rc.refs;
 		*refs = *refs + 1;
+		onRemove = rc.onRemove;
 	}
 }
 
@@ -16,6 +17,9 @@ void RefCount::decrease()
 	if (refs == nullptr) return;
 	*refs = *refs - 1;
 	if (*refs == 0) {
+		if (onRemove)
+			onRemove();
+
 		delete refs;
 		refs = nullptr;
 	}
