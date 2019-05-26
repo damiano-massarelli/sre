@@ -48,6 +48,8 @@ class RenderSystem
         // private constructor, only the engine can create a render system
         RenderSystem();
 
+		void cleanUp();
+
     public:
         /** Creates a new window */
         void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 400.0f, std::uint32_t samples = 4);
@@ -80,7 +82,7 @@ class RenderSystem
           */
         void addLight(const GameObjectEH& light);
 
-        virtual ~RenderSystem();
+		virtual ~RenderSystem() = default;
 };
 
 #endif // RENDERSYSTEM_H

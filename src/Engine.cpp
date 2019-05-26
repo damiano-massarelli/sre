@@ -52,6 +52,9 @@ void Engine::start()
 
         renderSys.finalizeRendering();
     }
+
+	renderSys.cleanUp();
+	gameObjectManager.cleanUp();
 }
 
 Engine::~Engine()

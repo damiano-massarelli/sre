@@ -27,7 +27,7 @@ Texture Texture::loadFromFile(const std::string& path, int wrapS, int wrapT)
         stbi_image_free(data);
     }
 
-	texture.name = path;
+	texture.refCount.onRemove = [path]() { Texture::textureCache.erase(path); };
 	textureCache[path] = texture;
 	textureCache[path].refCount.decrease();
 

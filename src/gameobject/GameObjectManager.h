@@ -17,6 +17,8 @@ class GameObjectManager
 
         void update();
 
+		void cleanUp();
+
     public:
         /**
           * Creates a GameObject with a given Mesh and the corresponding Material
@@ -36,7 +38,7 @@ class GameObjectManager
           * @param go the game object to remove */
         void remove(const GameObjectEH& go);
 
-        virtual ~GameObjectManager();
+		virtual ~GameObjectManager() = default;
 };
 
 #endif // GAMEOBJECTMANAGER_H
