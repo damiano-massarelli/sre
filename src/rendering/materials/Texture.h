@@ -1,5 +1,6 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
+#include "RefCount.h"
 #include <cstdint>
 #include <string>
 #include <glad/glad.h>
@@ -9,7 +10,12 @@
  * A drawable image.
  * Textures can be used to display images or as drawing targets */
 class Texture {
+	public:
+		RefCount refCount;
+
     private:
+		static std::map<std::string, Texture> textureCache;
+
         std::uint32_t mTextureId = 0;
 
         Texture(std::uint32_t id);
@@ -46,6 +52,8 @@ class Texture {
           * @return a new cubemap */
         static Texture loadCubamapFromFile(const std::map<std::string, std::string>& paths);
 
+		std::string name;
+
         std::string nameInShader;
 
         /**
@@ -63,6 +71,8 @@ class Texture {
           * @return whether the texture is valid or not.
           * @sa isValid */
         operator bool() const;
+
+		virtual ~Texture();
 };
 
 #endif // TEXTURE_H

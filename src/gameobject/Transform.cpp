@@ -4,8 +4,6 @@
 #include <glm/gtx/quaternion.hpp>
 #include <algorithm>
 
-#include <iostream>
-
 glm::mat4 Transform::modelToWorld() const
 {
     glm::mat4 m2w = glm::translate(glm::mat4{1.0f}, mPosition);

@@ -6,9 +6,11 @@ class GameObject;
 
 struct GameObjectEH : public ExternalHandle {
     private:
-        HandleList<GameObject>* mHandleList = nullptr;
+        
 
     public:
+		HandleList<GameObject>* mHandleList = nullptr;
+
         GameObjectEH(HandleList<GameObject>* handleList, std::uint32_t index, std::uint32_t generation);
 
         GameObjectEH();

@@ -49,6 +49,6 @@ void GameObjectRenderer::render(const std::vector<GameObject>& gameObjects)
         auto mesh = data.first;
         auto material = data.second;
 
-        draw(mesh, material);
+         draw(mesh, material);
     }
 }

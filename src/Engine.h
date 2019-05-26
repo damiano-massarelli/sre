@@ -15,8 +15,6 @@ class Engine : public EventListener
         static std::unique_ptr<Engine> instance;
         static bool shouldQuit;
 
-        // crumb for the quit event
-        CrumbPtr mCrumb;
         virtual void onEvent(SDL_Event e) override;
 
     public:
@@ -26,15 +24,15 @@ class Engine : public EventListener
           * Responsible for adding and removing GameObject%s */
         static GameObjectManager gameObjectManager;
 
+		/** Manages all the events and EventListener%s */
+		static EventManager eventManager;
+
         /** Master Render System.
           * Manages all the global rendering settings */
         static RenderSystem renderSys;
 
         /** Renderer for GameObject%s */
         static GameObjectRenderer gameObjectRenderer;
-
-        /** Manages all the events and EventListener%s */
-        static EventManager eventManager;
 
         /**
           * Initializes the engine.

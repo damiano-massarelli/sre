@@ -92,7 +92,6 @@ void EventManager::pushEnterFrameEvent(float* deltaMillis) const
     SDL_PushEvent(&event);
 }
 
-
 EventManager::~EventManager()
 {
 

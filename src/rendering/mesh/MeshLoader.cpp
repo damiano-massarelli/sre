@@ -32,7 +32,7 @@ Mesh MeshLoader::createMesh(float vertexData[], std::uint32_t numOfVertices, std
     std::uint32_t vbo;
     glGenBuffers(1, &vbo);
 
-    std::uint32_t ebo;
+    std::uint32_t ebo = 0;
     if (numOfIndices != 0)
         glGenBuffers(1, &ebo);
 
