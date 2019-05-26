@@ -6,7 +6,7 @@
 #include<glm/gtc/quaternion.hpp>
 
 class Transform {
-    friend class GameObjectEH;
+    friend struct GameObjectEH;
 
     private:
         glm::vec3 mPosition{0.0f, 0.0f, 0.0f};

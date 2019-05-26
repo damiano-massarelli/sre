@@ -111,7 +111,7 @@ class HandleList
             return (handleIndex < mHandles.size() && mHandles[handleIndex].generation == handleGeneration);
         }
 
-        virtual ~HandleList() = default;
+		virtual ~HandleList() = default;
 };
 
 #endif // HANDLELIST_H

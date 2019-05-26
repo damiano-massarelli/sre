@@ -13,10 +13,12 @@
 
 #include <runTest.h>
 
+#include "RefCount.h"
+
 #include <iostream>
 #include <random>
 
-#ifdef terrain
+#ifdef textureCache
 int main(int argc, char* argv[]) {
     Engine::init();
 
@@ -32,17 +34,10 @@ int main(int argc, char* argv[]) {
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
 
-    MaterialPtr phong = PhongMaterialBuilder()
-    .setDiffuseMap("test_data/terrain/grass.jpg")
-    .setShininess(0.0f)
-    .build();
+	auto tb1 = GameObjectLoader().fromFile("test_data/texture_cache/table.obj");
 
-    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
-    HeightMapTerrainHeightProvider hProvider{"test_data/terrain/heightmap_2.png", -10, 10};
-    TerrainGenerator generator{150, 150, 500, 500};
-    //Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), std::make_shared<PropMaterial>(true));
-    Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), phong);
+	auto tb2 = GameObjectLoader().fromFile("test_data/texture_cache/table.obj");
+	tb2->transform.setPosition(glm::vec3{ 0, 0, -10 });
 
     auto skyTexture = Texture::loadCubamapFromFile({
                     {"front", "test_data/skybox/front.tga"},

@@ -4,8 +4,16 @@
 #include <iostream>
 #include <glad/glad.h>
 
+std::map<std::string, Texture> Texture::textureCache;
+
 Texture Texture::loadFromFile(const std::string& path, int wrapS, int wrapT)
 {
+	auto cached = textureCache.find(path);
+	if (cached != textureCache.end()) {
+		std::cout << "found in cache\n";
+		return cached->second;
+	}
+
     stbi_set_flip_vertically_on_load(true);
 
     int width, height, cmp;
@@ -18,6 +26,10 @@ Texture Texture::loadFromFile(const std::string& path, int wrapS, int wrapT)
         texture = Texture::load(data, width, height, wrapS, wrapT);
         stbi_image_free(data);
     }
+
+	texture.name = path;
+	textureCache[path] = texture;
+	textureCache[path].refCount.decrease();
 
     return texture;
 }
@@ -116,4 +128,12 @@ bool Texture::isValid() const
 Texture::operator bool() const
 {
     return isValid();
+}
+
+Texture::~Texture()
+{
+	if (refCount.shouldCleanUp() && mTextureId != 0) {
+		glDeleteTextures(1, &mTextureId);
+		mTextureId = 0;
+	}
 }

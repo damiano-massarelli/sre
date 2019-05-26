@@ -35,7 +35,13 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     }
 
     for (std::uint32_t i = 0; i < node->mNumChildren; ++i) {
-        go->transform.addChild(processNode(node->mChildren[i], scene));
+		/* This must be a two steps process:
+		 * When go->transform is evaluated it returns a pointer to an element of a vector,
+		 * when a new child is added this pointer may become invalid.
+		 * Hence, using go->transform.addChild(processNode(node->mChildren[i], scene)); causes
+		 * undefined behavior since go->transform is evaluated before a new game object is added */
+		auto child = processNode(node->mChildren[i], scene);
+        go->transform.addChild(child);
     }
 
     /* assimp only provides the transformation matrix relative to the parent node
@@ -161,7 +167,6 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     // Another check to see if the material is transparent
     float opacity = 1.0f;
     if (AI_SUCCESS == material->Get(AI_MATKEY_OPACITY, opacity)) {
-        std::cout << opacity << "\n";
         loadedMaterial->opacity = opacity;
         loadedMaterial->isTwoSided = opacity < 1.0f;
     }
@@ -204,7 +209,11 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
                 return Texture::loadFromMemory(textureData, texture->mWidth * texture->mHeight, mapModeS, mapModeT);
 
         } else {
-            return Texture::loadFromFile(std::string{texturePath},
+			std::filesystem::path path{ texturePath };
+			if (path.is_relative())
+				path = mWorkingDir / path;
+
+            return Texture::loadFromFile(path.string(),
                                  mapModeS,
                                  mapModeT);
         }
@@ -215,6 +224,10 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
 
 GameObjectEH GameObjectLoader::fromFile(const std::string& path)
 {
+	mWorkingDir = (std::filesystem::path{ path }).remove_filename();
+
+	std::cout << mWorkingDir << "\n";
+
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {

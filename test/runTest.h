@@ -7,3 +7,4 @@
 //#define basicTransparency
 //#define skybox
 //#define meshCreator
+#define textureCache

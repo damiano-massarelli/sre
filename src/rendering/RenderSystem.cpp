@@ -14,11 +14,12 @@
 
 RenderSystem::RenderSystem()
 {
+	//setAASamples(4);
     camera = Engine::gameObjectManager.createGameObject();
     camera->name = "defaultCamera";
 }
 
-void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
+void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane, std::uint32_t samples)
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cout << "Cannot init sdl " << SDL_GetError() << "\n";
@@ -32,6 +33,9 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
 
     mWindow = SDL_CreateWindow("opengl", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
     if (mWindow == nullptr) {
@@ -88,6 +92,7 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
+	glEnable(GL_MULTISAMPLE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -192,8 +197,6 @@ void RenderSystem::finalizeRendering()
 {
     SDL_GL_SwapWindow(mWindow);
 }
-
-
 
 void RenderSystem::addLight(const GameObjectEH& light)
 {
