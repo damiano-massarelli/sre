@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
-#include "PhongMaterial.h"
+#include "BlinnPhongMaterial.h"
 #include "Engine.h"
 
 RenderSystem::RenderSystem()

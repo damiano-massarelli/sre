@@ -5,14 +5,14 @@
 #include <glm/common.hpp>
 #include <memory>
 
-class PhongMaterial : public Material
+class BlinnPhongMaterial : public Material
 {
     private:
         Texture diffuseMap;
         Texture specularMap;
 
     public:
-        PhongMaterial();
+        BlinnPhongMaterial();
 
         void setDiffuseMap(const Texture& texture);
         void setSpecularMap(const Texture& texture);
@@ -31,12 +31,12 @@ class PhongMaterial : public Material
 
         virtual float renderOrder(const glm::vec3& position) override;
 
-        virtual ~PhongMaterial();
+        virtual ~BlinnPhongMaterial();
 };
 
-using PhongMaterialPtr = std::shared_ptr<PhongMaterial>;
+using BlinnPhongMaterialPtr = std::shared_ptr<BlinnPhongMaterial>;
 
-class PhongMaterialBuilder {
+class BlinnPhongMaterialBuilder {
     private:
         std::string diffuseMapPath;
         std::string specularMapPath;
@@ -53,8 +53,8 @@ class PhongMaterialBuilder {
         float shininess = 32;
 
     public:
-        PhongMaterialPtr build() {
-            auto material = std::make_shared<PhongMaterial>();
+        BlinnPhongMaterialPtr build() {
+            auto material = std::make_shared<BlinnPhongMaterial>();
 
             if (diffuseMapPath != "")
                 material->setDiffuseMap(Texture::loadFromFile(diffuseMapPath));
@@ -80,38 +80,38 @@ class PhongMaterialBuilder {
             return material;
         }
 
-        PhongMaterialBuilder& setDiffuseMap(const std::string& path) {
+        BlinnPhongMaterialBuilder& setDiffuseMap(const std::string& path) {
             diffuseMapPath = path;
             return *this;
         }
 
-        PhongMaterialBuilder& setDiffuseMap(const Texture& texture) {
+        BlinnPhongMaterialBuilder& setDiffuseMap(const Texture& texture) {
             diffuseMap = texture;
             return *this;
         }
 
-        PhongMaterialBuilder& setSpecularMap(const std::string& path) {
+        BlinnPhongMaterialBuilder& setSpecularMap(const std::string& path) {
             specularMapPath = path;
             return *this;
         }
 
-        PhongMaterialBuilder& setSpecularMap(const Texture& texture) {
+        BlinnPhongMaterialBuilder& setSpecularMap(const Texture& texture) {
             specularMap = texture;
             return *this;
         }
 
-        PhongMaterialBuilder& setShininess(float s) {
+        BlinnPhongMaterialBuilder& setShininess(float s) {
             shininess = s;
             return *this;
         }
 
-        PhongMaterialBuilder& setDiffuseColor(const glm::vec3& color) {
+        BlinnPhongMaterialBuilder& setDiffuseColor(const glm::vec3& color) {
             diffuseColor = color;
             diffuseColorSet = true;
             return *this;
         }
 
-        PhongMaterialBuilder& setSpecularColor(const glm::vec3& color) {
+        BlinnPhongMaterialBuilder& setSpecularColor(const glm::vec3& color) {
             specularColor = color;
             specularColorSet = true;
             return *this;

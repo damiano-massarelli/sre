@@ -1,7 +1,7 @@
 #include "GameObjectLoader.h"
 #include "Engine.h"
 #include "MeshLoader.h"
-#include "PhongMaterial.h"
+#include "BlinnPhongMaterial.h"
 #include "Transform.h"
 #include <iostream>
 #include <cstdint>
@@ -138,7 +138,7 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 {
     //if (mesh->mMaterialIndex == 0) return nullptr;
 
-    PhongMaterialBuilder phongBuilder;
+    BlinnPhongMaterialBuilder phongBuilder;
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
     aiColor3D color{0.f,0.f,0.f};
@@ -158,7 +158,7 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE));
     phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR));
 
-    PhongMaterialPtr loadedMaterial = phongBuilder.build();
+    BlinnPhongMaterialPtr loadedMaterial = phongBuilder.build();
 
     int twosided = 0;
     if (AI_SUCCESS == material->Get(AI_MATKEY_TWOSIDED, twosided))
