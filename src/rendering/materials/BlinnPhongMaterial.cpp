@@ -1,7 +1,7 @@
-#include "PhongMaterial.h"
+#include "BlinnPhongMaterial.h"
 #include "Engine.h"
 
-PhongMaterial::PhongMaterial() : Material{{"shaders/phongVS.glsl"},
+BlinnPhongMaterial::BlinnPhongMaterial() : Material{{"shaders/phongVS.glsl"},
                                           {"shaders/Light.glsl", "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl"}}
 {
     shader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
@@ -9,7 +9,7 @@ PhongMaterial::PhongMaterial() : Material{{"shaders/phongVS.glsl"},
     shader.bindUniformBlock("Camera", Engine::renderSys.CAMERA_UNIFORM_BLOCK_INDEX);
 }
 
-void PhongMaterial::setDiffuseMap(const Texture& texture)
+void BlinnPhongMaterial::setDiffuseMap(const Texture& texture)
 {
     diffuseMap = texture;
 
@@ -18,7 +18,7 @@ void PhongMaterial::setDiffuseMap(const Texture& texture)
     shader.setInt(diffuseMap.nameInShader, 0);
 }
 
-void PhongMaterial::setSpecularMap(const Texture& texture)
+void BlinnPhongMaterial::setSpecularMap(const Texture& texture)
 {
     specularMap = texture;
 
@@ -27,7 +27,7 @@ void PhongMaterial::setSpecularMap(const Texture& texture)
     shader.setInt(specularMap.nameInShader, 1);
 }
 
-void PhongMaterial::use()
+void BlinnPhongMaterial::use()
 {
     shader.use();
     shader.setVec3("material.diffuseColor", diffuseColor);
@@ -57,7 +57,7 @@ void PhongMaterial::use()
     }
 }
 
-void PhongMaterial::after()
+void BlinnPhongMaterial::after()
 {
      // enable backface culling
     if (isTwoSided) {
@@ -73,12 +73,12 @@ void PhongMaterial::after()
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-bool PhongMaterial::needsOrderedRendering()
+bool BlinnPhongMaterial::needsOrderedRendering()
 {
     return opacity < 1.0f;
 }
 
-float PhongMaterial::renderOrder(const glm::vec3& position)
+float BlinnPhongMaterial::renderOrder(const glm::vec3& position)
 {
     auto cam = Engine::renderSys.camera;
     if (cam)
@@ -87,7 +87,7 @@ float PhongMaterial::renderOrder(const glm::vec3& position)
         return position.z;
 }
 
-PhongMaterial::~PhongMaterial()
+BlinnPhongMaterial::~BlinnPhongMaterial()
 {
 
 }
