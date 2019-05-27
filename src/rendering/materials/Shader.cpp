@@ -6,20 +6,63 @@
 #include <iterator>
 #include <algorithm>
 
+std::map<std::string, Shader> Shader::mShaderCache;
+
 // to print path vectors easily
 std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec) {
     out << "[";
-    std::copy(vec.begin(), vec.end() - 1, std::ostream_iterator<std::string>(out, ", "));
-    out << *(vec.end() - 1);
+	if (vec.size() != 0) {
+		std::copy(vec.begin(), vec.end() - 1, std::ostream_iterator<std::string>(out, ", "));
+		out << *(vec.end() - 1);
+	}
     out << "]";
     return out;
 }
 
-Shader::Shader(const std::vector<std::string>& vertexPaths, const std::vector<std::string>& fragmentPaths)
-  : Shader{vertexPaths, std::vector<std::string>{}, fragmentPaths}
-{
+Shader Shader::load(const std::vector<std::string>& vertexPaths,
+	const std::vector<std::string>& geometryPaths,
+	const std::vector<std::string>& fragmentPaths) {
 
+	std::stringstream cacheName;
+	cacheName << vertexPaths << fragmentPaths << geometryPaths;
+	std::string cacheKey = cacheName.str();
+	
+	// cache checks
+	auto cachedShader = mShaderCache.find(cacheKey);
+	if (cachedShader != mShaderCache.end()) {
+		std::cout << "found in cache shader\n";
+		return cachedShader->second;
+	}
+
+	Shader shader{ vertexPaths, geometryPaths, fragmentPaths };
+	shader.refCount.onRemove = [cacheKey]() { std::cout << "shader removed\n"; Shader::mShaderCache.erase(cacheKey); };
+
+	mShaderCache[cacheKey] = shader;
+	shader.refCount.decrease(); // weak ref
+
+	return shader;
 }
+
+Shader Shader::load(const std::vector<std::string>& vertexPaths, const std::vector<std::string>& fragmentPaths)
+{
+	return load(vertexPaths, {}, fragmentPaths);
+}
+
+Shader Shader::load(const std::string& vertexPath, const std::string& fragmentPath)
+{
+	return load(std::vector<std::string>{ vertexPath }, std::vector<std::string>{}, std::vector<std::string>{ fragmentPath });
+}
+
+Shader Shader::load(const std::string & vertexPath, const std::string & geometryPath, const std::string & fragmentPath)
+{
+	return load(std::vector<std::string>{ vertexPath }, std::vector<std::string>{ geometryPath }, std::vector<std::string>{ fragmentPath });
+}
+
+Shader::Shader() : programId{0}
+{
+}
+
+
 
 Shader::Shader(const std::vector<std::string>& vertexPaths, const std::vector<std::string>& geometryPaths, const std::vector<std::string>& fragmentPaths)
 {
@@ -47,18 +90,6 @@ Shader::Shader(const std::vector<std::string>& vertexPaths, const std::vector<st
     if (geometryShader != 0) glDeleteShader(geometryShader);
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
-}
-
-Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
-  : Shader{std::vector<std::string>{vertexPath}, std::vector<std::string>{fragmentPath}}
-{
-
-}
-
-Shader::Shader(const std::string& vertexPath, const std::string& geometryPath, const std::string& fragmentPath)
-  : Shader{std::vector<std::string>{vertexPath}, std::vector<std::string>{geometryPath}, std::vector<std::string>{fragmentPath}}
-{
-
 }
 
 std::string Shader::sourceFromFile(const std::string& path)
@@ -134,6 +165,11 @@ void Shader::setFloat(const std::string& name, float value) const
         glUniform1f(location, value);
 }
 
+void Shader::setFloat(std::int32_t location, float value) const
+{
+	glUniform1f(location, value);
+}
+
 void Shader::bindUniformBlock(const std::string& name, std::uint32_t bindingPoint)
 {
     std::uint32_t index = glGetUniformBlockIndex(programId, name.c_str());
@@ -150,11 +186,21 @@ void Shader::setInt(const std::string& name, int value) const
         glUniform1i(location, value);
 }
 
+void Shader::setInt(std::int32_t location, int value) const
+{
+	glUniform1i(location, value);
+}
+
 void Shader::setMat4(const std::string& name, const glm::mat4& value) const
 {
     std::int32_t location = getLocationOf(name);
     if (location != -1)
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void Shader::setMat4(std::int32_t location, const glm::mat4 & value) const
+{
+	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void Shader::setVec3(const std::string& name, const glm::vec3& value) const
@@ -164,6 +210,11 @@ void Shader::setVec3(const std::string& name, const glm::vec3& value) const
         glUniform3fv(location, 1, glm::value_ptr(value));
 }
 
+void Shader::setVec3(std::int32_t location, const glm::vec3 & value) const
+{
+	glUniform3fv(location, 1, glm::value_ptr(value));
+}
+
 void Shader::use() const
 {
     glUseProgram(programId);
@@ -171,7 +222,8 @@ void Shader::use() const
 
 Shader::~Shader()
 {
-    glDeleteProgram(programId);
+	if (refCount.shouldCleanUp() && programId != 0)
+		glDeleteProgram(programId);
 }
 
 

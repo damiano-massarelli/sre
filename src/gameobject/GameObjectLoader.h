@@ -9,17 +9,24 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <filesystem>
+#include <map>
 
 /**
   * A GameObjectLoader is used to create a GameObject form a model stored on a file. */
 class GameObjectLoader
 {
     private:
+		/** A cache for meshes */
+		static std::map<std::string, Mesh> mMeshCache;
+
         /** The current working directory */
 		std::filesystem::path mWorkingDir;
 
+		/** The path of the file we are working on */
+		std::string mFilePath;
+
         GameObjectEH processNode(aiNode* node, const aiScene* scene);
-        void processMesh(const GameObjectEH& go, aiMesh* mesh, const aiScene* scene);
+        void processMesh(const GameObjectEH& go, aiNode* node, int meshNumber, aiMesh* mesh, const aiScene* scene);
         MaterialPtr processMaterial(aiMesh* mesh, const aiScene* scene);
         Texture loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type);
 

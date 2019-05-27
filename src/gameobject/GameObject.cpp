@@ -20,9 +20,7 @@ void GameObject::addComponent(const std::shared_ptr<Component>& component)
 
 void GameObject::cleanUp()
 {
-    // removes all meshes from memory
-    for (auto& mesh : mMeshes)
-        mesh.cleanUp();
+
 }
 
 GameObject::~GameObject()

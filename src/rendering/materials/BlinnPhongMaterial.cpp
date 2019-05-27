@@ -7,6 +7,13 @@ BlinnPhongMaterial::BlinnPhongMaterial() : Material{{"shaders/phongVS.glsl"},
     shader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
     shader.bindUniformBlock("Lights", Engine::renderSys.LIGHT_UNIFORM_BLOCK_INDEX);
     shader.bindUniformBlock("Camera", Engine::renderSys.CAMERA_UNIFORM_BLOCK_INDEX);
+
+	mDiffuseColorLocation = shader.getLocationOf("material.diffuseColor");
+	mSpecularColorLocation = shader.getLocationOf("material.specularColor");
+	mShininessLocation = shader.getLocationOf("material.shininess");
+	mOpacityLocation = shader.getLocationOf("material.opacity");
+	mUseDiffuseMapLocation = shader.getLocationOf("material.useDiffuseMap");
+	mUseSpecularMapLocation = shader.getLocationOf("material.useSpecularMap");
 }
 
 void BlinnPhongMaterial::setDiffuseMap(const Texture& texture)
@@ -30,25 +37,25 @@ void BlinnPhongMaterial::setSpecularMap(const Texture& texture)
 void BlinnPhongMaterial::use()
 {
     shader.use();
-    shader.setVec3("material.diffuseColor", diffuseColor);
-    shader.setVec3("material.specularColor", specularColor);
-    shader.setFloat("material.shininess", shininess);
+    shader.setVec3(mDiffuseColorLocation, diffuseColor);
+    shader.setVec3(mSpecularColorLocation, specularColor);
+    shader.setFloat(mShininessLocation, shininess);
 
-    shader.setFloat("material.opacity", opacity);
+    shader.setFloat(mOpacityLocation, opacity);
 
     if (diffuseMap) {
-        shader.setInt("material.useDiffuseMap", 1);
+        shader.setInt(mUseDiffuseMapLocation, 1);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap.getId());
     } else
-        shader.setInt("material.useDiffuseMap", 0);
+        shader.setInt(mUseDiffuseMapLocation, 0);
 
     if (specularMap) {
-        shader.setInt("material.useSpecularMap", 1);
+        shader.setInt(mUseSpecularMapLocation, 1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap.getId());
     } else
-        shader.setInt("material.useSpecularMap", 0);
+        shader.setInt(mUseSpecularMapLocation, 0);
 
     // disable backface culling
     if (isTwoSided) {

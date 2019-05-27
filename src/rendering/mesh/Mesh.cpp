@@ -20,7 +20,14 @@ void Mesh::cleanUp()
 {
     for (auto& buffer : mBuffers)
         glDeleteBuffers(1, &buffer);
+	mBuffers.clear();
 
     glDeleteVertexArrays(1, &mVao);
     mVao = 0;
+}
+
+Mesh::~Mesh()
+{
+	if (refCount.shouldCleanUp())
+		cleanUp();
 }

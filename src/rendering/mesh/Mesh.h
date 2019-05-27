@@ -1,5 +1,6 @@
 #ifndef MESH_H
 #define MESH_H
+#include "RefCount.h"
 #include <cstdint>
 #include <glm/glm.hpp>
 #include <glad/glad.h>
@@ -22,6 +23,8 @@ class Mesh
     // Render system should be able to access this class data
     friend class GameObjectRenderer;
     friend class MeshLoader;
+	public:
+		RefCount refCount;
 
     private:
         std::uint32_t mVao = 0;
@@ -40,6 +43,10 @@ class Mesh
 
         Mesh(std::uint32_t vao);
 
+		/**
+		  * Frees the memory held by this mesh */
+		void cleanUp();
+
     public:
         Mesh() = default;
 
@@ -56,9 +63,7 @@ class Mesh
           * @return true if vertex data is stored in this mesh, false otherwise. */
         bool hasVertexData() const;
 
-        /**
-          * Frees the memory held by this mesh */
-        void cleanUp();
+		virtual ~Mesh();
 };
 
 #endif // MESH_H
