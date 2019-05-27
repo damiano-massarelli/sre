@@ -9,6 +9,8 @@
 #include <string>
 #include <glm/gtx/matrix_decompose.hpp>
 
+std::map<std::string, Mesh> GameObjectLoader::mMeshCache;
+
 /** Transpose the assimp aiMatrix4x4 which is a row major matrix
   * @param a row major assimp matrix
   * @return a column major glm matrix */
@@ -27,11 +29,11 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     GameObjectEH go = Engine::gameObjectManager.createGameObject();
     go->name = std::string{node->mName.C_Str()};
 
-    std::cout << "at node " << node->mName.C_Str() << "\n";
+    //std::cout << "at node " << node->mName.C_Str() << "\n";
     for (std::uint32_t i = 0; i < node->mNumMeshes; ++i) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        std::cout << "loading mesh " << mesh->mName.C_Str() << "\n";
-        processMesh(go, mesh, scene);
+        //std::cout << "loading mesh " << mesh->mName.C_Str() << "\n";
+        processMesh(go, node, i, mesh, scene);
     }
 
     for (std::uint32_t i = 0; i < node->mNumChildren; ++i) {
@@ -62,8 +64,23 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     return go;
 }
 
-void GameObjectLoader::processMesh(const GameObjectEH& go, aiMesh* mesh, const aiScene* scene)
+void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int meshNumber, aiMesh* mesh, const aiScene* scene)
 {
+	// loads material
+	MaterialPtr loadedMaterial = processMaterial(mesh, scene);
+	if (loadedMaterial == nullptr) {
+		std::cerr << "Mesh " << mesh->mName.C_Str() << "does not have a corresponding material, discarded\n";
+		return;
+	}
+
+	// creates the cache name for this mesh
+	std::string cacheName = mFilePath + std::string{ node->mName.C_Str() } +std::string{ mesh->mName.C_Str() } + std::to_string(meshNumber);
+	auto cachedMesh = mMeshCache.find(cacheName);
+	if (cachedMesh != mMeshCache.end()) {
+		go->addMesh(cachedMesh->second, loadedMaterial);
+		return;
+	}
+
     // data regarding vertices: positions, normals, texture coords
     std::vector<float> vertexData;
 
@@ -125,11 +142,10 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiMesh* mesh, const a
 
     Mesh loadedMesh = loader.getMesh(vertices.size(), indices.size());
 
-    MaterialPtr loadedMaterial = processMaterial(mesh, scene);
-    if (loadedMaterial == nullptr) {
-        std::cerr << "Mesh " << mesh->mName.C_Str() << "does not have a corresponding material, discarded\n";
-        return;
-    }
+	loadedMesh.refCount.onRemove = [cacheName]() { std::cout << "removed " << cacheName << "\n"; GameObjectLoader::mMeshCache.erase(cacheName); };
+	loadedMesh.refCount.decrease(); // for the following weak ref
+	mMeshCache[cacheName] = loadedMesh;
+
 
     go->addMesh(loadedMesh, loadedMaterial);
 }
@@ -224,9 +240,8 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
 
 GameObjectEH GameObjectLoader::fromFile(const std::string& path)
 {
+	mFilePath = path;
 	mWorkingDir = (std::filesystem::path{ path }).remove_filename();
-
-	std::cout << mWorkingDir << "\n";
 
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);

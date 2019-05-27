@@ -8,6 +8,14 @@
 class BlinnPhongMaterial : public Material
 {
     private:
+		std::int32_t mDiffuseColorLocation = -1;
+		std::int32_t mSpecularColorLocation = -1;
+		std::int32_t mShininessLocation = -1;
+		std::int32_t mOpacityLocation = -1;
+		std::int32_t mUseDiffuseMapLocation = -1;
+		std::int32_t mUseSpecularMapLocation = -1;
+
+
         Texture diffuseMap;
         Texture specularMap;
 
