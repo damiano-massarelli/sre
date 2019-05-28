@@ -38,7 +38,7 @@ Shader Shader::load(const std::vector<std::string>& vertexPaths,
 	shader.refCount.onRemove = [cacheKey]() { std::cout << "shader removed\n"; Shader::mShaderCache.erase(cacheKey); };
 
 	mShaderCache[cacheKey] = shader;
-	shader.refCount.decrease(); // weak ref
+	mShaderCache[cacheKey].refCount.setWeak();
 
 	return shader;
 }
@@ -53,7 +53,7 @@ Shader Shader::load(const std::string& vertexPath, const std::string& fragmentPa
 	return load(std::vector<std::string>{ vertexPath }, std::vector<std::string>{}, std::vector<std::string>{ fragmentPath });
 }
 
-Shader Shader::load(const std::string & vertexPath, const std::string & geometryPath, const std::string & fragmentPath)
+Shader Shader::load(const std::string & vertexPath, const std::string& geometryPath, const std::string& fragmentPath)
 {
 	return load(std::vector<std::string>{ vertexPath }, std::vector<std::string>{ geometryPath }, std::vector<std::string>{ fragmentPath });
 }
@@ -61,8 +61,6 @@ Shader Shader::load(const std::string & vertexPath, const std::string & geometry
 Shader::Shader() : programId{0}
 {
 }
-
-
 
 Shader::Shader(const std::vector<std::string>& vertexPaths, const std::vector<std::string>& geometryPaths, const std::vector<std::string>& fragmentPaths)
 {
@@ -220,10 +218,18 @@ void Shader::use() const
     glUseProgram(programId);
 }
 
+bool Shader::isValid() const
+{
+	return programId != 0;
+}
+
+Shader::operator bool() const {
+	return isValid();
+}
+
 Shader::~Shader()
 {
 	if (refCount.shouldCleanUp() && programId != 0)
 		glDeleteProgram(programId);
 }
-
 

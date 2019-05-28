@@ -11,9 +11,14 @@
 class RefCount
 {
 	private:
-		std::int32_t* refs = nullptr;
+		std::int32_t* mRefs = nullptr;
+		bool mIsWeak = false;
 
 		void copy(const RefCount& rc);
+
+		/**
+		  * Decreases the reference count. */
+		void decrease();
 
 	public:
 		RefCount();
@@ -28,15 +33,16 @@ class RefCount
 
 		/**
 		 * Returns true if the object holding this reference 
-		 * is the last one and should be responsible for cleaning up resources
+		 * is the last one and should be responsible for cleaning up resources.
+		 * @return true if resources should be cleaned up, false otherwise
 		 */
 		bool shouldCleanUp() const;
 
 		/**
-		 * Decreases the reference count.
-		 * Can be used when a weak reference is created.
+		 * Sets this reference count as a weak reference count.
+		 * Used by objects stored in caches.
 		 */
-		void decrease();
+		void setWeak();
 
 		RefCount& operator=(const RefCount& rc);
 

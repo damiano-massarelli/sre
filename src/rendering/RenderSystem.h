@@ -1,12 +1,16 @@
 #ifndef RENDERSYSTEM_H
 #define RENDERSYSTEM_H
+#include "HandleList.h"
+#include "GameObject.h"
+#include "Texture.h"
+#include "Mesh.h"
+#include "Shader.h"
+#include "EffectManager.h"
 #include <cstdint>
 #include <vector>
 #include <glad/glad.h>
 #include <SDL.h>
 #include <glm/gtx/quaternion.hpp>
-#include "HandleList.h"
-#include "GameObject.h"
 
 /** The master renderer.
   * The master renderer manages all rendering settings
@@ -29,9 +33,18 @@ class RenderSystem
         /** reference for camera ubo */
         std::uint32_t mUboCamera;
 
+		/** reference to screen frame buffer */
+		std::uint32_t mScreenFbo;
+		Texture mColorBuffer;
+		std::uint32_t colorBuffer;
+		Texture mDepthBuffer;
+		Mesh mScreenMesh;
+
         std::vector<GameObjectEH> mLights;
 
         void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
+
+		void initScreenFbo();
 
         /** Updates the lights ubo */
         void updateLights();
@@ -68,6 +81,9 @@ class RenderSystem
 
         /** The camera used for rendering */
         GameObjectEH camera;
+
+		/** The effect manager handles post processing effects */
+		EffectManager effectManager;
 
     public:
         // Cannot copy this system, only the engine has an instance

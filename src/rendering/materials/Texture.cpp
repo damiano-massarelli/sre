@@ -9,10 +9,9 @@ std::map<std::string, Texture> Texture::textureCache;
 Texture Texture::loadFromFile(const std::string& path, int wrapS, int wrapT)
 {
 	auto cached = textureCache.find(path);
-	if (cached != textureCache.end()) {
-		std::cout << "found in cache\n";
+	if (cached != textureCache.end()) 
 		return cached->second;
-	}
+	
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -23,13 +22,13 @@ Texture Texture::loadFromFile(const std::string& path, int wrapS, int wrapT)
         std::cerr << "unable to load texture " << path << "\n";
         return texture;
     } else {
-        texture = Texture::load(data, width, height, wrapS, wrapT);
+        texture = Texture::load(data, width, height, wrapS, wrapT, true, GL_RGBA);
         stbi_image_free(data);
     }
 
 	texture.refCount.onRemove = [path]() { Texture::textureCache.erase(path); };
 	textureCache[path] = texture;
-	textureCache[path].refCount.decrease();
+	textureCache[path].refCount.setWeak();
 
     return texture;
 }
@@ -40,7 +39,7 @@ Texture Texture::loadFromMemory(std::uint8_t* data, std::int32_t len, int wrapS,
 
     int width, height, cmp;
     std::uint8_t* convertedData = stbi_load_from_memory(data, len, &width, &height, &cmp, STBI_rgb_alpha);
-    return Texture::load(convertedData, width, height, wrapS, wrapT);
+    return Texture::load(convertedData, width, height, wrapS, wrapT, true, GL_RGBA);
 }
 
 Texture Texture::loadCubamapFromFile(const std::map<std::string, std::string>& paths)
@@ -88,22 +87,24 @@ Texture Texture::loadCubamapFromFile(const std::map<std::string, std::string>& p
     return Texture{cubemap};
 }
 
-Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int wrapT)
+Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int wrapT, bool mipmap, int format, int type)
 {
-    if (data == nullptr)
-        return Texture{0};
-
     std::uint32_t texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, type, data);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	if (mipmap) {
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	}
+    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+
 
     glBindTexture(GL_TEXTURE_2D, 0);
 

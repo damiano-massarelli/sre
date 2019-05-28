@@ -41,6 +41,8 @@ void main() {
     if (material.useSpecularMap)
         specularColor *= vec3(texture2D(material.specular, texCoord));
 
+	diffuseColor = pow(diffuseColor, vec3(2.2));
+	specularColor = pow(specularColor, vec3(2.2));
     vec3 color = vec3(0.0f);
     for (int i = 0; i < numLights; i++) {
         color += phongComputeColor(lights[i], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition);

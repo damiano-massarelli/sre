@@ -23,6 +23,8 @@ class Mesh
     // Render system should be able to access this class data
     friend class GameObjectRenderer;
     friend class MeshLoader;
+	friend class RenderSystem;
+
 	public:
 		RefCount refCount;
 
