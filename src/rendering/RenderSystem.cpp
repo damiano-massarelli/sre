@@ -1,6 +1,8 @@
 #include "RenderSystem.h"
 #include "Shader.h"
 #include "Light.h"
+#include "Engine.h"
+#include "MeshLoader.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -9,12 +11,9 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
-#include "BlinnPhongMaterial.h"
-#include "Engine.h"
 
 RenderSystem::RenderSystem()
 {
-	//setAASamples(4);
     camera = Engine::gameObjectManager.createGameObject();
     camera->name = "defaultCamera";
 }
@@ -22,11 +21,11 @@ RenderSystem::RenderSystem()
 void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane, std::uint32_t samples)
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cout << "Cannot init sdl " << SDL_GetError() << "\n";
+        std::cout << "Cannot init SDL " << SDL_GetError() << "\n";
         std::terminate();
     }
 
-    SDL_GL_LoadLibrary(nullptr); // use default opengl
+    SDL_GL_LoadLibrary(nullptr); // use default OpenGL
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -34,8 +33,8 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
+	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
 
     mWindow = SDL_CreateWindow("opengl", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
     if (mWindow == nullptr) {
@@ -54,6 +53,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     }
 
     initGL(width, height, fovy, nearPlane, farPlane);
+	initScreenFbo();
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -92,11 +92,45 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_MULTISAMPLE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+}
+
+void RenderSystem::initScreenFbo()
+{
+	mColorBuffer = Texture::load(nullptr, 1280, 720, GL_REPEAT, GL_REPEAT, false, GL_RGB);
+	mDepthBuffer = Texture::load(nullptr, 1280, 720, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_COMPONENT, GL_FLOAT);
+
+	glGenFramebuffers(1, &mScreenFbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, mScreenFbo);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mColorBuffer.getId(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthBuffer.getId(), 0);
+
+	/** Render buffer objects can be used instead of textures, they are faster but read only.
+	  * use textures when you need to read from them, use rbo when you dont */
+// 	std::uint32_t rbo;
+// 	glGenRenderbuffers(1, &rbo);
+// 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+// 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1280, 720);
+// 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+/*	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);*/
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "Frame buffer is incomplete";
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	MeshLoader loader;
+	float verts[]{ -1, -1, -1, 1, 1, 1, 1, -1 };
+	float texCoords[]{ 0, 0, 0, 1, 1, 1, 1, 0 };
+	std::uint32_t indices[]{ 0, 2, 1, 0, 3, 2 };
+	loader.loadData(verts, 8, 2);
+	loader.loadData(texCoords, 8, 2);
+	loader.loadData(indices, 6, 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
+	mScreenMesh = loader.getMesh(0, 6);
 }
 
 void RenderSystem::updateLights()
@@ -163,6 +197,10 @@ void RenderSystem::updateCamera()
 
 void RenderSystem::prepareRendering()
 {
+	glEnable(GL_DEPTH_TEST);
+	if (effectManager.mEnabled)
+		glBindFramebuffer(GL_FRAMEBUFFER, mScreenFbo);
+
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -184,7 +222,7 @@ void RenderSystem::prepareRendering()
     view = invert * view;
 
 
-    /* Sets the camera matrix to a ubo so that it is shared */
+    /* Sets the camera matrix to a UBO so that it is shared */
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -195,6 +233,20 @@ void RenderSystem::prepareRendering()
 
 void RenderSystem::finalizeRendering()
 {
+	if (effectManager.mEnabled) {
+		// unbind frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_DEPTH_TEST);
+		effectManager.mPostProcessingShader;
+		glBindVertexArray(mScreenMesh.mVao);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mColorBuffer.getId());
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+	}
+
     SDL_GL_SwapWindow(mWindow);
 }
 
@@ -213,8 +265,11 @@ void RenderSystem::cleanUp()
     // Delete uniform buffers
     glDeleteBuffers(1, &mUboCommonMat);
     glDeleteBuffers(1, &mUboLights);
+	glDeleteFramebuffers(1, &mScreenFbo);
 
-    // Destroys the window and quit sdl
+	effectManager.cleanUp();
+
+    // Destroys the window and quit SDL
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
 }

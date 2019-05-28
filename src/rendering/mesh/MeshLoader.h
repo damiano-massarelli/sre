@@ -36,7 +36,7 @@ class MeshLoader
           * @param bufferType the type of buffer to create (GL_ARRAY_BUFFER, GL_ELEMENT_ARAY_BUFFER, etc)
           * @param dataType the type of the data to load (GL_FLOAT, GL_UNSIGNED_INT, etc). */
         template <typename T>
-        void loadData(T* data, std::uint32_t size, int dataPerVertex, int bufferType = GL_ARRAY_BUFFER, int dataType = GL_FLOAT) {
+        void loadData(const T* data, std::uint32_t size, int dataPerVertex, int bufferType = GL_ARRAY_BUFFER, int dataType = GL_FLOAT) {
             std::uint32_t bo;
             glGenBuffers(1, &bo);
             glBindBuffer(bufferType, bo);

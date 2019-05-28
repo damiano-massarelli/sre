@@ -20,8 +20,6 @@ class Texture {
 
         Texture(std::uint32_t id);
 
-        static Texture load(std::uint8_t* data, int width, int height, int wrapS, int wrapT);
-
     public:
         /**
           * Creates an invalid texture.
@@ -42,6 +40,20 @@ class Texture {
           * @param length of the buffer
           * @return the loaded texture */
         static Texture loadFromMemory(std::uint8_t* data, std::int32_t len, int wrapS = GL_REPEAT, int wrapT = GL_REPEAT);
+		
+		/**
+		 * Creates a new Texture.
+		 * @param data pixel data of the image
+		 * @param width width of the texture
+		 * @param height height of the texture
+		 * @param wrapS repeat mode on x axis
+		 * @param wrapT repeat mode on y axis
+		 * @param mipmap should use mipmap?
+		 * @param format OpenGL format (GL_RGB, GL_RGBA, etc)
+		 * @param type the type of data stored in the texture
+		 */
+		static Texture load(std::uint8_t* data, int width, int height,
+			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, bool mipmap = true, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE);
 
         /**
           * Loads a cubmap from file.

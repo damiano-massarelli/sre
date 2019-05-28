@@ -64,6 +64,10 @@ class Shader
 
         void use() const;
 
+		operator bool() const;
+
+		bool isValid() const;
+
         virtual ~Shader();
 };
 

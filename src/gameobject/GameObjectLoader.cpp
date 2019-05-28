@@ -143,9 +143,8 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
     Mesh loadedMesh = loader.getMesh(vertices.size(), indices.size());
 
 	loadedMesh.refCount.onRemove = [cacheName]() { std::cout << "removed " << cacheName << "\n"; GameObjectLoader::mMeshCache.erase(cacheName); };
-	loadedMesh.refCount.decrease(); // for the following weak ref
 	mMeshCache[cacheName] = loadedMesh;
-
+	mMeshCache[cacheName].refCount.setWeak();
 
     go->addMesh(loadedMesh, loadedMaterial);
 }
