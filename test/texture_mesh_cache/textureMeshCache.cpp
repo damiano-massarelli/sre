@@ -67,6 +67,8 @@ int main(int argc, char* argv[]) {
     auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
     auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
+	Engine::renderSys.effectManager.enableEffects();
+
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
     light->addComponent(std::make_shared<Light>(light));

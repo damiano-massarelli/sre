@@ -2,6 +2,7 @@
 #include "Engine.h"
 
 BlinnPhongMaterial::BlinnPhongMaterial() : Material{{"shaders/phongVS.glsl"},
+										  {},
                                           {"shaders/Light.glsl", "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl"}}
 {
     shader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);

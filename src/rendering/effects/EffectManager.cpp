@@ -1,19 +1,37 @@
 #include "EffectManager.h"
 #include <algorithm>
+#include <sstream>
+
+#include <iostream>
 
 void EffectManager::createShader()
 {
-	std::vector<std::string> shaders;
-	std::transform(mEffects.begin(), mEffects.end(), shaders.begin(), [](auto& elem) { return elem.second->getEffectPath(); });
-	shaders.insert(shaders.begin(), { "effects/__postProcessingStartFS.glsl" });
-	shaders.push_back("effects/__postProcessingEndFS.glsl");
+	std::vector<std::string> shaderPaths;
+	shaderPaths.push_back("effects/__postProcessingDeclFS.glsl");
+	std::transform(mEffects.begin(), mEffects.end(), std::back_inserter(shaderPaths), [](auto& elem) { return elem->getEffectPath(); });
+	shaderPaths.push_back("effects/__postProcessingMainFS.glsl");
 
-	mPostProcessingShader = Shader::load({ "effects/__postProcessingVS.glsl" }, shaders);
+	std::vector<std::string> code;
+	std::transform(shaderPaths.begin(), shaderPaths.end(), std::back_inserter(code), [](const auto& path) { return Shader::sourceFromFile(path); });
+
+	if (mEffects.size() != 0) {
+		std::stringstream effectCalls;
+		for (const auto& effect : mEffects)
+			effectCalls << effect->getName() << "(color);\n";
+
+
+		code.push_back(effectCalls.str());
+	}
+	//code.push_back(Shader::sourceFromFile("effects/__postProcessingEndFS.glsl"));
+
+	mPostProcessingShader = Shader::fromCode({ Shader::sourceFromFile("effects/__postProcessingEffectVS.glsl") },
+		{},
+		code);
 }
 
-void EffectManager::addEffect(const std::string& name, const std::shared_ptr<Effect>& effect)
+void EffectManager::addEffect(const std::shared_ptr<Effect>& effect)
 {
-	mEffects.push_back(std::make_pair(name, effect));
+	mEffects.push_back(effect);
 
 	createShader();
 }

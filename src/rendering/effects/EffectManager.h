@@ -15,21 +15,19 @@ class EffectManager
 
 		Shader mPostProcessingShader;
 
-		std::vector<std::pair<std::string, std::shared_ptr<Effect>>> mEffects;
+		std::vector<std::shared_ptr<Effect>> mEffects;
 
 		void createShader();
 
 	public:
 		EffectManager() = default;
 
-		void addEffect(const std::string& name, const std::shared_ptr<Effect>& effect);
+		void addEffect(const std::shared_ptr<Effect>& effect);
 
 		void enableEffects();
 
 		void disableEffects();
 
 		void cleanUp();
-
-		~EffectManager() = default;
 };
 
