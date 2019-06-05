@@ -16,29 +16,28 @@ class Shader
     private:
 		static std::map<std::string, Shader> mShaderCache;
 
-        std::uint32_t programId = 0;
+        std::uint32_t mProgramId = 0;
 
-        std::uint32_t createShader(const std::vector<std::string>& paths, GLenum type, bool addVersion = true);
+        static std::uint32_t createShaderFromFiles(const std::vector<std::string>& paths, GLenum type, bool addVersion = true);
 
-        std::string sourceFromFile(const std::string& path);
+		static std::uint32_t createShader(const std::vector<std::string>& code, GLenum type, GLint& success, bool addVersion = true);
 
-        void writeDebugShaderToFile(const std::string& source);
+		static std::uint32_t createProgram(std::uint32_t vertexShader, std::uint32_t geometryShader, std::uint32_t fragmentShader, GLint& success);
 
-		Shader(const std::vector<std::string>& vertexPaths,
-			const std::vector<std::string>& geometryPaths,
-			const std::vector<std::string>& fragmentPaths);
+        static void writeDebugShaderToFile(const std::string& source);
+
+		Shader(std::uint32_t programId);
 
     public:
-		static Shader load(const std::vector<std::string>& vertexPaths,
+		static Shader loadFromFile(const std::vector<std::string>& vertexPaths,
 			const std::vector<std::string>& geometryPaths,
 			const std::vector<std::string>& fragmentPaths);
 
-		static Shader load(const std::vector<std::string>& vertexPaths,
-			const std::vector<std::string>& fragmentPaths);
+		static Shader loadFromFile(const std::string& vertexPath, const std::string& geometryPath, const std::string& fragmentPath);
 
-		static Shader load(const std::string& vertexPath, const std::string& fragmentPath);
+		static std::string sourceFromFile(const std::string& path);
 
-		static Shader load(const std::string& vertexPath, const std::string& geometryPath, const std::string& fragmentPath);
+		static Shader fromCode(const std::vector<std::string>& vertexCode, const std::vector<std::string>& geometryCode, const std::vector<std::string>& fragmentCode);
 		
 		Shader();
 

@@ -240,7 +240,7 @@ void RenderSystem::finalizeRendering()
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_DEPTH_TEST);
-		effectManager.mPostProcessingShader;
+		effectManager.mPostProcessingShader.use();
 		glBindVertexArray(mScreenMesh.mVao);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, mColorBuffer.getId());
