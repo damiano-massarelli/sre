@@ -12,17 +12,18 @@ void EffectManager::createShader()
 	shaderPaths.push_back("effects/__postProcessingMainFS.glsl");
 
 	std::vector<std::string> code;
-	std::transform(shaderPaths.begin(), shaderPaths.end(), std::back_inserter(code), [](const auto& path) { return Shader::sourceFromFile(path); });
+	std::transform(shaderPaths.begin(), shaderPaths.end(),
+		std::back_inserter(code), [](const auto& path) { return Shader::sourceFromFile(path) + "\n"; }); // add \n to avoid problems with #line
 
 	if (mEffects.size() != 0) {
 		std::stringstream effectCalls;
 		for (const auto& effect : mEffects)
-			effectCalls << effect->getName() << "(color);\n";
+			effectCalls << "color = " << effect->getName() << "(color);\n";
 
 
 		code.push_back(effectCalls.str());
 	}
-	//code.push_back(Shader::sourceFromFile("effects/__postProcessingEndFS.glsl"));
+	code.push_back(Shader::sourceFromFile("effects/__postProcessingEndFS.glsl"));
 
 	mPostProcessingShader = Shader::fromCode({ Shader::sourceFromFile("effects/__postProcessingEffectVS.glsl") },
 		{},

@@ -40,6 +40,7 @@ Shader Shader::loadFromFile(const std::vector<std::string>& vertexPaths,
 	if (!success) {
 		char infoLog[512];
 		glGetProgramInfoLog(program, 512, nullptr, infoLog);
+		std::cerr << "linking problem: " << vertexPaths << " " << geometryPaths << " " << fragmentPaths << " :" << infoLog << "\n";
 		return Shader{};
 	}
 
@@ -87,7 +88,6 @@ Shader Shader::fromCode(const std::vector<std::string>& vertexCode, const std::v
 		return Shader{};
 	}
 
-	std::cout << "linking: " << vertexShader << " " << geometryShader << " " << fragmentShader << "\n";
 	std::uint32_t program = createProgram(vertexShader, geometryShader, fragmentShader, success);
 	if (!success) {
 		char infoLog[512];

@@ -61,13 +61,13 @@ class Material
           * their materials should return true. The order in which Mesh%es are rendered
           * is determined by the value of renderOrder()
           * @return true if the corresponding mesh needs to be drawn in a certain order, false otherwise */
-        virtual bool needsOrderedRendering() {return false;};
+        virtual bool needsOrderedRendering() { return false; };
 
         /**
           * Provides a value to order Mesh%es.
           * @param position the position of the GameObject to which this material belongs
           * @return the render order (smaller value => rendered first) */
-        virtual float renderOrder(const glm::vec3& position) {return 0.0f;};
+        virtual float renderOrder(const glm::vec3& position) { return 0.0f; };
 
         virtual ~Material();
 };

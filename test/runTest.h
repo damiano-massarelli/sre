@@ -1,4 +1,4 @@
-
+#pragma once
 /* Contains defs that enable the execution of
  * a specific test */
 
@@ -7,4 +7,5 @@
 //#define basicTransparency
 //#define skybox
 //#define meshCreator
-#define textureCache
+//#define textureCache
+#define multipleTextures 

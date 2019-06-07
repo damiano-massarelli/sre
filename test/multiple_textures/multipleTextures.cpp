@@ -10,31 +10,15 @@
 #include "GameObjectLoader.h"
 #include "TerrainGenerator.h"
 #include "HeightMapTerrainHeightProvider.h"
+#include "RefCount.h"
+#include "GammaCorrection.h"
+#include "MultiTextureLambertMaterial.h"
 
 #include <runTest.h>
 
-#include "RefCount.h"
-#include "GammaCorrection.h"
-
 #include <iostream>
-#include <random>
 
-#ifdef textureCache
-
-struct Remover : public Component, public EventListener {
-	CrumbPtr crumb;
-	SDL_Keycode killKey;
-
-	Remover(const GameObjectEH& go, SDL_Keycode kk) : Component(go), killKey{ kk } {
-		crumb = Engine::eventManager.addListenerFor(SDL_KEYDOWN, this, true);
-	}
-
-	void onEvent(SDL_Event e) override {
-		if (e.key.keysym.sym == killKey)
-			Engine::gameObjectManager.remove(gameObject);
-	}
-};
-
+#ifdef multipleTextures 
 int main(int argc, char* argv[]) {
     Engine::init();
 
@@ -49,14 +33,6 @@ int main(int argc, char* argv[]) {
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
-
-	auto tb1 = GameObjectLoader().fromFile("test_data/texture_cache/table.obj");
-	tb1->addComponent(std::make_shared<Remover>(tb1, SDLK_1));
-
-	auto tb2 = GameObjectLoader().fromFile("test_data/texture_cache/table.obj");
-	tb2->transform.setPosition(glm::vec3{ 0, 0, -10 });
-	tb2->addComponent(std::make_shared<Remover>(tb2, SDLK_2));
-
     auto skyTexture = Texture::loadCubamapFromFile({
                     {"front", "test_data/skybox/front.tga"},
                     {"back", "test_data/skybox/back.tga"},
@@ -67,6 +43,25 @@ int main(int argc, char* argv[]) {
                 });
     auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
     auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
+
+	auto multiTextured = std::make_shared<MultiTextureLambertMaterial>(
+		Texture::loadFromFile("test_data/multiple_textures/grass.jpg"),
+		Texture::loadFromFile("test_data/multiple_textures/ground.jpg"),
+		Texture::loadFromFile("test_data/multiple_textures/path.jpg"),
+		Texture::loadFromFile("test_data/multiple_textures/flowers.jpg"),
+		Texture::loadFromFile("test_data/multiple_textures/blend.png")
+		);
+
+	MaterialPtr phong = BlinnPhongMaterialBuilder()
+		.setDiffuseMap("test_data/terrain/grass.jpg")
+		.setShininess(0.0f)
+		.build();
+
+	HeightMapTerrainHeightProvider hProvider{ "test_data/terrain/heightmap_2.png", -10, 10 };
+	TerrainGenerator generator{ 150, 150, 500, 500 };
+	//Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), std::make_shared<PropMaterial>(true));
+	Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
+
 
 	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());

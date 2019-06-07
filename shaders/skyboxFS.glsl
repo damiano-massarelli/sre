@@ -5,5 +5,7 @@ in vec3 position;
 out vec4 FragColor;
 
 void main() {
-    FragColor = texture(cubemap, position);
+    vec4 color = texture(cubemap, position);
+	color.rgb = pow(color.rgb, vec3(2.2f)); // gamma correction
+	FragColor = color;
 }
