@@ -3,6 +3,7 @@
 #include <stb_image.h>
 #include <iostream>
 #include <glad/glad.h>
+#include <algorithm>
 
 std::map<std::string, Texture> Texture::textureCache;
 
@@ -105,6 +106,14 @@ Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
 
+	if (GLAD_GL_ARB_texture_filter_anisotropic) {
+		float maxAniso = 0;
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, std::min(maxAniso, 4.0f));
+	}
+	else {
+		std::cout << "anisotropic filtering not available\n";
+	}
 
     glBindTexture(GL_TEXTURE_2D, 0);
 

@@ -44,9 +44,9 @@ Mesh TerrainGenerator::createTerrain(const TerrainHeightProvider& heightProvider
                                h + 1 + (mHVertex + 1) * v,
 
                                // second tri
-                               h + 1 + (mVVertex + 1) * v,
-                               h + (mVVertex + 1) * (v + 1),
-                               h + 1 + (mVVertex + 1) * (v + 1),
+                               h + 1 + (mHVertex + 1) * v,
+                               h + (mHVertex + 1) * (v + 1),
+                               h + 1 + (mHVertex + 1) * (v + 1),
                             });
             }
         }

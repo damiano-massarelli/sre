@@ -39,7 +39,7 @@ class TerrainGenerator
 
         Mesh createTerrain(const TerrainHeightProvider& heightProvider);
 
-        virtual ~TerrainGenerator() = default;
+		virtual ~TerrainGenerator() = default;
 };
 
 #endif // TERRAINGENERATOR_H
