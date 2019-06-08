@@ -1,7 +1,9 @@
 #ifndef TERRAINGENERATOR_H
 #define TERRAINGENERATOR_H
+#include "GameObjectEH.h"
 #include "Mesh.h"
 #include "TerrainHeightProvider.h"
+#include "GeoMipMappingComponent.h"
 #include <cstdint>
 
 /** Generates Mesh%es that can be used as terrain.
@@ -38,6 +40,8 @@ class TerrainGenerator
         void setTextureTilesNumber(float horizontal, float vertical);
 
         Mesh createTerrain(const TerrainHeightProvider& heightProvider);
+
+		void addGeoMipMapComponent(const GameObjectEH& go);
 
 		virtual ~TerrainGenerator() = default;
 };

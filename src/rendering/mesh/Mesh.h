@@ -32,6 +32,9 @@ class Mesh
         std::uint32_t mVao = 0;
         std::vector<std::uint32_t> mBuffers;
 
+		// useful to change the LOD of a mesh
+		std::uint32_t mEbo = 0;
+
         bool mUsesIndices = false;
 
         int mDrawMode = GL_TRIANGLES;
@@ -51,6 +54,16 @@ class Mesh
 
     public:
         Mesh() = default;
+
+		/**
+		 * @return the VAO used to render this mesh.
+		 */
+		std::uint32_t getVao() const;
+
+		/**
+		 * @return the EBO used to index the vertices of this mesh.
+		 */
+		std::uint32_t getEbo() const;
 
         /**
           * Returns vertex data for this mesh.

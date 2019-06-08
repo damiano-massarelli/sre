@@ -28,6 +28,10 @@ void EffectManager::createShader()
 	mPostProcessingShader = Shader::fromCode({ Shader::sourceFromFile("effects/__postProcessingEffectVS.glsl") },
 		{},
 		code);
+
+	// call set up phase
+	for (auto& effect : mEffects)
+		effect->onSetup(mPostProcessingShader);
 }
 
 void EffectManager::addEffect(const std::shared_ptr<Effect>& effect)

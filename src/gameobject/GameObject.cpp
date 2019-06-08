@@ -13,6 +13,11 @@ void GameObject::addMesh(const Mesh& mesh, const MaterialPtr& material)
     mMaterials.push_back(material);
 }
 
+const std::vector<Mesh>& GameObject::getMeshes() const
+{
+	return mMeshes;
+}
+
 void GameObject::addComponent(const std::shared_ptr<Component>& component)
 {
     mComponents.push_back(component);

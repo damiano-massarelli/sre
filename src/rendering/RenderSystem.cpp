@@ -101,8 +101,8 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
 
 void RenderSystem::initScreenFbo()
 {
-	mColorBuffer = Texture::load(nullptr, 1280, 720, GL_REPEAT, GL_REPEAT, false, GL_RGB);
-	mDepthBuffer = Texture::load(nullptr, 1280, 720, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_COMPONENT, GL_FLOAT);
+	mColorBuffer = Texture::load(nullptr, getScreenWidth(), getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_RGB);
+	mDepthBuffer = Texture::load(nullptr, getScreenWidth(), getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_DEPTH_COMPONENT, GL_FLOAT);
 
 	glGenFramebuffers(1, &mScreenFbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, mScreenFbo);
@@ -110,17 +110,8 @@ void RenderSystem::initScreenFbo()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mColorBuffer.getId(), 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthBuffer.getId(), 0);
 
-	/** Render buffer objects can be used instead of textures, they are faster but read only.
-	  * use textures when you need to read from them, use rbo when you dont */
-// 	std::uint32_t rbo;
-// 	glGenRenderbuffers(1, &rbo);
-// 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-// 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1280, 720);
-// 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-/*	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);*/
-
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "Frame buffer is incomplete";
+		std::cout << "Frame buffer is incomplete\n";
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	MeshLoader loader;
@@ -258,6 +249,20 @@ void RenderSystem::addLight(const GameObjectEH& light)
     }
 
     mLights.push_back(light);
+}
+
+std::int32_t RenderSystem::getScreenWidth() const
+{
+	std::int32_t w;
+	SDL_GetWindowSize(mWindow, &w, nullptr);
+	return w;
+}
+
+std::int32_t RenderSystem::getScreenHeight() const
+{
+	std::int32_t h;
+	SDL_GetWindowSize(mWindow, nullptr, &h);
+	return h;
 }
 
 void RenderSystem::cleanUp()

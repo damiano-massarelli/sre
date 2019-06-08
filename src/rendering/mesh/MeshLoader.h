@@ -47,7 +47,9 @@ class MeshLoader
                 glEnableVertexAttribArray(mCurrentAttribPointer);
                 glVertexAttribPointer(mCurrentAttribPointer, dataPerVertex, dataType, GL_FALSE, dataPerVertex * sizeof(T), (void *) 0);
                 mCurrentAttribPointer++;
-            }
+			}
+			else
+				mMesh.mEbo = bo;
 
             mMesh.mBuffers.push_back(bo);
         }

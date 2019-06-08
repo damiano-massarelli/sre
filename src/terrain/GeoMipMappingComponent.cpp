@@ -1,5 +1,8 @@
 #include "GeoMipMappingComponent.h"
 #include "Engine.h"
+#include "EventManager.h"
+#include <future>
+
 
 glm::vec2 GeoMipMappingComponent::getPosition(std::uint32_t h, std::uint32_t v)
 {
@@ -10,20 +13,25 @@ glm::vec2 GeoMipMappingComponent::getPosition(std::uint32_t h, std::uint32_t v)
 	return glm::vec2(hPos, vPos);
 }
 
-GeoMipMappingComponent::GeoMipMappingComponent(const GameObjectEH& go, std::uint32_t width, float depth, std::uint32_t vVertex, std::uint32_t hVertex)
-	: Component{ go }
+GeoMipMappingComponent::GeoMipMappingComponent(const GameObjectEH& go, float width, float depth, std::uint32_t hVertex, std::uint32_t vVertex)
+	: Component{ go }, mWidth{ width }, mDepth{ depth }, mVerticalVertex{ vVertex }, mHorizontalVertex{ hVertex }
 {
+	Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this, false);
 
+	// starts async computation
+	mResult = std::async(std::launch::async, [this]() { return geomipmap(); });
 }
 
-std::vector<std::uint32_t> GeoMipMappingComponent::compute(std::vector<std::uint32_t> indices, std::uint32_t h, std::uint32_t v, std::uint32_t hOff, std::uint32_t vOff)
+void GeoMipMappingComponent::compute(std::vector<std::uint32_t>& indices, std::uint32_t h, std::uint32_t v, std::uint32_t hOff, std::uint32_t vOff)
 {
 	auto pos3D = Engine::renderSys.camera->transform.getPosition();
 
 	glm::vec2 camPos = glm::vec2{ pos3D.x, pos3D.z };
-	glm::vec2 center = (getPosition(h, v) + getPosition(h + hOff, v + vOff)) / 2.0f;
+	glm::vec2 topLeft = getPosition(h, v);
+	glm::vec2 bottomRight = getPosition(h + hOff, v + vOff);
+	glm::vec2 center = (topLeft + bottomRight) / 2.0f;
 
-	if (glm::distance(camPos, center) < 150 && hOff != 1 && vOff != 1) {
+	if (glm::distance(camPos, center) < glm::distance(topLeft, bottomRight) *2  && hOff != 1 && vOff != 1) {
 		std::uint32_t hHalf = hOff / 2;
 		std::uint32_t vHalf = vOff / 2;
 
@@ -48,7 +56,7 @@ std::vector<std::uint32_t> GeoMipMappingComponent::compute(std::vector<std::uint
 	}
 }
 
-void GeoMipMappingComponent::geomipmap()
+std::vector<std::uint32_t> GeoMipMappingComponent::geomipmap()
 {
 	std::vector<std::uint32_t> indices;
 
@@ -60,5 +68,20 @@ void GeoMipMappingComponent::geomipmap()
 	compute(indices, 0, vHalf, hHalf, vHalf);
 	compute(indices, hHalf, vHalf, hHalf, vHalf);
 
-	gameObject
+	return indices;
+}
+
+void GeoMipMappingComponent::onEvent(SDL_Event e)
+{
+	if (mResult._Is_ready()) {
+		auto indices = mResult.get();
+		std::uint32_t ebo = gameObject->getMeshes()[0].getEbo();
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(std::uint32_t) * indices.size(), indices.data(), GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		mResult = std::async(std::launch::async, [this]() { return geomipmap(); });
+	}
+	
 }

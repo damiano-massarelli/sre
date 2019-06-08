@@ -65,7 +65,7 @@ class RenderSystem
 
     public:
         /** Creates a new window */
-        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 400.0f, std::uint32_t samples = 4);
+        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 800.0f, std::uint32_t samples = 4);
 
         /** Maximum number of lights */
         static constexpr std::size_t MAX_LIGHT_NUMBER = 10;
@@ -97,6 +97,16 @@ class RenderSystem
           * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
           */
         void addLight(const GameObjectEH& light);
+
+		/**
+		 * @return the width of the current window
+		 */
+		std::int32_t getScreenWidth() const;
+
+		/**
+		 * @return the height of the current window
+		 */
+		std::int32_t getScreenHeight() const;
 
 		virtual ~RenderSystem() = default;
 };

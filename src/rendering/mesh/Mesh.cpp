@@ -26,6 +26,16 @@ void Mesh::cleanUp()
     mVao = 0;
 }
 
+std::uint32_t Mesh::getVao() const
+{
+	return mVao;
+}
+
+std::uint32_t Mesh::getEbo() const
+{
+	return mEbo;
+}
+
 Mesh::~Mesh()
 {
 	if (refCount.shouldCleanUp())
