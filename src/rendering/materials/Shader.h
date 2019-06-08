@@ -59,6 +59,8 @@ class Shader
 
 		void setVec3(std::int32_t location, const glm::vec3& value) const;
 
+		void setVec2(const std::string& name, const glm::vec2& value) const;
+
         void bindUniformBlock(const std::string& name, std::uint32_t bindingPoint);
 
         void use() const;

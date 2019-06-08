@@ -2,6 +2,7 @@
 #include "MeshLoader.h"
 #include <vector>
 #include <glm/common.hpp>
+#include <memory.h>
 
 TerrainGenerator::TerrainGenerator(std::uint32_t hVertex, std::uint32_t vVertex, std::uint32_t width, std::uint32_t depth)
     : mHVertex{hVertex}, mVVertex{vVertex}, mWidth{width}, mDepth{depth}
@@ -60,3 +61,10 @@ Mesh TerrainGenerator::createTerrain(const TerrainHeightProvider& heightProvider
 
     return loader.getMesh(0, indices.size());
 }
+
+void TerrainGenerator::addGeoMipMapComponent(const GameObjectEH & go)
+{
+	auto component = std::make_shared<GeoMipMappingComponent>(go, (float)mWidth, (float)mDepth, mHVertex, mVVertex);
+	go->addComponent(component);
+}
+

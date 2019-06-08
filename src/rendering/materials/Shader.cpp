@@ -259,6 +259,13 @@ void Shader::setVec3(std::int32_t location, const glm::vec3 & value) const
 	glUniform3fv(location, 1, glm::value_ptr(value));
 }
 
+void Shader::setVec2(const std::string & name, const glm::vec2 & value) const
+{
+	std::int32_t location = getLocationOf(name);
+	if (location != -1)
+		glUniform2fv(location, 1, glm::value_ptr(value));
+}
+
 void Shader::use() const
 {
     glUseProgram(mProgramId);

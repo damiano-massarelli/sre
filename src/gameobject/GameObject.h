@@ -31,6 +31,11 @@ class GameObject
 
         void addMesh(const Mesh& mesh, const MaterialPtr& material);
 
+		/**
+		 * @return the meshes used by this GameObject
+		 */
+		const std::vector<Mesh>& getMeshes() const;
+
         /**
           * Adds a component to this game object.
           * @param component the component to add (a shared_ptr to it) */

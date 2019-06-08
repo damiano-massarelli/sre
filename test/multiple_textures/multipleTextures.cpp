@@ -58,13 +58,17 @@ int main(int argc, char* argv[]) {
 		.build();
 
 	HeightMapTerrainHeightProvider hProvider{ "test_data/terrain/heightmap_2.png", -10, 10 };
-	TerrainGenerator generator{ 150, 150, 500, 500 };
+	TerrainGenerator generator{ 2048, 2048, 1000, 1000 };
 	//Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), std::make_shared<PropMaterial>(true));
-	Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
+	auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
+	generator.addGeoMipMapComponent(terrain);
 
 
-	Engine::renderSys.effectManager.enableEffects();
-	Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+
+	//Engine::renderSys.effectManager.enableEffects();
+	//Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
