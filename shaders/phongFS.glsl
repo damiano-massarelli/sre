@@ -50,5 +50,6 @@ void main() {
 
     float fogFactor = exp(-pow(distance(position, cameraPosition) * 0.007f, 1.5f));
     color = mix(color, vec3(0.2f), 1 - fogFactor);
+
     FragColor = vec4(color, material.opacity);
 }

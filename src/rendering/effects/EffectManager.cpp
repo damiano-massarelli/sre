@@ -29,6 +29,11 @@ void EffectManager::createShader()
 		{},
 		code);
 
+	mPostProcessingShader.use();
+
+	mPostProcessingShader.setInt("sceenTexture", 0);
+	mPostProcessingShader.setInt("depthTexture", 1);
+
 	// call set up phase
 	for (auto& effect : mEffects)
 		effect->onSetup(mPostProcessingShader);

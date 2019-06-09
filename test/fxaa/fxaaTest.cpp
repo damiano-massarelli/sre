@@ -10,15 +10,17 @@
 #include "GameObjectLoader.h"
 #include "TerrainGenerator.h"
 #include "HeightMapTerrainHeightProvider.h"
-#include "RefCount.h"
-#include "GammaCorrection.h"
-#include "MultiTextureLambertMaterial.h"
 
 #include <runTest.h>
 
-#include <iostream>
+#include "RefCount.h"
+#include "GammaCorrection.h"
+#include "FXAA.h"
 
-#ifdef multipleTextures 
+#include <iostream>
+#include <random>
+
+#ifdef fxaa 
 int main(int argc, char* argv[]) {
     Engine::init();
 
@@ -33,6 +35,12 @@ int main(int argc, char* argv[]) {
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
+
+	auto tb1 = GameObjectLoader().fromFile("test_data/texture_cache/table.obj");
+
+	auto tb2 = GameObjectLoader().fromFile("test_data/texture_cache/table.obj");
+	tb2->transform.setPosition(glm::vec3{ 0, 0, -10 });
+
     auto skyTexture = Texture::loadCubamapFromFile({
                     {"front", "test_data/skybox/front.tga"},
                     {"back", "test_data/skybox/back.tga"},
@@ -44,29 +52,9 @@ int main(int argc, char* argv[]) {
     auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
     auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
-	auto multiTextured = std::make_shared<MultiTextureLambertMaterial>(
-		Texture::loadFromFile("test_data/multiple_textures/grass.jpg"),
-		Texture::loadFromFile("test_data/multiple_textures/ground.jpg"),
-		Texture::loadFromFile("test_data/multiple_textures/path.jpg"),
-		Texture::loadFromFile("test_data/multiple_textures/flowers.jpg"),
-		Texture::loadFromFile("test_data/multiple_textures/blend.png")
-		);
-
-	MaterialPtr phong = BlinnPhongMaterialBuilder()
-		.setDiffuseMap("test_data/terrain/grass.jpg")
-		.setShininess(0.0f)
-		.build();
-
-	HeightMapTerrainHeightProvider hProvider{ "test_data/terrain/heightmap_2.png", -10, 10 };
-	TerrainGenerator generator{ 2048, 2048, 1000, 1000 };
-	//Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), std::make_shared<PropMaterial>(true));
-	auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-
-	//Engine::renderSys.effectManager.enableEffects();
-	//Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
+	Engine::renderSys.effectManager.enableEffects();
+	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
+	Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
