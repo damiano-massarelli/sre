@@ -18,7 +18,7 @@ RenderSystem::RenderSystem()
     camera->name = "defaultCamera";
 }
 
-void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane, std::uint32_t samples)
+void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cout << "Cannot init SDL " << SDL_GetError() << "\n";
@@ -33,8 +33,8 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
+//	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+//	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
     mWindow = SDL_CreateWindow("opengl", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
     if (mWindow == nullptr) {
@@ -235,6 +235,8 @@ void RenderSystem::finalizeRendering()
 		glBindVertexArray(mScreenMesh.mVao);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, mColorBuffer.getId());
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, mDepthBuffer.getId());
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 	}
 
