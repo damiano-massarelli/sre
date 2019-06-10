@@ -19,9 +19,9 @@ MultiTextureLambertMaterial::MultiTextureLambertMaterial(Texture base, Texture r
 	shader.setInt("greenTexture", 2);
 	shader.setInt("blueTexture", 3);
 	shader.setInt("blendTexture", 4);
-}
 
-#include <iostream>
+	shader.setInt("shadowMap", 15);
+}
 
 void MultiTextureLambertMaterial::use()
 {

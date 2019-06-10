@@ -4,7 +4,7 @@ uniform float near = 0.1;
 uniform float far = 200.0;
 
 float fxaaDepthAt(vec2 coord) {
-    float z = texture2D(depthTexture, coord).r * 2.0 - 1.0;
+    float z = texture2D(depthTexture, coord).r;
     float d = (2.0 * near * far) / (far + near - z * (far - near));
 
     return d / far;
@@ -12,12 +12,12 @@ float fxaaDepthAt(vec2 coord) {
 
 float fxaaDepthDiff(vec2 coord, vec2 coord2) {
     float diff = abs(fxaaDepthAt(coord) - fxaaDepthAt(coord2));
-    return pow(diff, 1.0 / 6.5);
+    return pow(diff, 1.0 / 15.5);
 }
 
 const vec3 LUMA = vec3(0.299, 0.587, 0.114);
-const vec2 FXAA_SPAN = vec2(16.0f, 16.0f);
-const float FXAA_REDUCE_MUL = 1 / 16.0;
+const vec2 FXAA_SPAN = vec2(12.0f, 12.0f);
+const float FXAA_REDUCE_MUL = 1 / 12.0;
 const float FXAA_REDUCE_MIN = 1 / 128.0;
 
 vec4 fxaa(vec4 color) {
@@ -25,7 +25,6 @@ vec4 fxaa(vec4 color) {
     float lumaTR = dot( texture2D(screenTexture, texCoord + vec2(1.0, 1.0) * pixelSize ).rgb, LUMA );
     float lumaBL = dot( texture2D(screenTexture, texCoord + vec2(-1.0, -1.0) * pixelSize ).rgb, LUMA );
     float lumaBR = dot( texture2D(screenTexture, texCoord + vec2(1.0, -1.0) * pixelSize ).rgb, LUMA );
-    float lumaM  = dot(color.rgb, LUMA);
 
     vec2 dir;
     dir.x = -((lumaTL + lumaTR) - (lumaBL + lumaBR));
@@ -54,7 +53,7 @@ vec4 fxaa(vec4 color) {
     float diff22 = fxaaDepthDiff(texCoord, texCoord + texelSizeDir * vec2(0.5));
     float diff2 = (diff21 + diff22) / 2;
 
-
+ 
     color = vec4(mix(color.rgb, sample2, diff2), color.a);
 
     return color;
