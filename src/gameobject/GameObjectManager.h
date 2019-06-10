@@ -38,6 +38,11 @@ class GameObjectManager
           * @param go the game object to remove */
         void remove(const GameObjectEH& go);
 
+		/**
+		 * @return all the GameObject%s.
+		 */
+		const std::vector<GameObject>& getGameObjects() const;
+
 		virtual ~GameObjectManager() = default;
 };
 

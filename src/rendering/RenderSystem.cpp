@@ -54,6 +54,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 
     initGL(width, height, fovy, nearPlane, farPlane);
 	initScreenFbo();
+	initShadowFbo();
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -65,7 +66,8 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     /* Uniform buffer object set up for common matrices */
     glGenBuffers(1, &mUboCommonMat);
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
+	// 3 matrices, view projection and shadow mapping projection
+    glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, COMMON_MAT_UNIFORM_BLOCK_INDEX, mUboCommonMat);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -113,7 +115,7 @@ void RenderSystem::initScreenFbo()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthBuffer.getId(), 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "Frame buffer is incomplete\n";
+		std::cout << "Render to texture frame buffer is incomplete\n";
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	MeshLoader loader;
@@ -124,6 +126,21 @@ void RenderSystem::initScreenFbo()
 	loader.loadData(texCoords, 8, 2);
 	loader.loadData(indices, 6, 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
 	mScreenMesh = loader.getMesh(0, 6);
+}
+
+void RenderSystem::initShadowFbo()
+{
+	// TODO use NEAREST
+	mShadowMap = Texture::load(nullptr, mShadowMapWidth, mShadowMapHeight, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_COMPONENT, GL_FLOAT);
+
+	glGenFramebuffers(1, &mShadowFbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, mShadowFbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mShadowMap.getId(), 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "Shadow map frame buffer is incomplete\n";
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderSystem::updateLights()
@@ -190,6 +207,10 @@ void RenderSystem::updateCamera()
 
 void RenderSystem::prepareRendering()
 {
+	renderShadows();
+
+	glViewport(0, 0, getScreenWidth(), getScreenHeight());
+
 	glEnable(GL_DEPTH_TEST);
 	if (effectManager.mEnabled)
 		glBindFramebuffer(GL_FRAMEBUFFER, mScreenFbo);
@@ -214,14 +235,19 @@ void RenderSystem::prepareRendering()
     };
     view = invert * view;
 
-
     /* Sets the camera matrix to a UBO so that it is shared */
-    glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(mProjection));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     updateLights();
     updateCamera();
+}
+
+void RenderSystem::render()
+{
+	Engine::gameObjectRenderer.render(Engine::gameObjectManager.getGameObjects());
 }
 
 void RenderSystem::finalizeRendering()
@@ -240,9 +266,39 @@ void RenderSystem::finalizeRendering()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, mDepthBuffer.getId());
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+		glEnable(GL_DEPTH_TEST);
 	}
 
     SDL_GL_SwapWindow(mWindow);
+}
+
+void RenderSystem::renderShadows()
+{
+	float near_plane = 0.1f, far_plane = 7.5f;
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+	glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f),
+	glm::vec3(0.0f, 0.0f, 0.0f),
+	glm::vec3(0.0f, 1.0f, 0.0f));
+
+	glm::mat4 lightSpace = lightProjection * lightView;
+
+	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(lightProjection));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightView));
+	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightSpace));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glViewport(0, 0, mShadowMapWidth, mShadowMapHeight);
+	glBindFramebuffer(GL_FRAMEBUFFER, mShadowFbo);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	render();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glActiveTexture(GL_TEXTURE15);
+	glBindTexture(GL_TEXTURE_2D, mShadowMap.getId());
 }
 
 void RenderSystem::addLight(const GameObjectEH& light)

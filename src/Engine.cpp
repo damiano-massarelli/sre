@@ -47,9 +47,7 @@ void Engine::start()
         eventManager.dispatchEvents();
 
         renderSys.prepareRendering();
-
-        gameObjectManager.update();
-
+		renderSys.render();
         renderSys.finalizeRendering();
     }
 

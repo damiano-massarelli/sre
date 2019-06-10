@@ -45,6 +45,11 @@ void GameObjectManager::remove(const GameObjectEH& go)
     }
 }
 
+const std::vector<GameObject>& GameObjectManager::getGameObjects() const
+{
+	return mGameObjects;
+}
+
 void GameObjectManager::update()
 {
     Engine::gameObjectRenderer.render(mGameObjects);

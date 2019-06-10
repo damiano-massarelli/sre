@@ -36,9 +36,15 @@ class RenderSystem
 		/** reference to screen frame buffer */
 		std::uint32_t mScreenFbo;
 		Texture mColorBuffer;
-		std::uint32_t colorBuffer;
 		Texture mDepthBuffer;
 		Mesh mScreenMesh;
+
+		/** reference to shadow map frame buffer */
+		std::uint32_t mShadowFbo;
+		Texture mShadowMap;
+
+		std::int32_t mShadowMapWidth = 1024;
+		std::int32_t mShadowMapHeight = 1024;
 
 		/** near and far clipping planes */
 		float mNearPlane = 0.0f;
@@ -50,6 +56,8 @@ class RenderSystem
 
 		void initScreenFbo();
 
+		void initShadowFbo();
+
         /** Updates the lights ubo */
         void updateLights();
 
@@ -59,8 +67,14 @@ class RenderSystem
         /** Performs all operations needed by rendering */
         void prepareRendering();
 
+		/** Calls rendering submodules to perform rendering */
+		void render();
+
         /** Performs all operations needed to finalize rendering: blitting to screen */
         void finalizeRendering();
+
+		/** Performs shadow mapping */
+		void renderShadows();
 
         // private constructor, only the engine can create a render system
         RenderSystem();
