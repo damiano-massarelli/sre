@@ -30,9 +30,9 @@ void EffectManager::createShader()
 		code);
 
 	mPostProcessingShader.use();
-
-	mPostProcessingShader.setInt("sceenTexture", 0);
-	mPostProcessingShader.setInt("depthTexture", 1);
+	/* Explicit use of getLocationOf to avoid uniform not found warnings */
+	mPostProcessingShader.setInt(mPostProcessingShader.getLocationOf("screenTexture", false), 0);
+	mPostProcessingShader.setInt(mPostProcessingShader.getLocationOf("depthTexture", false), 1);
 
 	// call set up phase
 	for (auto& effect : mEffects)

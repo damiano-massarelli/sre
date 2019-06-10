@@ -59,6 +59,8 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
 {
     mProjection = glm::perspective(fovy, static_cast<float>(width)/height, nearPlane, farPlane);
+	mNearPlane = nearPlane;
+	mFarPlane = farPlane;
 
     /* Uniform buffer object set up for common matrices */
     glGenBuffers(1, &mUboCommonMat);
@@ -265,6 +267,16 @@ std::int32_t RenderSystem::getScreenHeight() const
 	std::int32_t h;
 	SDL_GetWindowSize(mWindow, nullptr, &h);
 	return h;
+}
+
+float RenderSystem::getNearPlane() const
+{
+	return mNearPlane;
+}
+
+float RenderSystem::getFarPlane() const
+{
+	return mFarPlane;
 }
 
 void RenderSystem::cleanUp()

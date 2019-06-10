@@ -40,6 +40,10 @@ class RenderSystem
 		Texture mDepthBuffer;
 		Mesh mScreenMesh;
 
+		/** near and far clipping planes */
+		float mNearPlane = 0.0f;
+		float mFarPlane = 0.0f;
+
         std::vector<GameObjectEH> mLights;
 
         void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
@@ -65,7 +69,7 @@ class RenderSystem
 
     public:
         /** Creates a new window */
-        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 200.0f);
+        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 800.0f);
 
         /** Maximum number of lights */
         static constexpr std::size_t MAX_LIGHT_NUMBER = 10;
@@ -107,6 +111,16 @@ class RenderSystem
 		 * @return the height of the current window
 		 */
 		std::int32_t getScreenHeight() const;
+
+		/**
+		 * @return the near clipping plane distance
+		 */
+		float getNearPlane() const;
+
+		/**
+		 * @return the far clipping plane distance
+		 */
+		float getFarPlane() const;
 
 		virtual ~RenderSystem() = default;
 };

@@ -7,6 +7,7 @@
 #include <algorithm>
 
 std::map<std::string, Shader> Shader::mShaderCache;
+std::uint32_t Shader::mInUse = 0;
 
 // to print path vectors easily
 std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec) {
@@ -198,7 +199,7 @@ std::int32_t Shader::getLocationOf(const std::string& name, bool warning) const
 {
     std::int32_t location = glGetUniformLocation(mProgramId, name.c_str());
     if (warning && location == -1)
-        std::cerr << "unable to find uniform variable " << name << " make sure you are using it in your code\n";
+        std::cerr << "unable to find uniform variable " << name << " make sure you are using it in your code (current program: " << mInUse << " this program: " << mProgramId << ")\n";
     return location;
 }
 
@@ -268,6 +269,7 @@ void Shader::setVec2(const std::string & name, const glm::vec2 & value) const
 
 void Shader::use() const
 {
+	mInUse = mProgramId;
     glUseProgram(mProgramId);
 }
 
