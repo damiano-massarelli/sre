@@ -8,5 +8,5 @@
 //#define skybox
 //#define meshCreator
 //#define textureCache
-//#define multipleTextures 
-#define fxaa 
+#define multipleTextures 
+//#define fxaa 
