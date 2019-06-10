@@ -1,11 +1,14 @@
 #include "MultiTextureLambertMaterial.h"
 #include "Engine.h"
 
-MultiTextureLambertMaterial::MultiTextureLambertMaterial(Texture base, Texture red, Texture green, Texture blue, Texture blend)
+MultiTextureLambertMaterial::MultiTextureLambertMaterial(Texture base, Texture red, Texture green, Texture blue, Texture blend, float horizontalTiles, float verticalTiles)
 	: Material{ {"shaders/phongVS.glsl"}, {}, std::vector<std::string>{"shaders/Light.glsl", "shaders/PhongLightCalculation.glsl", "shaders/multiTexturePhongFS.glsl"} },
 	baseTexture {base}, redTexture{ red }, greenTexture{ green }, blueTexture{ blue }, blendTexture{ blend }
 {
 	shader.use();
+
+	shader.setFloat("horizontalTiles", horizontalTiles);
+	shader.setFloat("verticalTiles", verticalTiles);
 
 	shader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
 	shader.bindUniformBlock("Lights", Engine::renderSys.LIGHT_UNIFORM_BLOCK_INDEX);

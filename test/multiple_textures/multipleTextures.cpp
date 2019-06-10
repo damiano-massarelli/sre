@@ -49,7 +49,9 @@ int main(int argc, char* argv[]) {
 		Texture::loadFromFile("test_data/multiple_textures/ground.jpg"),
 		Texture::loadFromFile("test_data/multiple_textures/path.jpg"),
 		Texture::loadFromFile("test_data/multiple_textures/flowers.jpg"),
-		Texture::loadFromFile("test_data/multiple_textures/blend.png")
+		Texture::loadFromFile("test_data/multiple_textures/blend.png"),
+		40.0f,
+		40.0f
 		);
 
 	MaterialPtr phong = BlinnPhongMaterialBuilder()
@@ -58,7 +60,7 @@ int main(int argc, char* argv[]) {
 		.build();
 
 	HeightMapTerrainHeightProvider hProvider{ "test_data/terrain/heightmap_2.png", -10, 10 };
-	TerrainGenerator generator{ 2048, 2048, 1000, 1000 };
+	TerrainGenerator generator{ 512, 512, 1000, 1000 };
 	//Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), std::make_shared<PropMaterial>(true));
 	auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
 

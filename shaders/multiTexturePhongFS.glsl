@@ -10,6 +10,9 @@ uniform sampler2D greenTexture;
 uniform sampler2D blueTexture;
 uniform sampler2D blendTexture;
 
+uniform float horizontalTiles;
+uniform float verticalTiles;
+
 layout (std140) uniform Lights {
     int numLights;
     Light lights[10];
@@ -21,7 +24,7 @@ layout (std140) uniform Camera {
 };
 
 void main() {
-    vec4 channels = texture2D(blendTexture, texCoord / 40);
+    vec4 channels = texture2D(blendTexture, texCoord / vec2(horizontalTiles, verticalTiles));
     float baseFactor = 1.0f - (channels.r + channels.g + channels.b);
 
     vec3 base = vec3(texture2D(baseTexture, texCoord));
