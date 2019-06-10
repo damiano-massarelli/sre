@@ -16,6 +16,8 @@ class Shader
     private:
 		static std::map<std::string, Shader> mShaderCache;
 
+		static std::uint32_t mInUse;
+
         std::uint32_t mProgramId = 0;
 
         static std::uint32_t createShaderFromFiles(const std::vector<std::string>& paths, GLenum type, bool addVersion = true);
