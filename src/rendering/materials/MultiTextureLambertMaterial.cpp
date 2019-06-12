@@ -2,7 +2,7 @@
 #include "Engine.h"
 
 MultiTextureLambertMaterial::MultiTextureLambertMaterial(Texture base, Texture red, Texture green, Texture blue, Texture blend, float horizontalTiles, float verticalTiles)
-	: Material{ {"shaders/phongVS.glsl"}, {}, std::vector<std::string>{"shaders/Light.glsl", "shaders/PhongLightCalculation.glsl", "shaders/multiTexturePhongFS.glsl"} },
+	: Material{ {"shaders/phongVS.glsl"}, {}, {"shaders/Light.glsl", "shaders/ShadowMappingCalculation.glsl", "shaders/PhongLightCalculation.glsl", "shaders/multiTexturePhongFS.glsl"} },
 	baseTexture {base}, redTexture{ red }, greenTexture{ green }, blueTexture{ blue }, blendTexture{ blend }
 {
 	shader.use();

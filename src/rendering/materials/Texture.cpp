@@ -97,23 +97,23 @@ Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int 
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, type, data);
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-// 	if (mipmap) {
-// 		glGenerateMipmap(GL_TEXTURE_2D);
-// 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-// 	}
+	if (mipmap) {
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	}
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
 
-// 	if (GLAD_GL_ARB_texture_filter_anisotropic) {
-// 		float maxAniso = 0;
-// 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso);
-// 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, std::min(maxAniso, 4.0f));
-// 	}
-// 	else {
-// 		std::cout << "anisotropic filtering not available\n";
-// 	}
+	if (GLAD_GL_ARB_texture_filter_anisotropic) {
+		float maxAniso = 0;
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, std::min(maxAniso, 4.0f));
+	}
+	else {
+		std::cout << "anisotropic filtering not available\n";
+	}
 
     glBindTexture(GL_TEXTURE_2D, 0);
 

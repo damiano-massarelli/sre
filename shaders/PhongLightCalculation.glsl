@@ -1,7 +1,9 @@
-/** Lights should be imported
-  * All positions and directions are expected to be in world space
-  */
-vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float shininess, vec3 fragPosition, vec3 fragNormal, vec3 cameraPosition) {
+/** 
+  * Lights should be imported
+  * ShadowMapingCalulation should be imported
+  * All positions and directions are expected to be in world space except for lightSpacePos
+  * which is in light space */
+vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float shininess, vec3 fragPosition, vec3 fragNormal, vec3 cameraPosition, vec4 lightSpacePos, bool calcShadow) {
     vec3 outcolor = vec3(0.0f);
 
     fragNormal = normalize(fragNormal);
@@ -22,8 +24,14 @@ vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float
         lightDist = length(rayToLight);
     }
     rayToLight = normalize(rayToLight);
+
+	// shadow mapping
+	float inShadow = 0.0;
+	if (calcShadow)
+		inShadow = shadowMapIsInShadow(lightSpacePos, -rayToLight, fragNormal);
+
     float diffuseIntensity = max(dot(fragNormal, rayToLight), 0.0f);
-    outcolor += light.diffuseColor * diffuseColor * diffuseIntensity;
+    outcolor += light.diffuseColor * diffuseColor * diffuseIntensity * (1.0 - inShadow);
 
     if (shininess != 0) { // Phong or Lambert material? if shininess == 0 it is Lambert
         // specular component
@@ -31,7 +39,7 @@ vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float
         vec3 halfWay = normalize(rayToCamera + rayToLight);
 
         float specularIntensity = pow(max(dot(halfWay, fragNormal), 0.0f), shininess);
-        outcolor += (light.specularColor * specularColor * specularIntensity);
+        outcolor += light.specularColor * specularColor * specularIntensity * (1.0 - inShadow) * float(diffuseIntensity > 0);
     }
 
     float attenuation = 1.0f;

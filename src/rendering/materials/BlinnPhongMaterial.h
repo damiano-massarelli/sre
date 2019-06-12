@@ -7,123 +7,123 @@
 
 class BlinnPhongMaterial : public Material
 {
-    private:
-		std::int32_t mDiffuseColorLocation = -1;
-		std::int32_t mSpecularColorLocation = -1;
-		std::int32_t mShininessLocation = -1;
-		std::int32_t mOpacityLocation = -1;
-		std::int32_t mUseDiffuseMapLocation = -1;
-		std::int32_t mUseSpecularMapLocation = -1;
+private:
+	std::int32_t mDiffuseColorLocation = -1;
+	std::int32_t mSpecularColorLocation = -1;
+	std::int32_t mShininessLocation = -1;
+	std::int32_t mOpacityLocation = -1;
+	std::int32_t mUseDiffuseMapLocation = -1;
+	std::int32_t mUseSpecularMapLocation = -1;
 
 
-        Texture diffuseMap;
-        Texture specularMap;
+    Texture diffuseMap;
+    Texture specularMap;
 
-    public:
-        BlinnPhongMaterial();
+public:
+    BlinnPhongMaterial();
 
-        void setDiffuseMap(const Texture& texture);
-        void setSpecularMap(const Texture& texture);
+    void setDiffuseMap(const Texture& texture);
+    void setSpecularMap(const Texture& texture);
 
-        glm::vec3 diffuseColor{1.0f, 1.0f, 1.0f};
-        glm::vec3 specularColor{1.0f, 1.0f, 1.0f};
-        float shininess = 32.0f;
+    glm::vec3 diffuseColor{1.0f, 1.0f, 1.0f};
+    glm::vec3 specularColor{1.0f, 1.0f, 1.0f};
+    float shininess = 32.0f;
 
-        float opacity = 1.0f;
+    float opacity = 1.0f;
 
-        virtual void use() override;
+    virtual void use() override;
 
-        virtual void after() override;
+    virtual void after() override;
 
-        virtual bool needsOrderedRendering() override;
+    virtual bool needsOrderedRendering() override;
 
-        virtual float renderOrder(const glm::vec3& position) override;
+    virtual float renderOrder(const glm::vec3& position) override;
 
-        virtual ~BlinnPhongMaterial();
+    virtual ~BlinnPhongMaterial();
 };
 
 using BlinnPhongMaterialPtr = std::shared_ptr<BlinnPhongMaterial>;
 
 class BlinnPhongMaterialBuilder {
-    private:
-        std::string diffuseMapPath;
-        std::string specularMapPath;
+private:
+    std::string diffuseMapPath;
+    std::string specularMapPath;
 
-        Texture diffuseMap;
-        Texture specularMap;
+    Texture diffuseMap;
+    Texture specularMap;
 
-        bool specularColorSet = false;
-        glm::vec3 specularColor{1.0f, 1.0f, 1.0f};
+    bool specularColorSet = false;
+    glm::vec3 specularColor{1.0f, 1.0f, 1.0f};
 
-        bool diffuseColorSet = false;
-        glm::vec3 diffuseColor{1.0f, 1.0f, 1.0f};
+    bool diffuseColorSet = false;
+    glm::vec3 diffuseColor{1.0f, 1.0f, 1.0f};
 
-        float shininess = 32;
+    float shininess = 32;
 
-    public:
-        BlinnPhongMaterialPtr build() {
-            auto material = std::make_shared<BlinnPhongMaterial>();
+public:
+    BlinnPhongMaterialPtr build() {
+        auto material = std::make_shared<BlinnPhongMaterial>();
 
-            if (diffuseMapPath != "")
-                material->setDiffuseMap(Texture::loadFromFile(diffuseMapPath));
+        if (diffuseMapPath != "")
+            material->setDiffuseMap(Texture::loadFromFile(diffuseMapPath));
 
-            if (diffuseMap) {
-                material->setDiffuseMap(diffuseMap);
-                diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
-            }
-
-            if (specularMapPath != "") {
-                material->setSpecularMap(Texture::loadFromFile(specularMapPath));
-            }
-
-            if (specularMap) {
-                material->setSpecularMap(specularMap);
-                specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
-            }
-
-            material->diffuseColor = diffuseColor;
-            material->specularColor = specularColor;
-            material->shininess = shininess;
-
-            return material;
+        if (diffuseMap) {
+            material->setDiffuseMap(diffuseMap);
+            diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
         }
 
-        BlinnPhongMaterialBuilder& setDiffuseMap(const std::string& path) {
-            diffuseMapPath = path;
-            return *this;
+        if (specularMapPath != "") {
+            material->setSpecularMap(Texture::loadFromFile(specularMapPath));
         }
 
-        BlinnPhongMaterialBuilder& setDiffuseMap(const Texture& texture) {
-            diffuseMap = texture;
-            return *this;
+        if (specularMap) {
+            material->setSpecularMap(specularMap);
+            specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
         }
 
-        BlinnPhongMaterialBuilder& setSpecularMap(const std::string& path) {
-            specularMapPath = path;
-            return *this;
-        }
+        material->diffuseColor = diffuseColor;
+        material->specularColor = specularColor;
+        material->shininess = shininess;
 
-        BlinnPhongMaterialBuilder& setSpecularMap(const Texture& texture) {
-            specularMap = texture;
-            return *this;
-        }
+        return material;
+    }
 
-        BlinnPhongMaterialBuilder& setShininess(float s) {
-            shininess = s;
-            return *this;
-        }
+    BlinnPhongMaterialBuilder& setDiffuseMap(const std::string& path) {
+        diffuseMapPath = path;
+        return *this;
+    }
 
-        BlinnPhongMaterialBuilder& setDiffuseColor(const glm::vec3& color) {
-            diffuseColor = color;
-            diffuseColorSet = true;
-            return *this;
-        }
+    BlinnPhongMaterialBuilder& setDiffuseMap(const Texture& texture) {
+        diffuseMap = texture;
+        return *this;
+    }
 
-        BlinnPhongMaterialBuilder& setSpecularColor(const glm::vec3& color) {
-            specularColor = color;
-            specularColorSet = true;
-            return *this;
-        }
+    BlinnPhongMaterialBuilder& setSpecularMap(const std::string& path) {
+        specularMapPath = path;
+        return *this;
+    }
+
+    BlinnPhongMaterialBuilder& setSpecularMap(const Texture& texture) {
+        specularMap = texture;
+        return *this;
+    }
+
+    BlinnPhongMaterialBuilder& setShininess(float s) {
+        shininess = s;
+        return *this;
+    }
+
+    BlinnPhongMaterialBuilder& setDiffuseColor(const glm::vec3& color) {
+        diffuseColor = color;
+        diffuseColorSet = true;
+        return *this;
+    }
+
+    BlinnPhongMaterialBuilder& setSpecularColor(const glm::vec3& color) {
+        specularColor = color;
+        specularColorSet = true;
+        return *this;
+    }
 };
 
 #endif // PHONGMATERIAL_H

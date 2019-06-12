@@ -3,8 +3,12 @@
 
 BlinnPhongMaterial::BlinnPhongMaterial() : Material{{"shaders/phongVS.glsl"},
 										  {},
-                                          {"shaders/Light.glsl", "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl"}}
+                                          {"shaders/Light.glsl", "shaders/ShadowMappingCalculation.glsl", "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl"}}
 {
+	shader.use();
+
+	shader.setInt("shadowMap", 15);
+
     shader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
     shader.bindUniformBlock("Lights", Engine::renderSys.LIGHT_UNIFORM_BLOCK_INDEX);
     shader.bindUniformBlock("Camera", Engine::renderSys.CAMERA_UNIFORM_BLOCK_INDEX);
@@ -38,6 +42,7 @@ void BlinnPhongMaterial::setSpecularMap(const Texture& texture)
 void BlinnPhongMaterial::use()
 {
     shader.use();
+
     shader.setVec3(mDiffuseColorLocation, diffuseColor);
     shader.setVec3(mSpecularColorLocation, specularColor);
     shader.setFloat(mShininessLocation, shininess);
@@ -61,7 +66,7 @@ void BlinnPhongMaterial::use()
     // disable backface culling
     if (isTwoSided) {
         glDepthMask(false);
-        glDisable(GL_CULL_FACE);
+       glDisable(GL_CULL_FACE);
     }
 }
 
