@@ -4,6 +4,9 @@
 
 SkyboxMaterial::SkyboxMaterial(const Texture& cubemap) : Material{"shaders/skyboxVS.glsl", "shaders/skyboxFS.glsl"}, mCubemap{cubemap}
 {
+	// do not render during shadow mapping
+	supportedRenderPhases = RenderPhase::NORMAL;
+
     shader.use();
     shader.setInt("cubemap", 0);
 }

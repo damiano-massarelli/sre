@@ -20,6 +20,7 @@ void main() {
     position = (model * vec4(vPos, 1.0f)).xyz;
     normal = normalize(inverse(transpose(mat3(model))) * vNorm);
 
+	lightSpacePosition = shadowLightSpace * vec4(position, 1.0f);
+
     gl_Position = projection * view * vec4(position, 1.0f);
-	lightSpacePosition = shadowLightSpace * vec4(vPos, 1.0f);
 }

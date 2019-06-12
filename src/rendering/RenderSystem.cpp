@@ -3,6 +3,7 @@
 #include "Light.h"
 #include "Engine.h"
 #include "MeshLoader.h"
+#include "ShadowMapMaterial.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -45,7 +46,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     SDL_GL_CreateContext(mWindow);
 
     // Use v-sync
-    //SDL_GL_SetSwapInterval(1);
+    SDL_GL_SetSwapInterval(1);
 
     if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
         std::cout << "Failed to initialize GLAD\n";
@@ -62,6 +63,12 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     mProjection = glm::perspective(fovy, static_cast<float>(width)/height, nearPlane, farPlane);
 	mNearPlane = nearPlane;
 	mFarPlane = farPlane;
+
+	mInvertView = glm::mat4	{
+			glm::vec4{ -1, 0, 0, 0 },
+			glm::vec4{ 0, 1, 0, 0 },
+			glm::vec4{ 0, 0, -1, 0 },
+			glm::vec4{ 0, 0, 0, 1 }};
 
     /* Uniform buffer object set up for common matrices */
     glGenBuffers(1, &mUboCommonMat);
@@ -130,7 +137,8 @@ void RenderSystem::initScreenFbo()
 
 void RenderSystem::initShadowFbo()
 {
-	// TODO use NEAREST
+	mShadowMapMaterial = std::make_shared<ShadowMapMaterial>();
+
 	mShadowMap = Texture::load(nullptr, mShadowMapWidth, mShadowMapHeight, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_COMPONENT, GL_FLOAT);
 
 	glGenFramebuffers(1, &mShadowFbo);
@@ -199,10 +207,22 @@ void RenderSystem::updateCamera()
         cameraPosition = camera->transform.getPosition();
         cameraDirection = camera->transform.forward();
     }
+
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec3), glm::value_ptr(cameraPosition));
     glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(cameraDirection));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
+{
+	glm::mat4 view = glm::mat4{ 1.0f };
+	view = glm::translate(glm::mat4{ 1.0f }, -transform.getPosition());
+	glm::mat4 inverseRotation = glm::transpose(glm::toMat4(transform.getRotation()));
+	view = inverseRotation * view;
+
+	/* Inverts the view so that we watch in the direction of camera->transform.forward() */
+	return mInvertView * view;
 }
 
 void RenderSystem::prepareRendering()
@@ -220,20 +240,8 @@ void RenderSystem::prepareRendering()
 
     /* Camera calculations */
     glm::mat4 view = glm::mat4{1.0f};
-    if (camera) {
-        view = glm::translate(glm::mat4{1.0f}, -camera->transform.getPosition());
-        glm::mat4 inverseRotation = glm::transpose(glm::toMat4(camera->transform.getRotation()));
-        view = inverseRotation * view;
-    }
-
-    /* Inverts the view so that we watch in the direction of camera->transform.forward() */
-    glm::mat4 invert{
-        glm::vec4{-1, 0, 0, 0},
-        glm::vec4{0, 1, 0, 0},
-        glm::vec4{0, 0, -1, 0},
-        glm::vec4{0, 0, 0, 1}
-    };
-    view = invert * view;
+	if (camera)
+		view = getViewMatrix(camera->transform);
 
     /* Sets the camera matrix to a UBO so that it is shared */
 	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
@@ -245,8 +253,9 @@ void RenderSystem::prepareRendering()
     updateCamera();
 }
 
-void RenderSystem::render()
+void RenderSystem::render(RenderPhase phase)
 {
+	mRenderPhase = phase;
 	Engine::gameObjectRenderer.render(Engine::gameObjectManager.getGameObjects());
 }
 
@@ -274,11 +283,15 @@ void RenderSystem::finalizeRendering()
 
 void RenderSystem::renderShadows()
 {
-	float near_plane = 0.1f, far_plane = 7.5f;
-	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f),
-	glm::vec3(0.0f, 0.0f, 0.0f),
-	glm::vec3(0.0f, 1.0f, 0.0f));
+	if (mLights.size() == 0)
+		return;
+
+	auto light = mLights[0]->getComponent<Light>();
+	if (!light->castShadow || light->type != Light::Type::DIRECTIONAL)  return;
+
+	float near_plane = 0.1f, far_plane = 75.0f;
+	glm::mat4 lightProjection = glm::ortho(-75.0f, 75.0f, -75.0f, 75.0f, near_plane, far_plane);
+	glm::mat4 lightView = getViewMatrix(mLights[0]->transform);
 
 	glm::mat4 lightSpace = lightProjection * lightView;
 
@@ -293,7 +306,11 @@ void RenderSystem::renderShadows()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	render();
+	//glCullFace(GL_FRONT);
+	Engine::gameObjectRenderer.forceMaterial(mShadowMapMaterial);
+	render(RenderPhase::SHADOW_MAPPING);
+	Engine::gameObjectRenderer.forceMaterial(nullptr);
+	//glCullFace(GL_BACK);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -333,6 +350,11 @@ float RenderSystem::getNearPlane() const
 float RenderSystem::getFarPlane() const
 {
 	return mFarPlane;
+}
+
+RenderPhase RenderSystem::getRenderPhase() const
+{
+	return mRenderPhase;
 }
 
 void RenderSystem::cleanUp()

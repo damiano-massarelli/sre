@@ -1,6 +1,7 @@
 #include "GameObjectRenderer.h"
 #include "Mesh.h"
 #include "Material.h"
+#include "Engine.h"
 #include <map>
 #include <glad/glad.h>
 
@@ -16,21 +17,31 @@ void GameObjectRenderer::draw(Mesh mesh, MaterialPtr material)
 
     glBindVertexArray(0);
 
-    if (material) material->after();
+    material->after();
 }
-
+#include <iostream>
 void GameObjectRenderer::render(const std::vector<GameObject>& gameObjects)
 {
     std::map<float, std::pair<Mesh, MaterialPtr>> orderedRender;
     for (auto const& go : gameObjects) {
         for (std::size_t meshIndex = 0; meshIndex < go.mMeshes.size(); meshIndex++) {
-            MaterialPtr material = go.mMaterials[meshIndex];
-            Mesh mesh = go.mMeshes[meshIndex];
+
+			const MaterialPtr& meshMaterial = go.mMaterials[meshIndex];
+
+			// do not render this mesh if its material does not support the current render phase
+			if ((meshMaterial->supportedRenderPhases & Engine::renderSys.getRenderPhase()) == 0)
+				continue;
+
+			// if mForcedMaterial != nullptr then use it
+			const MaterialPtr& material = mForcedMaterial ? mForcedMaterial : meshMaterial;
+            const Mesh& mesh = go.mMeshes[meshIndex];
             if (material) {
                 Material* mat = material.get();
-                mat->use();
 
-                mat->shader.setMat4("model", go.transform.modelToWorld());
+				// TODO optimization draw should set the model transform matrix
+                mat->use();
+                mat->shader.setMat4(mat->getModelLocation(), go.transform.modelToWorld());
+				mat->after();
             }
 
             if (material->needsOrderedRendering()) {
@@ -49,6 +60,11 @@ void GameObjectRenderer::render(const std::vector<GameObject>& gameObjects)
         auto mesh = data.first;
         auto material = data.second;
 
-         draw(mesh, material);
+        draw(mesh, material);
     }
+}
+
+void GameObjectRenderer::forceMaterial(const MaterialPtr& material)
+{
+	mForcedMaterial = material;
 }

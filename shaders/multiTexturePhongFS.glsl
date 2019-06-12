@@ -11,8 +11,6 @@ uniform sampler2D greenTexture;
 uniform sampler2D blueTexture;
 uniform sampler2D blendTexture;
 
-uniform sampler2D shadowMap;
-
 uniform float horizontalTiles;
 uniform float verticalTiles;
 
@@ -25,16 +23,6 @@ layout (std140) uniform Camera {
     vec3 cameraPosition;
     vec3 cameraDirection;
 };
-
-float shadowCalculation(vec4 lightSpacePos) {
-	vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
-	projCoords = projCoords * 0.5 + 0.5;
-
-	float closestDepth = texture(shadowMap, projCoords.xy).r;
-	float currentDepth = projCoords.z;
-
-	return (currentDepth - 0.005 > closestDepth ? 1.0f : 0.0f);
-}
 
 void main() {
     vec4 channels = texture2D(blendTexture, texCoord / vec2(horizontalTiles, verticalTiles));
@@ -51,11 +39,8 @@ void main() {
 	diffuseColor = pow(diffuseColor, vec3(2.2));
     vec3 color = vec3(0.0f);
     for (int i = 0; i < numLights; i++) {
-        color += phongComputeColor(lights[i], diffuseColor, vec3(0.0f), 0.0f, position, normal, cameraPosition);
+        color += phongComputeColor(lights[i], diffuseColor, vec3(0.0f), 0.0f, position, normal, cameraPosition, lightSpacePosition, i == 0);
     }
-
-	float shadow = shadowCalculation(lightSpacePosition);
-	color *= (1 - shadow);
 
     float fogFactor = exp(-pow(distance(position, cameraPosition) * 0.007f, 1.5f));
     color = mix(color, vec3(0.5f), 1 - fogFactor);

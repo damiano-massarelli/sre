@@ -39,6 +39,8 @@ class Light : public Component
         float innerAngle = 0.523599f; // 30 deg
         float outerAngle = 0.872665f; // 50 deg
 
+		bool castShadow = false;
+
         Light(const GameObjectEH& go, Type lightType = Type::POINT);
 
         virtual ~Light();

@@ -8,14 +8,17 @@
   * If showNormals is true (constructor) only the vertex normals of a Mesh are shown */
 class PropMaterial : public Material
 {
-    public:
-        glm::vec3 color{1.0f, 1.0f, 1.0f};
+private:
+	std::uint32_t mColorLocation = 0;
 
-        PropMaterial(bool showNormals = false);
+public:
+	glm::vec3 color{ 1.0f, 1.0f, 1.0f };
 
-        virtual void use() override;
+	PropMaterial(bool showNormals = false);
 
-        virtual ~PropMaterial() = default;
+	virtual void use() override;
+
+	virtual ~PropMaterial() = default;
 };
 
 #endif // LIGHTMATERIAL_H

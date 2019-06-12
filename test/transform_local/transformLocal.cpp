@@ -49,10 +49,11 @@ int main(int argc, char* argv[]) {
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
 
-    MaterialPtr phong = PhongMaterialBuilder()
-    .setDiffuseMap("test_data/transform_local/container.png")
-    .setSpecularMap("test_data/transform_local/container_specular.png")
-    .build();
+	MaterialPtr phong = BlinnPhongMaterialBuilder()
+		.setDiffuseMap("test_data/transform_local/container.png")
+		.setSpecularColor(glm::vec3{ 1, 1, 1 })
+		//.setSpecularMap("test_data/transform_local/container_specular.png")
+		.build();
 
 
     auto parent = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), phong);

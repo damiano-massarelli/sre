@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
 
-    MaterialPtr phong = PhongMaterialBuilder()
+    MaterialPtr phong = BlinnPhongMaterialBuilder()
     .setDiffuseMap("test_data/mesh_creator/uv.jpg")
     .setShininess(32)
     .build();

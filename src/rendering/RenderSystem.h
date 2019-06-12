@@ -4,7 +4,9 @@
 #include "GameObject.h"
 #include "Texture.h"
 #include "Mesh.h"
+#include "Material.h"
 #include "Shader.h"
+#include "RenderPhase.h"
 #include "EffectManager.h"
 #include <cstdint>
 #include <vector>
@@ -24,6 +26,8 @@ class RenderSystem
 
         glm::mat4 mProjection{1.0f};
 
+		glm::mat4 mInvertView;
+
         /** reference for the common matrix ubo */
         std::uint32_t mUboCommonMat;
 
@@ -42,15 +46,20 @@ class RenderSystem
 		/** reference to shadow map frame buffer */
 		std::uint32_t mShadowFbo;
 		Texture mShadowMap;
+		// used for rendering meshes for shadow mapping
+		MaterialPtr mShadowMapMaterial;
 
-		std::int32_t mShadowMapWidth = 1024;
-		std::int32_t mShadowMapHeight = 1024;
+		std::int32_t mShadowMapWidth = 2048;
+		std::int32_t mShadowMapHeight = 2048;
 
 		/** near and far clipping planes */
 		float mNearPlane = 0.0f;
 		float mFarPlane = 0.0f;
 
         std::vector<GameObjectEH> mLights;
+
+		/** Current rendering phase */
+		RenderPhase mRenderPhase;
 
         void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
 
@@ -64,11 +73,17 @@ class RenderSystem
         /** Updates the camera ubo */
         void updateCamera();
 
+		/**
+		 * Returns the view matrix for a certain transform.
+		 * The actual matrix is multiplied by mInvertView
+		 */
+		glm::mat4 getViewMatrix(const Transform& transform);
+
         /** Performs all operations needed by rendering */
         void prepareRendering();
 
 		/** Calls rendering submodules to perform rendering */
-		void render();
+		void render(RenderPhase phase = RenderPhase::NORMAL);
 
         /** Performs all operations needed to finalize rendering: blitting to screen */
         void finalizeRendering();
@@ -135,6 +150,8 @@ class RenderSystem
 		 * @return the far clipping plane distance
 		 */
 		float getFarPlane() const;
+
+		RenderPhase getRenderPhase() const;
 
 		virtual ~RenderSystem() = default;
 };
