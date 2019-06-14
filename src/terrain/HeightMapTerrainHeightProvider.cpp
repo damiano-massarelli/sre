@@ -42,3 +42,9 @@ glm::vec3 HeightMapTerrainHeightProvider::getNormal(float x, float z) const
     return glm::normalize(glm::vec3{heightL - heightR, 2.0f, heightD - heightU});
 }
 
+HeightMapTerrainHeightProvider::~HeightMapTerrainHeightProvider()
+{
+	if (mHeightData)
+		stbi_image_free(mHeightData);
+}
+

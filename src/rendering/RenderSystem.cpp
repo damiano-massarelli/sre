@@ -63,6 +63,7 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     mProjection = glm::perspective(fovy, static_cast<float>(width)/height, nearPlane, farPlane);
 	mNearPlane = nearPlane;
 	mFarPlane = farPlane;
+	mVerticalFov = fovy;
 
 	mInvertView = glm::mat4	{
 			glm::vec4{ -1, 0, 0, 0 },
@@ -139,7 +140,7 @@ void RenderSystem::initShadowFbo()
 {
 	mShadowMapMaterial = std::make_shared<ShadowMapMaterial>();
 
-	mShadowMap = Texture::load(nullptr, mShadowMapWidth, mShadowMapHeight, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_COMPONENT, GL_FLOAT);
+	mShadowMap = Texture::load(nullptr, shadowMappingSettings.mapWidth, shadowMappingSettings.mapHeight, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_COMPONENT, GL_FLOAT);
 
 	glGenFramebuffers(1, &mShadowFbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, mShadowFbo);
@@ -225,6 +226,7 @@ glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
 	return mInvertView * view;
 }
 
+#include <SDL.h>
 void RenderSystem::prepareRendering()
 {
 	renderShadows();
@@ -238,10 +240,18 @@ void RenderSystem::prepareRendering()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	Transform fromUp;
+	fromUp.setRotation(glm::angleAxis(glm::radians(90.0f), glm::vec3{ 1, 0, 0 }));
+	fromUp.setPosition(glm::vec3{ 0, 100, 0 });
     /* Camera calculations */
     glm::mat4 view = glm::mat4{1.0f};
-	if (camera)
-		view = getViewMatrix(camera->transform);
+	if (camera) {
+		if (SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE])
+			view = getViewMatrix(fromUp);
+		else
+			view = getViewMatrix(camera->transform);
+
+	}
 
     /* Sets the camera matrix to a UBO so that it is shared */
 	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
@@ -271,7 +281,7 @@ void RenderSystem::finalizeRendering()
 		effectManager.mPostProcessingShader.use();
 		glBindVertexArray(mScreenMesh.mVao);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mColorBuffer.getId());
+		glBindTexture(GL_TEXTURE_2D, mShadowMap.getId());
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, mDepthBuffer.getId());
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
@@ -289,8 +299,15 @@ void RenderSystem::renderShadows()
 	auto light = mLights[0]->getComponent<Light>();
 	if (!light->castShadow || light->type != Light::Type::DIRECTIONAL)  return;
 
-	float near_plane = 0.1f, far_plane = 75.0f;
-	glm::mat4 lightProjection = glm::ortho(-75.0f, 75.0f, -75.0f, 75.0f, near_plane, far_plane);
+	glm::mat4 lightProjection = glm::mat4{ 0.0f };
+	lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
+	lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
+	lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
+	lightProjection[3][3] = 1.0f;
+// 	glm::mat4 lightProjection = glm::ortho(-shadowMappingSettings.width / 2, shadowMappingSettings.width / 2,
+// 		-shadowMappingSettings.height / 2, shadowMappingSettings.height / 2,
+// 		0.1f, shadowMappingSettings.depth);
+
 	glm::mat4 lightView = getViewMatrix(mLights[0]->transform);
 
 	glm::mat4 lightSpace = lightProjection * lightView;
@@ -301,7 +318,7 @@ void RenderSystem::renderShadows()
 	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightSpace));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	glViewport(0, 0, mShadowMapWidth, mShadowMapHeight);
+	glViewport(0, 0, shadowMappingSettings.mapWidth, shadowMappingSettings.mapHeight);
 	glBindFramebuffer(GL_FRAMEBUFFER, mShadowFbo);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -352,6 +369,11 @@ float RenderSystem::getFarPlane() const
 	return mFarPlane;
 }
 
+float RenderSystem::getVerticalFov() const
+{
+	return mVerticalFov;
+}
+
 RenderPhase RenderSystem::getRenderPhase() const
 {
 	return mRenderPhase;
@@ -363,6 +385,8 @@ void RenderSystem::cleanUp()
     glDeleteBuffers(1, &mUboCommonMat);
     glDeleteBuffers(1, &mUboLights);
 	glDeleteFramebuffers(1, &mScreenFbo);
+	glDeleteFramebuffers(1, &mShadowFbo);
+	mShadowMapMaterial = nullptr;
 
 	effectManager.cleanUp();
 

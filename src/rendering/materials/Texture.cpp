@@ -41,6 +41,22 @@ Texture Texture::loadFromMemory(std::uint8_t* data, std::int32_t len, int wrapS,
     int width, height, cmp;
     std::uint8_t* convertedData = stbi_load_from_memory(data, len, &width, &height, &cmp, STBI_rgb_alpha);
     return Texture::load(convertedData, width, height, wrapS, wrapT, true, GL_RGBA);
+	if (convertedData)
+		stbi_image_free(convertedData);
+}
+
+Texture Texture::loadFromMemoryCached(const std::string& cacheKey, std::uint8_t* data, std::int32_t len, int wrapS, int wrapT)
+{
+	auto cached = textureCache.find(cacheKey);
+	if (cached != textureCache.end())
+		return cached->second;
+
+	auto texture = loadFromMemory(data, len, wrapS, wrapT);
+	texture.refCount.onRemove = [cacheKey]() { Texture::textureCache.erase(cacheKey); };
+	textureCache[cacheKey] = texture;
+	textureCache[cacheKey].refCount.setWeak();
+
+	return texture;
 }
 
 Texture Texture::loadCubamapFromFile(const std::map<std::string, std::string>& paths)

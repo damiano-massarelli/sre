@@ -28,7 +28,8 @@ class Texture {
 
         /**
           * Loads and returns the texture at a given path.
-          *
+          * Textures are also cached using their path as the cache key.
+		  *
           * @param path the path of the file to load
           * @return the loaded texture
           */
@@ -36,11 +37,23 @@ class Texture {
 
         /**
           * Loads a texture from a buffer in memory.
+		  * This texture are not cached. If you can 
+		  * specify an identifier to cache textures loaded from
+		  * memory use loadFromMemoryCached().
           * @param data a pointer to the buffer
           * @param length of the buffer
           * @return the loaded texture */
         static Texture loadFromMemory(std::uint8_t* data, std::int32_t len, int wrapS = GL_REPEAT, int wrapT = GL_REPEAT);
 		
+		/**
+		 * Loads a texture from a buffer in memory and caches it.
+		 * @sa loadFromMemory()
+		 * @param cacheKey the name used to cache this texture
+		 * @param data a pointer to the buffer
+		 * @param length of the buffer
+		 * @return the loaded texture */
+		static Texture loadFromMemoryCached(const std::string& cacheKey, std::uint8_t* data, std::int32_t len, int wrapS = GL_REPEAT, int wrapT = GL_REPEAT);
+
 		/**
 		 * Creates a new Texture.
 		 * @param data pixel data of the image

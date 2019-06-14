@@ -8,6 +8,7 @@
 #include "Shader.h"
 #include "RenderPhase.h"
 #include "EffectManager.h"
+#include "ShadowMappingSettings.h"
 #include <cstdint>
 #include <vector>
 #include <glad/glad.h>
@@ -49,12 +50,10 @@ class RenderSystem
 		// used for rendering meshes for shadow mapping
 		MaterialPtr mShadowMapMaterial;
 
-		std::int32_t mShadowMapWidth = 2048;
-		std::int32_t mShadowMapHeight = 2048;
-
 		/** near and far clipping planes */
 		float mNearPlane = 0.0f;
 		float mFarPlane = 0.0f;
+		float mVerticalFov = 0.0f;
 
         std::vector<GameObjectEH> mLights;
 
@@ -73,11 +72,7 @@ class RenderSystem
         /** Updates the camera ubo */
         void updateCamera();
 
-		/**
-		 * Returns the view matrix for a certain transform.
-		 * The actual matrix is multiplied by mInvertView
-		 */
-		glm::mat4 getViewMatrix(const Transform& transform);
+		
 
         /** Performs all operations needed by rendering */
         void prepareRendering();
@@ -98,7 +93,7 @@ class RenderSystem
 
     public:
         /** Creates a new window */
-        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 800.0f);
+        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 200.0f);
 
         /** Maximum number of lights */
         static constexpr std::size_t MAX_LIGHT_NUMBER = 10;
@@ -111,6 +106,8 @@ class RenderSystem
 
         /** The index of uniform block used for lights */
         static constexpr std::uint32_t CAMERA_UNIFORM_BLOCK_INDEX = 2;
+
+		ShadowMappingSettings shadowMappingSettings;
 
         /** The camera used for rendering */
         GameObjectEH camera;
@@ -151,7 +148,19 @@ class RenderSystem
 		 */
 		float getFarPlane() const;
 
+		float getVerticalFov() const;
+
+		/**
+		 * @return the current rendering pahse
+		 * @sa RenderPhase
+		 */
 		RenderPhase getRenderPhase() const;
+
+		/**
+		 * Returns the view matrix for a certain transform.
+		 * The actual matrix is multiplied by mInvertView
+		 */
+		glm::mat4 getViewMatrix(const Transform& transform);
 
 		virtual ~RenderSystem() = default;
 };
