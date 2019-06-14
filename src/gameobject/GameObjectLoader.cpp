@@ -66,15 +66,16 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
 
 void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int meshNumber, aiMesh* mesh, const aiScene* scene)
 {
+	// creates the cache name for this mesh
+	std::string cacheName = mFilePath + std::string{ node->mName.C_Str() } +std::string{ mesh->mName.C_Str() } +std::to_string(meshNumber);
+
 	// loads material
-	MaterialPtr loadedMaterial = processMaterial(mesh, scene);
+	MaterialPtr loadedMaterial = processMaterial(mesh, scene, cacheName);
 	if (loadedMaterial == nullptr) {
 		std::cerr << "Mesh " << mesh->mName.C_Str() << "does not have a corresponding material, discarded\n";
 		return;
 	}
 
-	// creates the cache name for this mesh
-	std::string cacheName = mFilePath + std::string{ node->mName.C_Str() } +std::string{ mesh->mName.C_Str() } + std::to_string(meshNumber);
 	auto cachedMesh = mMeshCache.find(cacheName);
 	if (cachedMesh != mMeshCache.end()) {
 		go->addMesh(cachedMesh->second, loadedMaterial);
@@ -142,14 +143,14 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 
     Mesh loadedMesh = loader.getMesh(vertices.size(), indices.size());
 
-	loadedMesh.refCount.onRemove = [cacheName]() { std::cout << "removed " << cacheName << "\n"; GameObjectLoader::mMeshCache.erase(cacheName); };
+	loadedMesh.refCount.onRemove = [cacheName]() { GameObjectLoader::mMeshCache.erase(cacheName); };
 	mMeshCache[cacheName] = loadedMesh;
 	mMeshCache[cacheName].refCount.setWeak();
 
     go->addMesh(loadedMesh, loadedMaterial);
 }
 
-MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene)
+MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene, const std::string& cacheName)
 {
     //if (mesh->mMaterialIndex == 0) return nullptr;
 
@@ -170,8 +171,8 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS, shininess))
         phongBuilder.setShininess(shininess);
 
-    phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE));
-    phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR));
+    phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE, cacheName));
+    phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR, cacheName));
 
     BlinnPhongMaterialPtr loadedMaterial = phongBuilder.build();
 
@@ -189,7 +190,7 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     return loadedMaterial;
 }
 
-Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type)
+Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type, const std::string& meshCacheName)
 {
     std::map<int, int> aiMapMode2glMapMode{
         {aiTextureMapMode_Wrap, GL_REPEAT},
@@ -218,10 +219,9 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
             aiTexture* texture = scene->mTextures[std::atoi(texturePath + 1)];
             std::uint8_t* textureData = reinterpret_cast<unsigned char*>(texture->pcData);
             if (texture->mHeight == 0)
-                return Texture::loadFromMemory(textureData, texture->mWidth, mapModeS, mapModeT);
-
+				return Texture::loadFromMemoryCached(meshCacheName + std::string{ texturePath }, textureData, texture->mWidth, mapModeS, mapModeT);
             else
-                return Texture::loadFromMemory(textureData, texture->mWidth * texture->mHeight, mapModeS, mapModeT);
+                return Texture::loadFromMemoryCached(meshCacheName + std::string{ texturePath }, textureData, texture->mWidth * texture->mHeight, mapModeS, mapModeT);
 
         } else {
 			std::filesystem::path path{ texturePath };

@@ -23,7 +23,7 @@ class HeightMapTerrainHeightProvider : public TerrainHeightProvider
 
         virtual glm::vec3 getNormal(float x, float z) const override;
 
-        ~HeightMapTerrainHeightProvider() = default;
+        ~HeightMapTerrainHeightProvider();
 };
 
 #endif // HEIGHTMAPTERRAINHEIGHTPROVIDER_H

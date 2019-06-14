@@ -1,3 +1,3 @@
 
-	FragColor = color;
+	FragColor = vec4(color.r);
 }

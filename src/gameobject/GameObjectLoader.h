@@ -27,8 +27,8 @@ class GameObjectLoader
 
         GameObjectEH processNode(aiNode* node, const aiScene* scene);
         void processMesh(const GameObjectEH& go, aiNode* node, int meshNumber, aiMesh* mesh, const aiScene* scene);
-        MaterialPtr processMaterial(aiMesh* mesh, const aiScene* scene);
-        Texture loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type);
+        MaterialPtr processMaterial(aiMesh* mesh, const aiScene* scene, const std::string& cacheName);
+        Texture loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type, const std::string& meshCacheName);
 
     public:
         /**

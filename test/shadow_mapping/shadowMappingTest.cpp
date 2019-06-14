@@ -14,6 +14,7 @@
 #include "GammaCorrection.h"
 #include "FXAA.h"
 #include "MultiTextureLambertMaterial.h"
+#include "ShadowOnVisibleSceneComponent.h"
 
 #include <runTest.h>
 
@@ -84,8 +85,9 @@ int main(int argc, char* argv[]) {
 	gizmo->transform.setParent(light);
 	gizmo->transform.setLocalPosition(glm::vec3{ 0.0f });
 
-	light->transform.rotateBy(glm::angleAxis(glm::radians(45.0f), glm::vec3{ 1, 0, 0 }));
+	light->transform.rotateBy(glm::angleAxis(glm::radians(90.0f), glm::vec3{ 1, 0, 0 }));
 	light->getComponent<Light>()->castShadow = true;
+	light->addComponent(std::make_shared<ShadowOnVisibleSceneComponent>(light));
 
 //     auto light2 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
 //     light2->name = "light2";
