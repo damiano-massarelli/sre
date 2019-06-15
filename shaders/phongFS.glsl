@@ -39,15 +39,16 @@ void main() {
 	// perspective projection is being used. If that's the case linearize depth.
 	float depthInShadowMap = texture(shadowMap, shadowSampleCoord.xy).r;
 
-    if (material.opacity == 0.0f) discard;
+	vec4 sampledDiffuseColor = texture(material.diffuse, texCoord);
+	if (material.opacity == 0.0f || sampledDiffuseColor.a < 0.1) discard;
 
     vec3 diffuseColor = material.diffuseColor;
     if (material.useDiffuseMap)
-        diffuseColor *= vec3(texture2D(material.diffuse, texCoord));
+        diffuseColor *= sampledDiffuseColor.rgb;
 
     vec3 specularColor = material.specularColor;
     if (material.useSpecularMap)
-        specularColor *= vec3(texture2D(material.specular, texCoord));
+        specularColor *= vec3(texture(material.specular, texCoord));
 
 	diffuseColor = pow(diffuseColor, vec3(2.2));
 	specularColor = pow(specularColor, vec3(2.2));
@@ -56,8 +57,8 @@ void main() {
         color += phongComputeColor(lights[i], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition, lightSpacePosition, i == 0);
     }
 
-    //float fogFactor = exp(-pow(distance(position, cameraPosition) * 0.007f, 1.5f));
-    //color = mix(color, vec3(0.2f), 1 - fogFactor);
+	// apply fog
+	color = fogger(color, distance(cameraPosition, position));
 
     FragColor = vec4(color, material.opacity);
 }

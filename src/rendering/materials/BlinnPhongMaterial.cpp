@@ -3,15 +3,18 @@
 
 BlinnPhongMaterial::BlinnPhongMaterial() : Material{{"shaders/phongVS.glsl"},
 										  {},
-                                          {"shaders/Light.glsl", "shaders/ShadowMappingCalculation.glsl", "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl"}}
+                                          {"shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
+										   "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl"}}
 {
 	shader.use();
 
 	shader.setInt("shadowMap", 15);
 
-    shader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
-    shader.bindUniformBlock("Lights", Engine::renderSys.LIGHT_UNIFORM_BLOCK_INDEX);
-    shader.bindUniformBlock("Camera", Engine::renderSys.CAMERA_UNIFORM_BLOCK_INDEX);
+    shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
+    shader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
+    shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
+	shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
+	shader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
 
 	mDiffuseColorLocation = shader.getLocationOf("material.diffuseColor");
 	mSpecularColorLocation = shader.getLocationOf("material.specularColor");

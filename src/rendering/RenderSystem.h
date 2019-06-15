@@ -8,6 +8,7 @@
 #include "Shader.h"
 #include "RenderPhase.h"
 #include "EffectManager.h"
+#include "FogSettings.h"
 #include "ShadowMappingSettings.h"
 #include <cstdint>
 #include <vector>
@@ -93,7 +94,7 @@ class RenderSystem
 
     public:
         /** Creates a new window */
-        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 200.0f);
+        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 400.0f);
 
         /** Maximum number of lights */
         static constexpr std::size_t MAX_LIGHT_NUMBER = 10;
@@ -107,7 +108,15 @@ class RenderSystem
         /** The index of uniform block used for lights */
         static constexpr std::uint32_t CAMERA_UNIFORM_BLOCK_INDEX = 2;
 
+		static constexpr std::uint32_t FOG_UNIFORM_BLOCK_INDEX = 3;
+
+		static constexpr std::uint32_t SHADOWMAP_UNIFORM_BLOCK_INDEX = 4;
+
+		/** settings for shadow mapping */
 		ShadowMappingSettings shadowMappingSettings;
+
+		/** settings for fog */
+		FogSettings fogSettings;
 
         /** The camera used for rendering */
         GameObjectEH camera;

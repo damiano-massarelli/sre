@@ -56,6 +56,8 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     initGL(width, height, fovy, nearPlane, farPlane);
 	initScreenFbo();
 	initShadowFbo();
+	fogSettings.init();
+	shadowMappingSettings.init();
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -281,7 +283,7 @@ void RenderSystem::finalizeRendering()
 		effectManager.mPostProcessingShader.use();
 		glBindVertexArray(mScreenMesh.mVao);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mShadowMap.getId());
+		glBindTexture(GL_TEXTURE_2D, mColorBuffer.getId());
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, mDepthBuffer.getId());
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
@@ -323,11 +325,11 @@ void RenderSystem::renderShadows()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	//glCullFace(GL_FRONT);
-	Engine::gameObjectRenderer.forceMaterial(mShadowMapMaterial);
+	if (shadowMappingSettings.useFastShader)
+		Engine::gameObjectRenderer.forceMaterial(mShadowMapMaterial);
 	render(RenderPhase::SHADOW_MAPPING);
-	Engine::gameObjectRenderer.forceMaterial(nullptr);
-	//glCullFace(GL_BACK);
+	if (shadowMappingSettings.useFastShader)
+		Engine::gameObjectRenderer.forceMaterial(nullptr);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

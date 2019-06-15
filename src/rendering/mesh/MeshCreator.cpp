@@ -22,52 +22,52 @@ float axisGizmoVertices[] {
 static float vertices[] = {
     // positions          // normals           // texture coords
     // back
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+     1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+    -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+    -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+    -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+     1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
 
     // front
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+    -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+     1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+     1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+    -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+    -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
     // left
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+    -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+    -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+    -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+    -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+    -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+    -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
      // right
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+     1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+     1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+     1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+     1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+     1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
 
      // bottom
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+    -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+     1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+     1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+     1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+    -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+    -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
      // top
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+     1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+     1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+    -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+    -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+    -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+     1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
 };
 
 GameObjectEH MeshCreator::axisGizmo()
@@ -96,7 +96,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
         float x = radius * std::cos(slice * i);
         float z = radius * std::sin(slice * i);
 
-        positions.insert(positions.end(), {x, -0.5f, z});
+        positions.insert(positions.end(), {x, -1.0f, z});
 
         normals.insert(normals.end(), {0.0f, -1.0f, 0.0f});
 
@@ -110,7 +110,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 
     }
 
-    positions.insert(positions.end(), {0.0f, -0.5f, 0.0f});
+    positions.insert(positions.end(), {0.0f, -1.0f, 0.0f});
     normals.insert(normals.end(), {0.0f, -1.0f, 0.0f});
     uvs.insert(uvs.end(), {0.5f, 0.5f});
 
@@ -121,7 +121,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
         float x = radius * std::cos(slice * i);
         float z = radius * std::sin(slice * i);
 
-        positions.insert(positions.end(), {x, 0.5f, z});
+        positions.insert(positions.end(), {x, 1.0f, z});
 
         normals.insert(normals.end(), {0.0f, 1.0f, 0.0f});
 
@@ -134,7 +134,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
                        });
     }
 
-    positions.insert(positions.end(), {0.0f, 0.5f, 0.0f});
+    positions.insert(positions.end(), {0.0f, 1.0f, 0.0f});
     normals.insert(normals.end(), {0.0f, 1.0f, 0.0f});
     uvs.insert(uvs.end(), {0.5f, 0.5f});
 
@@ -146,8 +146,8 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
         float x = radius * cos;
         float z = radius * sin;
 
-        positions.insert(positions.end(), {x, 0.5f, z});
-        positions.insert(positions.end(), {x, -0.5f, z});
+        positions.insert(positions.end(), {x, 1.0f, z});
+        positions.insert(positions.end(), {x, -1.0f, z});
 
         normals.insert(normals.end(), {cos, 0.0f, sin});
         normals.insert(normals.end(), {cos, 0.0f, sin});
@@ -169,7 +169,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 
     }
 
-    positions.insert(positions.end(), {0.0f, -0.5f, 0.0f});
+    positions.insert(positions.end(), {0.0f, -1.0f, 0.0f});
     normals.insert(normals.end(), {0.0f, 1.0f, 0.0f});
 
     MeshLoader loader;
@@ -194,7 +194,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
         float x = radius * std::cos(slice * i);
         float z = radius * std::sin(slice * i);
 
-        positions.insert(positions.end(), {x, -0.5f, z});
+        positions.insert(positions.end(), {x, -1.0f, z});
 
         normals.insert(normals.end(), {0.0f, -1.0f, 0.0f});
 
@@ -208,7 +208,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
 
     }
 
-    positions.insert(positions.end(), {0.0f, -0.5f, 0.0f});
+    positions.insert(positions.end(), {0.0f, -1.0f, 0.0f});
     normals.insert(normals.end(), {0.0f, -1.0f, 0.0f});
     uvs.insert(uvs.end(), {0.5f, 0.5f});
 
@@ -222,7 +222,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
         float x = radius * cos;
         float z = radius * sin;
 
-        positions.insert(positions.end(), {x, -0.5f, z});
+        positions.insert(positions.end(), {x, -1.0f, z});
 
         glm::vec3 normal{cos, bodyNormalY, sin};
         normal = glm::normalize(normal);
@@ -240,7 +240,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
     }
 
     // top vertex
-    positions.insert(positions.end(), {0.0f, 0.5f, 0.0f});
+    positions.insert(positions.end(), {0.0f, 1.0f, 0.0f});
     normals.insert(normals.end(), {0.0f, 1.0f, 0.0f});
     uvs.insert(uvs.end(), {0.5f, 0.5f});
 

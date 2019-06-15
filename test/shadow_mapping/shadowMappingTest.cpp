@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
 	auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
 	auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
+
 	auto multiTextured = std::make_shared<MultiTextureLambertMaterial>(
 		Texture::loadFromFile("test_data/multiple_textures/grass.jpg"),
 		Texture::loadFromFile("test_data/multiple_textures/ground.jpg"),
@@ -58,17 +59,17 @@ int main(int argc, char* argv[]) {
 		);
 
 	for (int i = 0; i < 50; ++i) {
-		auto go = GameObjectLoader().fromFile("test_data/shadow_mapping/cubes.fbx");
+		auto go = GameObjectLoader().fromFile("test_data/shadow_mapping/tree.fbx");
+
 		go->transform.setPosition(glm::vec3{rand() % 1024 - 512, 0, rand() % 1024 - 512 });
 	}
 
 	HeightMapTerrainHeightProvider hProvider{ "test_data/terrain/heightmap_2.png", 0, 0 };
 	TerrainGenerator generator{ 512, 512, 1000, 1000 };
-	//Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), std::make_shared<PropMaterial>(true));
 	auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
 
-	//Engine::renderSys.effectManager.enableEffects();
-	//Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
+	Engine::renderSys.effectManager.enableEffects();
+	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 	//Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
 
 
@@ -80,12 +81,15 @@ int main(int argc, char* argv[]) {
     light->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
-
 	auto gizmo = MeshCreator::axisGizmo();
 	gizmo->transform.setParent(light);
 	gizmo->transform.setLocalPosition(glm::vec3{ 0.0f });
 
-	light->transform.rotateBy(glm::angleAxis(glm::radians(90.0f), glm::vec3{ 1, 0, 0 }));
+	light->transform.rotateBy(glm::angleAxis(glm::radians(65.0f), glm::vec3{ 1.0f, 0.0f, 0.0f }));
+	light->transform.rotateBy(glm::angleAxis(glm::radians(15.0f), glm::vec3{ 0.0f, 1.0f, 0.0f }));
+	
+
+	//light->transform.rotateBy(glm::angleAxis(glm::radians(45.0f), glm::vec3{ 1, 0, 0 }));
 	light->getComponent<Light>()->castShadow = true;
 	light->addComponent(std::make_shared<ShadowOnVisibleSceneComponent>(light));
 

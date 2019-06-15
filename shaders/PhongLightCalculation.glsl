@@ -28,7 +28,7 @@ vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float
 	// shadow mapping
 	float inShadow = 0.0;
 	if (calcShadow)
-		inShadow = shadowMapIsInShadow(lightSpacePos, -rayToLight, fragNormal);
+		inShadow = shadowMapIsInShadow(lightSpacePos, -rayToLight, fragNormal, distance(fragPosition, cameraPosition));
 
     float diffuseIntensity = max(dot(fragNormal, rayToLight), 0.0f);
     outcolor += light.diffuseColor * diffuseColor * diffuseIntensity * (1.0 - inShadow);

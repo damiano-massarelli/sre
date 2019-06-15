@@ -57,12 +57,8 @@ vec4 fxaa(vec4 color) {
     float diff22 = fxaaDepthDiff(texCoord, texCoord + texelSizeDir * vec2(0.5));
     float diff2 = (diff21 + diff22) / 2;
 
-	if (texCoord.s < 0.499)
-		color = color;
-	else if (texCoord.s >= 0.499 && texCoord.s <= 0.501)
-		color = vec4(0);
-	else
-		color = vec4(mix(color.rgb, sample2, diff2), color.a);
+
+	color = vec4(mix(color.rgb, sample2, diff2), color.a);
 
     return color;
 }

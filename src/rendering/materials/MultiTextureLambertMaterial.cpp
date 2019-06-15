@@ -1,8 +1,11 @@
 #include "MultiTextureLambertMaterial.h"
-#include "Engine.h"
+#include "RenderSystem.h"
 
 MultiTextureLambertMaterial::MultiTextureLambertMaterial(Texture base, Texture red, Texture green, Texture blue, Texture blend, float horizontalTiles, float verticalTiles)
-	: Material{ {"shaders/phongVS.glsl"}, {}, {"shaders/Light.glsl", "shaders/ShadowMappingCalculation.glsl", "shaders/PhongLightCalculation.glsl", "shaders/multiTexturePhongFS.glsl"} },
+	: Material{ {"shaders/phongVS.glsl"},
+				{},
+				{"shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl", 
+				 "shaders/PhongLightCalculation.glsl", "shaders/multiTexturePhongFS.glsl"} },
 	baseTexture {base}, redTexture{ red }, greenTexture{ green }, blueTexture{ blue }, blendTexture{ blend }
 {
 	shader.use();
@@ -10,9 +13,11 @@ MultiTextureLambertMaterial::MultiTextureLambertMaterial(Texture base, Texture r
 	shader.setFloat("horizontalTiles", horizontalTiles);
 	shader.setFloat("verticalTiles", verticalTiles);
 
-	shader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Lights", Engine::renderSys.LIGHT_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Camera", Engine::renderSys.CAMERA_UNIFORM_BLOCK_INDEX);
+	shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
+	shader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
+	shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
+	shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
+	shader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
 
 	shader.setInt("baseTexture", 0);
 	shader.setInt("redTexture", 1);

@@ -42,7 +42,7 @@ void main() {
         color += phongComputeColor(lights[i], diffuseColor, vec3(0.0f), 0.0f, position, normal, cameraPosition, lightSpacePosition, i == 0);
     }
 
-    float fogFactor = exp(-pow(distance(position, cameraPosition) * 0.007f, 1.5f));
-    color = mix(color, vec3(0.5f), 1 - fogFactor);
+    color = fogger(color, distance(cameraPosition, position));
+
     FragColor = vec4(color, 1.0f);
 }

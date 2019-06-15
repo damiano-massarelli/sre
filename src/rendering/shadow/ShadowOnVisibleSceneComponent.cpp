@@ -2,20 +2,20 @@
 #include "Engine.h"
 #include <cmath>
 #include <algorithm>
-#include "MeshCreator.h"
-#include <iostream>
-#include <glm/gtx/string_cast.hpp>
 
 #include "PropMaterial.h"
-
+#include "MeshCreator.h"
+GameObjectEH player;
 
 ShadowOnVisibleSceneComponent::ShadowOnVisibleSceneComponent(const GameObjectEH& go)
 	: Component{ go }
 {
 	mCrumb = Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this, true);
 	computeWidthsAndHeights();
+	player = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(), std::make_shared<PropMaterial>());
 }
 
+#include <iostream>
 void ShadowOnVisibleSceneComponent::computeWidthsAndHeights()
 {
 	float aspectRatio = Engine::renderSys.getScreenWidth() / (float)Engine::renderSys.getScreenHeight();
@@ -26,8 +26,6 @@ void ShadowOnVisibleSceneComponent::computeWidthsAndHeights()
 
 	farWidth = farHeight * aspectRatio;
 	nearWidth = nearHeight * aspectRatio;
-
-	std::cout << farWidth << " " << farHeight << "\n";
 }
 
 void ShadowOnVisibleSceneComponent::onEvent(SDL_Event e)
@@ -53,13 +51,21 @@ void ShadowOnVisibleSceneComponent::onEvent(SDL_Event e)
 	}
 
 	auto center = (max + min) / 2.0f;
+	
 	auto bb = max - min;
 
-	renderSys.shadowMappingSettings.width = bb.x;
-	renderSys.shadowMappingSettings.depth = bb.y;
-	renderSys.shadowMappingSettings.height = bb.z;
+// 	renderSys.shadowMappingSettings.width = bb.x;
+// 	renderSys.shadowMappingSettings.depth = bb.y;
+// 	renderSys.shadowMappingSettings.height = bb.z;
 
-	gameObject->transform.setPosition(center);
+	renderSys.shadowMappingSettings.width = bb.x;
+	renderSys.shadowMappingSettings.depth = bb.z;
+	renderSys.shadowMappingSettings.height = bb.y;
+ 
+	glm::mat3 view = glm::mat3{ Engine::renderSys.getViewMatrix(gameObject->transform) };
+	gameObject->transform.setPosition(glm::inverse(view) * center);
+
+	player->transform.setPosition(Engine::renderSys.camera->transform.getPosition());
 }
 
 std::array<glm::vec3, 8> ShadowOnVisibleSceneComponent::calculateFrustumVertices(const glm::vec3& up, const glm::vec3& right, const glm::vec3& centerNear, glm::vec3& centerFar)
@@ -74,7 +80,7 @@ std::array<glm::vec3, 8> ShadowOnVisibleSceneComponent::calculateFrustumVertices
 	glm::vec3 toNearTopLeft = up * nearHeight - right * nearHeight;
 	glm::vec3 toNearBottomRight = -toNearTopLeft;
 
-	return std::array<glm::vec3, 8> {
+	std::array<glm::vec3, 8> points {
 		centerFar + toFarTopRight,
 		centerFar + toFarBottomLeft,
 		centerFar + toFarTopLeft,
@@ -85,5 +91,11 @@ std::array<glm::vec3, 8> ShadowOnVisibleSceneComponent::calculateFrustumVertices
 		centerNear + toNearTopLeft,
 		centerNear + toNearBottomRight
 	};
+
+	auto view = glm::mat3{ Engine::renderSys.getViewMatrix(gameObject->transform) };
+	std::array<glm::vec3, 8> projected;
+	std::transform(points.begin(), points.end(), projected.begin(), [&view](const auto& pt) { return view * pt; });
+
+	return projected;
 }
 
