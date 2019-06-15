@@ -2,12 +2,16 @@
 #include "Engine.h"
 #include <limits>
 
-SkyboxMaterial::SkyboxMaterial(const Texture& cubemap) : Material{"shaders/skyboxVS.glsl", "shaders/skyboxFS.glsl"}, mCubemap{cubemap}
+SkyboxMaterial::SkyboxMaterial(const Texture& cubemap) : 
+	Material{ std::vector<std::string>{"shaders/skyboxVS.glsl"},
+		    {},
+			{"shaders/FogCalculation.glsl", "shaders/skyboxFS.glsl"} }, mCubemap{ cubemap }
 {
 	// do not render during shadow mapping
 	supportedRenderPhases = RenderPhase::NORMAL;
 
     shader.use();
+	shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
     shader.setInt("cubemap", 0);
 }
 

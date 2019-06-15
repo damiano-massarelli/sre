@@ -22,19 +22,21 @@ private:
 	float nearWidth, nearHeight, farWidth, farHeight;
 	CrumbPtr mCrumb;
 
-public:
-	float shadowDistance = 0.3f;
-
-	ShadowOnVisibleSceneComponent(const GameObjectEH& go);
-
-	void computeWidthsAndHeights();
-
-	virtual void onEvent(SDL_Event e) override;
-
 	std::array<glm::vec3, 8> calculateFrustumVertices(const glm::vec3& up, const glm::vec3& right,
 		const glm::vec3& centerNear, glm::vec3& centerFar);
 
-	~ShadowOnVisibleSceneComponent() = default;
+	void computeWidthsAndHeights();
 
+public:
+	/** Multiplied by the current far plane, is the maximum distance
+  * from which a shadow can be seen.
+  * @see RenderSystem.getFarPlane() */
+	float shadowDistance = 0.5f;
+
+	ShadowOnVisibleSceneComponent(const GameObjectEH& go);
+
+	virtual void onEvent(SDL_Event e) override;
+
+	~ShadowOnVisibleSceneComponent() = default;
 };
 
