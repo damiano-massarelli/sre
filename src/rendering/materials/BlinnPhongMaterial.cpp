@@ -1,11 +1,15 @@
 #include "BlinnPhongMaterial.h"
 #include "Engine.h"
 
-BlinnPhongMaterial::BlinnPhongMaterial() : Material{{"shaders/phongVS.glsl"},
+#include <iostream>
+
+BlinnPhongMaterial::BlinnPhongMaterial() : Material{{"shaders/animatedPhongVS.glsl"},
 										  {},
                                           {"shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
 										   "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl"}}
 {
+	std::cout << "creating\n";
+
 	shader.use();
 
 	shader.setInt("shadowMap", 15);

@@ -4,6 +4,8 @@
 #include "Mesh.h"
 #include "Material.h"
 #include "Texture.h"
+#include "Bone.h"
+#include "SkeletralAnimation.h"
 #include <string>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -16,6 +18,9 @@
 class GameObjectLoader
 {
     private:
+		/** Max number of bones that can influence a vertex */
+		static constexpr int MAX_BONES_PER_VERTEX = 4;
+
 		/** A cache for meshes */
 		static std::map<std::string, Mesh> mMeshCache;
 
@@ -25,10 +30,49 @@ class GameObjectLoader
 		/** The path of the file we are working on */
 		std::string mFilePath;
 
+		/** List of bones of this model */
+		std::vector<Bone> mBones;
+
+		/** maps the name of a bone to an index of mBones */
+		std::map<std::string, std::uint32_t> mBoneName2Index;
+
+		/** for every vertex the indices (of mBones) of the bones influencing it */
+		std::map<std::uint32_t, std::vector<std::uint32_t>> mVertexToInfluencingBones;
+
+		/** for every vertex the weights of the bones influencing it */
+		std::map<std::uint32_t, std::vector<float>> mVertexToInfluencingBonesWeights;
+
         GameObjectEH processNode(aiNode* node, const aiScene* scene);
         void processMesh(const GameObjectEH& go, aiNode* node, int meshNumber, aiMesh* mesh, const aiScene* scene);
         MaterialPtr processMaterial(aiMesh* mesh, const aiScene* scene, const std::string& cacheName);
         Texture loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type, const std::string& meshCacheName);
+
+		void decompose(const glm::mat4& mat, glm::vec3& outPos, glm::quat& outRot, glm::vec3& outScale);
+
+		/**
+		 * finds all the bones and stores them in the mBones.
+		 * A mapping between bones' names and their indices in mBones 
+		 * is kept in mBoneName2Index.
+		 */
+		void findBones(const aiScene* scene);
+
+		/**
+		 * Creates the actual hierarchy of bones.
+		 * To do so, nodes are read from the root node
+		 * only considering those for which isBone is true
+		 */
+		void buildBonesHierarchy(const aiNode* node);
+
+		/**
+		 * Checks whether a node is a bone.
+		 * Call this method after findBones.
+		 */
+		bool isBone(const aiNode* node);
+
+		std::vector<std::uint32_t>& getInfluencingBones(std::uint32_t vertexIndex);
+
+		std::vector<float>& getInfluencingBonesWeights(std::uint32_t vertexIndex);
+
 
     public:
         /**

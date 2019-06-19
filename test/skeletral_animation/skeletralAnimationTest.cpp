@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <iostream>
 
-#ifdef shadowMapping  
+#ifdef skeletralAnimation  
 int main(int argc, char* argv[]) {
 	Engine::init();
 
@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 
 	auto camera = Engine::gameObjectManager.createGameObject();
 	camera->name = "camera";
-	camera->transform.moveBy(glm::vec3{ 0.0f, 0.0f, 30.0f });
+	camera->transform.moveBy(glm::vec3{ 0.0f, 7.0f, 30.0f });
 	Engine::renderSys.camera = camera;
 
 	auto cam = std::make_shared<FreeCameraComponent>(camera);
@@ -58,12 +58,6 @@ int main(int argc, char* argv[]) {
 		40.0f
 		);
 
-	for (int i = 0; i < 50; ++i) {
-		auto go = GameObjectLoader().fromFile("test_data/shadow_mapping/tree.fbx");
-
-		go->transform.setPosition(glm::vec3{rand() % 1024 - 512, 0, rand() % 1024 - 512 });
-	}
-
 	HeightMapTerrainHeightProvider hProvider{ "test_data/terrain/heightmap_2.png", 0, 0 };
 	TerrainGenerator generator{ 512, 512, 1000, 1000 };
 	auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
@@ -72,6 +66,9 @@ int main(int argc, char* argv[]) {
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 	//Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
 
+
+	auto lamp = GameObjectLoader().fromFile("test_data/skeletral_animation/human.dae");
+	lamp->transform.scaleBy(glm::vec3{ 100.0f });
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
@@ -88,8 +85,10 @@ int main(int argc, char* argv[]) {
 	light->transform.rotateBy(glm::angleAxis(glm::radians(65.0f), glm::vec3{ 1.0f, 0.0f, 0.0f }));
 	light->transform.rotateBy(glm::angleAxis(glm::radians(15.0f), glm::vec3{ 0.0f, 1.0f, 0.0f }));
 	
+
 	light->getComponent<Light>()->castShadow = true;
 	light->addComponent(std::make_shared<ShadowOnVisibleSceneComponent>(light));
+
 
     Engine::start();
 

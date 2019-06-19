@@ -10,4 +10,5 @@
 //#define textureCache
 //#define multipleTextures 
 //#define fxaa 
-#define shadowMapping 
+//#define shadowMapping
+#define skeletralAnimation 

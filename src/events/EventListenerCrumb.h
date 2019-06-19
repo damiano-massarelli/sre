@@ -3,6 +3,7 @@
 #include "EventListener.h"
 #include <SDL.h>
 #include <vector>
+#include <memory>
 
 /**
   * Event listener crumbs automatically unregister an event listener when it is deleted.
@@ -41,5 +42,7 @@ class EventListenerCrumb
         virtual ~EventListenerCrumb();
 
 };
+
+using CrumbPtr = std::unique_ptr<EventListenerCrumb>;
 
 #endif // EVENTLISTENERCRUMB_H

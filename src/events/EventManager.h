@@ -7,8 +7,6 @@
 #include "EventListener.h"
 #include "EventListenerCrumb.h"
 
-using CrumbPtr = std::unique_ptr<EventListenerCrumb>;
-
 class EventManager
 {
     friend class Engine;

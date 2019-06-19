@@ -54,6 +54,27 @@ class MeshLoader
             mMesh.mBuffers.push_back(bo);
         }
 
+		// template specialization for ints. They should use glVertexAttrib * I * Pointer
+		template <>
+		void loadData<std::int32_t>(const std::int32_t* data, std::uint32_t size, int dataPerVertex, int bufferType, int dataType) {
+
+			std::uint32_t bo;
+			glGenBuffers(1, &bo);
+			glBindBuffer(bufferType, bo);
+
+			glBufferData(bufferType, size * sizeof(std::int32_t), data, GL_STATIC_DRAW);
+
+			if (bufferType != GL_ELEMENT_ARRAY_BUFFER) {
+				glEnableVertexAttribArray(mCurrentAttribPointer);
+				glVertexAttribIPointer(mCurrentAttribPointer, dataPerVertex, dataType, dataPerVertex * sizeof(std::int32_t), (void *)0);
+				mCurrentAttribPointer++;
+			}
+			else
+				mMesh.mEbo = bo;
+
+			mMesh.mBuffers.push_back(bo);
+		}
+
         /** Creates the Mesh
           * @param the number of vertices of this mesh
           * @param the number of indices. If this value is different from 0 the mesh will use indexed rendering.
