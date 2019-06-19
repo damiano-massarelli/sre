@@ -3,16 +3,11 @@
 #include <cmath>
 #include <algorithm>
 
-#include "PropMaterial.h"
-#include "MeshCreator.h"
-GameObjectEH player;
-
 ShadowOnVisibleSceneComponent::ShadowOnVisibleSceneComponent(const GameObjectEH& go)
 	: Component{ go }
 {
 	mCrumb = Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this, true);
 	computeWidthsAndHeights();
-	player = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(), std::make_shared<PropMaterial>());
 }
 
 #include <iostream>
@@ -54,18 +49,12 @@ void ShadowOnVisibleSceneComponent::onEvent(SDL_Event e)
 	
 	auto bb = max - min;
 
-// 	renderSys.shadowMappingSettings.width = bb.x;
-// 	renderSys.shadowMappingSettings.depth = bb.y;
-// 	renderSys.shadowMappingSettings.height = bb.z;
-
 	renderSys.shadowMappingSettings.width = bb.x;
 	renderSys.shadowMappingSettings.depth = bb.z;
 	renderSys.shadowMappingSettings.height = bb.y;
  
 	glm::mat3 view = glm::mat3{ Engine::renderSys.getViewMatrix(gameObject->transform) };
 	gameObject->transform.setPosition(glm::inverse(view) * center);
-
-	player->transform.setPosition(Engine::renderSys.camera->transform.getPosition());
 }
 
 std::array<glm::vec3, 8> ShadowOnVisibleSceneComponent::calculateFrustumVertices(const glm::vec3& up, const glm::vec3& right, const glm::vec3& centerNear, glm::vec3& centerFar)

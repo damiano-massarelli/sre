@@ -3,6 +3,8 @@
 #include "MeshLoader.h"
 #include "BlinnPhongMaterial.h"
 #include "Transform.h"
+#include "SkeletralAnimationControllerComponent.h"
+#include "SkeletralAnimationLoader.h"
 #include <iostream>
 #include <cstdint>
 #include <cstdlib>
@@ -29,7 +31,7 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     GameObjectEH go = Engine::gameObjectManager.createGameObject();
     go->name = std::string{node->mName.C_Str()};
 
-    //std::cout << "at node " << node->mName.C_Str() << "\n";
+    std::cout << "at node " << node->mName.C_Str() << "\n";
     for (std::uint32_t i = 0; i < node->mNumMeshes; ++i) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         //std::cout << "loading mesh " << mesh->mName.C_Str() << "\n";
@@ -37,6 +39,12 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     }
 
     for (std::uint32_t i = 0; i < node->mNumChildren; ++i) {
+
+		// bones are also part of the node hierarchy
+		// but they should not be processed here
+		if (isBone(node->mChildren[i]))
+			continue;
+
 		/* This must be a two steps process:
 		 * When go->transform is evaluated it returns a pointer to an element of a vector,
 		 * when a new child is added this pointer may become invalid.
@@ -49,10 +57,9 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     /* assimp only provides the transformation matrix relative to the parent node
      * hence we need to extract position, rotation and scale to obtain the local
      * components of that matrix */
-    glm::vec3 position, scale, skew;
-    glm::quat rotation;
-    glm::vec4 perspective;
-    glm::decompose(convertMatrix(node->mTransformation) , scale, rotation, position, skew, perspective);
+	glm::vec3 position, scale;
+	glm::quat rotation;
+	decompose(convertMatrix(node->mTransformation), position, rotation, scale);
 
     /* There is no need to use local transformations since when the following code is executed
      * all the children have their position already set relative to the parent (thanks to the
@@ -64,10 +71,11 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     return go;
 }
 
+#include <iterator>
 void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int meshNumber, aiMesh* mesh, const aiScene* scene)
 {
 	// creates the cache name for this mesh
-	std::string cacheName = mFilePath + std::string{ node->mName.C_Str() } +std::string{ mesh->mName.C_Str() } +std::to_string(meshNumber);
+	std::string cacheName = mFilePath + std::string{ node->mName.C_Str() } +std::string{ mesh->mName.C_Str() } + std::to_string(meshNumber);
 
 	// loads material
 	MaterialPtr loadedMaterial = processMaterial(mesh, scene, cacheName);
@@ -82,12 +90,11 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 		return;
 	}
 
-    // data regarding vertices: positions, normals, texture coords
-    std::vector<float> vertexData;
-
     std::vector<float> positions;
     std::vector<float> normals;
     std::vector<float> texCoords;
+	std::vector<std::int32_t> influencingBones;
+	std::vector<float> boneWeights;
 
     std::vector<Vertex> vertices;
     std::vector<std::uint32_t> indices;
@@ -95,32 +102,32 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
     // Load vertex data
     for (std::uint32_t i = 0; i < mesh->mNumVertices; ++i) {
         Vertex v;
+		
+		auto& bones = getInfluencingBones(i);
+		auto& weights = getInfluencingBonesWeights(i);
+		influencingBones.insert(influencingBones.end(), bones.begin(), bones.end());
+		boneWeights.insert(boneWeights.end(), weights.begin(), weights.end());
 
         // position
-        vertexData.insert(vertexData.end(), {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z});
         positions.insert(positions.end(), {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z});
         v.position = glm::vec3{mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
 
         // normal, if not present 0, 0, 0 is used
         if (mesh->HasNormals()) {
-            vertexData.insert(vertexData.end(), {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z});
             normals.insert(normals.end(), {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z});
             v.normal = glm::vec3{mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
         } else {
             std::cout << "cannot find normals, setting them to (0, 0, 0)\n";
-            vertexData.insert(vertexData.end(), {0.0f, 0.0f, 0.0f});
             normals.insert(normals.end(), {0.0f, 0.0f, 0.0f});
             v.normal = glm::vec3{0.0f, 0.0f, 0.0f};
         }
 
         // if texture coordinates are not available just put (0, 0)
         if (mesh->mTextureCoords[0]) {
-            vertexData.insert(vertexData.end(), {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y});
             texCoords.insert(texCoords.end(), {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y});
             v.texCoord = glm::vec2{mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
         } else {
             std::cout << "cannot find uv coords, setting them to (0, 0)\n";
-            vertexData.insert(vertexData.end(), {0.0f, 0.0f});
             texCoords.insert(texCoords.end(), {0.0f, 0.0f});
             v.texCoord = glm::vec2{0.0f, 0.0f};
         }
@@ -131,14 +138,18 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
     // Load indices
     for (std::uint32_t i = 0; i < mesh->mNumFaces; ++i) {
         aiFace face = mesh->mFaces[i];
-        for (std::uint32_t j = 0; j < face.mNumIndices; j++)
-            indices.push_back(face.mIndices[j]);
+		for (std::uint32_t j = 0; j < face.mNumIndices; j++) {
+			indices.push_back(face.mIndices[j]);
+		}
     }
 
     MeshLoader loader;
     loader.loadData(positions.data(), positions.size(), 3);
     loader.loadData(normals.data(), normals.size(), 3);
     loader.loadData(texCoords.data(), texCoords.size(), 2);
+	loader.loadData(influencingBones.data(), influencingBones.size(), 4, GL_ARRAY_BUFFER, GL_INT);
+	loader.loadData(boneWeights.data(), boneWeights.size(), 4);
+
     loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
 
     Mesh loadedMesh = loader.getMesh(vertices.size(), indices.size());
@@ -237,17 +248,145 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
     return Texture{};
 }
 
+void GameObjectLoader::decompose(const glm::mat4& mat, glm::vec3& outPos, glm::quat& outRot, glm::vec3& outScale)
+{
+	glm::vec3 skew;
+	glm::vec4 perspective;
+	glm::decompose(mat, outScale, outRot, outPos, skew, perspective);
+}
+
+void GameObjectLoader::findBones(const aiScene* scene)
+{
+	for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+		aiMesh* mesh = scene->mMeshes[i];
+		for (unsigned int j = 0; j < mesh->mNumBones; j++) {
+			aiBone* bone = mesh->mBones[j];
+			Bone b;
+			b.offset = convertMatrix(bone->mOffsetMatrix);
+
+			// this is not very cache friendly but for now it is ok
+			auto boneName = std::string{ bone->mName.C_Str() };
+			auto boneIndex = mBones.size();
+			mBoneName2Index[boneName] = boneIndex;
+			std::cout << "setting " << boneName << " " << boneIndex << "\n";
+			mBones.push_back(b);
+
+			// loads weights for the vertices influenced by this bone
+			for (unsigned int k = 0; k < bone->mNumWeights; k++) {
+				auto vertexIndex = bone->mWeights[k].mVertexId;
+				float weight = bone->mWeights[k].mWeight;
+				mVertexToInfluencingBones[vertexIndex].push_back(boneIndex);
+				mVertexToInfluencingBonesWeights[vertexIndex].push_back(weight);
+			}
+		}
+	}
+}
+
+void GameObjectLoader::buildBonesHierarchy(const aiNode* node)
+{
+	// build the bone hierarchy recursively
+	if (isBone(node)) {
+		std::uint32_t index = mBoneName2Index[node->mName.C_Str()];
+		auto& bone = mBones[index];
+		bone.name = node->mName.C_Str();
+		bone.toParentSpace = convertMatrix(node->mTransformation);
+		decompose(convertMatrix(node->mTransformation), bone.position, bone.rotation, bone.scale);
+
+		if (isBone(node->mParent))
+			bone.parent = mBoneName2Index[node->mParent->mName.C_Str()];
+		else
+			bone.parent = -1;
+		for (unsigned int i = 0; i < node->mNumChildren; ++i) {
+			aiNode* child = node->mChildren[i];
+			if (isBone(child))
+				bone.children.push_back(mBoneName2Index[child->mName.C_Str()]);
+			buildBonesHierarchy(child);
+		}
+	}
+	else {
+		for (unsigned int i = 0; i < node->mNumChildren; ++i)
+			buildBonesHierarchy(node->mChildren[i]);
+	}
+}
+
+bool GameObjectLoader::isBone(const aiNode* node)
+{
+	if (node == nullptr) return false;
+	return mBoneName2Index.find(node->mName.C_Str()) != mBoneName2Index.end();
+}
+
+
+std::vector<std::uint32_t>& GameObjectLoader::getInfluencingBones(std::uint32_t vertexIndex)
+{
+	auto& bones = mVertexToInfluencingBones[vertexIndex];
+	if (bones.size() > 4) std::cerr << "more than 4 bones per vertex, not supported\n";
+	bones.resize(MAX_BONES_PER_VERTEX, 0);
+
+	return bones;
+}
+
+std::vector<float>& GameObjectLoader::getInfluencingBonesWeights(std::uint32_t vertexIndex)
+{
+	auto& weights = mVertexToInfluencingBonesWeights[vertexIndex];
+	weights.resize(MAX_BONES_PER_VERTEX, 0.0f);
+
+	return weights;
+}
+
+#include <functional>
+
 GameObjectEH GameObjectLoader::fromFile(const std::string& path)
 {
 	mFilePath = path;
 	mWorkingDir = (std::filesystem::path{ path }).remove_filename();
 
     Assimp::Importer importer;
+	//importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cerr << "Error loading mesh " << importer.GetErrorString() << "\n";
         return GameObjectEH{};
     }
 
-    return processNode(scene->mRootNode, scene);
+	std::function<void(Bone&)> f;
+	f = [this, &f](Bone& b) {
+		std::cout << b.name << ":\n\t";
+		for (auto& i : b.children)
+			std::cout << mBones[i].name << " ";
+		std::cout << "\n\n";
+
+		for (auto& i : b.children)
+			f(mBones[i]);
+	};
+
+	findBones(scene);
+	buildBonesHierarchy(scene->mRootNode);
+
+/*	f(mBones[0]);*/
+
+// 	std::cout << scene->mNumAnimations << "\n";
+// 	for (auto i = 0; i < scene->mNumAnimations; ++i) {
+// 		std::cout << "name: " << scene->mAnimations[i]->mName.C_Str() << "\n";
+// 	}
+// 	std::cout << scene->mAnimations[2]->mDuration << "\n";
+// 	std::cout << scene->mAnimations[2]->mTicksPerSecond << "\n";
+
+// 	aiAnimation* anim = scene->mAnimations[1];
+// 	for (int i = 0; i < anim->mNumChannels; ++i) {
+// 		auto ch = anim->mChannels[i];
+// 		std::cout << "pos " << ch->mNumPositionKeys << "\n";
+// 		std::cout << "rot " << ch->mNumRotationKeys << "\n";
+// 		std::cout << "sca " << ch->mNumScalingKeys << "\n";
+// 	}
+
+	SkeletralAnimationLoader loader;
+	auto animation = loader.fromAssimpScene(scene, mBoneName2Index);
+
+    auto go = processNode(scene->mRootNode, scene);
+	go->addComponent(std::make_shared<SkeletralAnimationControllerComponent>(go, mBones));
+	go->getComponent<SkeletralAnimationControllerComponent>()->animation = animation;
+
+	std::cout << "num meshes " << scene->mNumMeshes << "\n";
+
+	return go;
 }
