@@ -81,6 +81,16 @@ void Transform::scaleBy(const glm::vec3& amount, const glm::vec3& pivot)
     setScale(mScale * amount, pivot);
 }
 
+void Transform::lookAt(const glm::vec3& position)
+{
+	glm::vec3 dir = glm::normalize(position - getPosition());
+
+	// this engine uses a right-handed system
+	// however, the look vector is +z (typical of LH systems)
+	auto rot = glm::quatLookAtLH(dir, up());
+	setRotation(glm::normalize(rot));
+}
+
 const glm::vec3& Transform::getPosition() const
 {
     return mPosition;

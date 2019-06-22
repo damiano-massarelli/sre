@@ -72,6 +72,12 @@ class Transform {
           * @param pivot the center of scaling */
         void scaleBy(const glm::vec3& amount, const glm::vec3& pivot);
 
+		/**
+		 * Rotates this transform by a certain amount.
+		 * @param position the position this transform will be looking at 
+		 */
+		void lookAt(const glm::vec3& position);
+
         /**
           * @return world space position */
         const glm::vec3& getPosition() const;

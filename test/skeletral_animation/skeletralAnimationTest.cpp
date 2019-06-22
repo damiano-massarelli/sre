@@ -31,13 +31,14 @@ int main(int argc, char* argv[]) {
 
 	auto camera = Engine::gameObjectManager.createGameObject();
 	camera->name = "camera";
-	camera->transform.moveBy(glm::vec3{ 0.0f, 7.0f, 30.0f });
+	camera->transform.moveBy(glm::vec3{ 0.0f, 30.0f, 30.0f });
+	camera->transform.setRotation(glm::quat{ glm::vec3{0, glm::radians(180.0f), 0} });
 	Engine::renderSys.camera = camera;
+
 
 	auto cam = std::make_shared<FreeCameraComponent>(camera);
 	camera->addComponent(cam);
-	camera->transform.setRotation(glm::quat{ glm::vec3{0, glm::radians(180.0f), 0} });
-
+	
 	auto skyTexture = Texture::loadCubamapFromFile({
 					{"front", "test_data/skybox/front.tga"},
 					{"back", "test_data/skybox/back.tga"},
@@ -77,6 +78,8 @@ int main(int argc, char* argv[]) {
 	animationController->playAnimation("anim2");
 
 	human->transform.scaleBy(glm::vec3{ 100.0f });
+
+	camera->transform.lookAt(human->transform.getPosition());
 
 	auto tree = GameObjectLoader().fromFile("test_data/shadow_mapping/tree.fbx");
 
