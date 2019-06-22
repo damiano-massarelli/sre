@@ -15,8 +15,10 @@
 #include "FXAA.h"
 #include "MultiTextureLambertMaterial.h"
 #include "ShadowOnVisibleSceneComponent.h"
+#include "SkeletalAnimationLoader.h"
+#include "SkeletralAnimationControllerComponent.h"
 
-#include <runTest.h>
+#include "runTest.h"
 
 #include <stdlib.h>
 #include <iostream>
@@ -62,13 +64,21 @@ int main(int argc, char* argv[]) {
 	TerrainGenerator generator{ 512, 512, 1000, 1000 };
 	auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
 
+	Engine::renderSys.shadowMappingSettings.useFastShader = false;
 	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 	//Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
 
+	auto human = GameObjectLoader().fromFile("test_data/skeletral_animation/human.dae");
+	auto animationController = human->getComponent<SkeletralAnimationControllerComponent>();
+	auto animation2 = SkeletalAnimationLoader().fromFile("test_data/skeletral_animation/human_animation_2.dae", animationController->getBoneName2index());
+	animation2.loopDirection = SkeletalAnimation::LoopDirection::BOUNCE;
+	animationController->addAnimation("anim2", animation2);
+	animationController->playAnimation("anim2");
 
-	auto lamp = GameObjectLoader().fromFile("test_data/skeletral_animation/human.dae");
-	lamp->transform.scaleBy(glm::vec3{ 100.0f });
+	human->transform.scaleBy(glm::vec3{ 100.0f });
+
+	auto tree = GameObjectLoader().fromFile("test_data/shadow_mapping/tree.fbx");
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
