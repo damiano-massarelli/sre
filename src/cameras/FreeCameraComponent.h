@@ -19,6 +19,8 @@ class FreeCameraComponent : public Component, public EventListener {
         std::int32_t mLastMouseX;
         std::int32_t mLastMouseY;
 
+		glm::quat mOldOrientation;
+
     public:
         float heading = 0.0f;
         float pitch = 0.0f;
@@ -30,8 +32,14 @@ class FreeCameraComponent : public Component, public EventListener {
         /** is the camera following mouse and keyboard */
         bool tracking = true;
 
-    public:
         FreeCameraComponent(const GameObjectEH& go);
+
+		/**
+		 * Sync the orientation with that of the GameObject transform.
+		 * When the rotation of the GameObject this Component handles
+		 * changes, this method should be called.
+		 */
+		void syncWithTransform();
 
         virtual void onEvent(SDL_Event e) override;
 };
