@@ -1,15 +1,22 @@
 #include "BlinnPhongMaterial.h"
 #include "Engine.h"
+#include <vector>
 
-#include <iostream>
+std::vector<std::string> getVertexShaders(bool isAnimated) {
+	std::vector<std::string> shaders;
+	if (isAnimated)
+		shaders.push_back("shaders/animatedPhongVS.glsl");
+	else
+		shaders.push_back("shaders/phongVS.glsl");
+	return shaders;
+}
 
-BlinnPhongMaterial::BlinnPhongMaterial() : Material{{"shaders/animatedPhongVS.glsl"},
-										  {},
-                                          {"shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-										   "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl"}}
+BlinnPhongMaterial::BlinnPhongMaterial(bool isAnimated) 
+	: Material{getVertexShaders(isAnimated),
+			   {},
+               {"shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
+			    "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl"}}
 {
-	std::cout << "creating\n";
-
 	shader.use();
 
 	shader.setInt("shadowMap", 15);
@@ -20,12 +27,13 @@ BlinnPhongMaterial::BlinnPhongMaterial() : Material{{"shaders/animatedPhongVS.gl
 	shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
 	shader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
 
-	mDiffuseColorLocation = shader.getLocationOf("material.diffuseColor");
-	mSpecularColorLocation = shader.getLocationOf("material.specularColor");
-	mShininessLocation = shader.getLocationOf("material.shininess");
-	mOpacityLocation = shader.getLocationOf("material.opacity");
-	mUseDiffuseMapLocation = shader.getLocationOf("material.useDiffuseMap");
-	mUseSpecularMapLocation = shader.getLocationOf("material.useSpecularMap");
+	mDiffuseColorLocation		= shader.getLocationOf("material.diffuseColor");
+	mSpecularColorLocation		= shader.getLocationOf("material.specularColor");
+	mShininessLocation			= shader.getLocationOf("material.shininess");
+	mOpacityLocation			= shader.getLocationOf("material.opacity");
+	mUseDiffuseMapLocation		= shader.getLocationOf("material.useDiffuseMap");
+	mUseSpecularMapLocation		= shader.getLocationOf("material.useSpecularMap");
+	mBonesLocation				= shader.getLocationOf("bones", isAnimated); // only used when animations are available
 }
 
 void BlinnPhongMaterial::setDiffuseMap(const Texture& texture)
@@ -55,6 +63,10 @@ void BlinnPhongMaterial::use()
     shader.setFloat(mShininessLocation, shininess);
 
     shader.setFloat(mOpacityLocation, opacity);
+
+	if (auto sac = skeletalAnimationController.lock()) {
+		sac->updateBones(mBonesLocation, shader);
+	}
 
     if (diffuseMap) {
         shader.setInt(mUseDiffuseMapLocation, 1);

@@ -63,7 +63,9 @@ class Shader
 
 		void setVec2(const std::string& name, const glm::vec2& value) const;
 
-		void setMat4Array(const std::string& name, const std::vector<glm::mat4>& array);
+		void setMat4Array(const std::string& name, const std::vector<glm::mat4>& array) const;
+
+		void setMat4Array(std::int32_t location, const std::vector<glm::mat4>& array) const;
 
         void bindUniformBlock(const std::string& name, std::uint32_t bindingPoint);
 

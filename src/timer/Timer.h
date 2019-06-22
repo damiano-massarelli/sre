@@ -8,50 +8,63 @@
   */
 class Timer
 {
-    private:
-        bool m_started = false;
-        bool m_paused = false;
+private:
+    bool mStarted = false;
+    bool mPaused = false;
 
-        Uint32 m_startTime = 0;
-        Uint32 m_pauseStartTime = 0;
+    Uint32 mStartTime = 0;
+    Uint32 mPauseStartTime = 0;
 
-    public:
-        Timer();
+public:
+    Timer();
 
-        /**
-          * Starts the timer.
-          * Every timer should be started before using it */
-        void start();
+    /**
+     * Starts the timer.
+     * Every timer should be started before using it.
+	 * If the timer is paused, the timer is also resumed. */
+    void start();
 
-        /**
-          * Pauses the timer */
-        void pause();
+	/**
+	 * @return whether the timer is started (true even if paused)
+	 */
+	bool isStarted();
 
-        /**
-          * Resumes the timer */
-        void resume();
+    /**
+     * Pauses the timer */
+    void pause();
 
-        /**
-          * Stops the time */
-        void stop();
+	/**
+	 * @return whether the  timer is paused (true even if not started) 
+	 */
+	bool isPaused();
 
-        /**
-          * Returns the elapsed time in seconds from start
-          * Pauses are taken into account.
-          * @see start
-          * @return elapsed time in seconds, -1.0f if the timer is stopped
-          */
-        float getSeconds() const;
+    /**
+     * Resumes the timer */
+    void resume();
 
-        /**
-          * Returns the elapsed time in milliseconds from start
-          * Pauses are taken into account.
-          * @see start
-          * @return elapsed time in milliseconds, -1.0f if the timer is stopped
-          */
-        float getMillis() const;
+    /**
+     * Stops the time */
+    void stop();
 
-        virtual ~Timer();
+	/**
+	 * Resets the timer.
+	 * Same as calling stop() and then start()
+	 */
+	void reset();
+
+    /**
+	 * Returns the elapsed time in seconds from start
+	 * Pauses are taken into account.
+	 * @see start
+	 * @return elapsed time in seconds, -1.0f if the timer is stopped */
+    float getSeconds() const;
+
+    /**
+	 * Returns the elapsed time in milliseconds from start
+	 * Pauses are taken into account.
+	 * @see start
+	 * @return elapsed time in milliseconds, -1.0f if the timer is stopped */
+    float getMillis() const;
 };
 
 #endif // TIMER_H

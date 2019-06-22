@@ -7,33 +7,50 @@ Timer::Timer()
 
 void Timer::start()
 {
-    if (!m_started) {
-        m_started = true;
-        m_startTime = SDL_GetTicks();
+    if (!mStarted) {
+		mPaused = false;
+        mStarted = true;
+        mStartTime = SDL_GetTicks();
     }
+}
+
+bool Timer::isStarted()
+{
+	return mStarted;
 }
 
 void Timer::pause()
 {
-    if (!m_paused) {
-        m_paused = true;
-        m_pauseStartTime = SDL_GetTicks();
+    if (!mPaused) {
+        mPaused = true;
+        mPauseStartTime = SDL_GetTicks();
     }
+}
+
+bool Timer::isPaused()
+{
+	return mPaused;
 }
 
 void Timer::resume()
 {
-    if (m_paused) {
-        Uint32 elapsedPaused = SDL_GetTicks() - m_pauseStartTime;
-        m_startTime += elapsedPaused;
-        m_paused = false;
+    if (mPaused) {
+        Uint32 elapsedPaused = SDL_GetTicks() - mPauseStartTime;
+        mStartTime += elapsedPaused;
+        mPaused = false;
     }
 }
 
 void Timer::stop()
 {
-    if (m_started)
-        m_started = false;
+    if (mStarted)
+        mStarted = false;
+}
+
+void Timer::reset()
+{
+	stop();
+	start();
 }
 
 float Timer::getSeconds() const
@@ -47,16 +64,11 @@ float Timer::getSeconds() const
 
 float Timer::getMillis() const
 {
-    if (!m_started)
-        return -1.0f;
+    if (!mStarted)
+        return 0.0f;
 
-    if (m_paused)
-        return static_cast<float>(SDL_GetTicks() - (m_startTime + SDL_GetTicks() - m_pauseStartTime));
+    if (mPaused)
+        return static_cast<float>(SDL_GetTicks() - (mStartTime + SDL_GetTicks() - mPauseStartTime));
 
-    return static_cast<float>(SDL_GetTicks() - m_startTime);
-}
-
-Timer::~Timer()
-{
-    //dtor
+    return static_cast<float>(SDL_GetTicks() - mStartTime);
 }

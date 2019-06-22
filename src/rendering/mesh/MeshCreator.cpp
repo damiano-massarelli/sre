@@ -212,7 +212,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
     normals.insert(normals.end(), {0.0f, -1.0f, 0.0f});
     uvs.insert(uvs.end(), {0.5f, 0.5f});
 
-    float bodyNormalY = std::sin(pi/2 - std::atan2(1, radius));
+    float bodyNormalY = std::sin(pi/2 - std::atan2(1.0f, radius));
 
     // body
     std::uint32_t current = resolution + 1;

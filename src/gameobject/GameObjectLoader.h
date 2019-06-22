@@ -5,7 +5,8 @@
 #include "Material.h"
 #include "Texture.h"
 #include "Bone.h"
-#include "SkeletralAnimation.h"
+#include "SkeletalAnimation.h"
+#include "SkeletralAnimationControllerComponent.h"
 #include <string>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -37,10 +38,13 @@ class GameObjectLoader
 		std::map<std::string, std::uint32_t> mBoneName2Index;
 
 		/** for every vertex the indices (of mBones) of the bones influencing it */
-		std::map<std::uint32_t, std::vector<std::uint32_t>> mVertexToInfluencingBones;
+		std::map<std::pair<std::uint32_t, aiMesh*>, std::vector<std::uint32_t>> mVertexToInfluencingBones;
 
 		/** for every vertex the weights of the bones influencing it */
-		std::map<std::uint32_t, std::vector<float>> mVertexToInfluencingBonesWeights;
+		std::map<std::pair<std::uint32_t, aiMesh*>, std::vector<float>> mVertexToInfluencingBonesWeights;
+
+		/** skeletal animation controller to add to animated materials */
+		std::shared_ptr<SkeletralAnimationControllerComponent> mSkeletalAnimationController = nullptr;
 
         GameObjectEH processNode(aiNode* node, const aiScene* scene);
         void processMesh(const GameObjectEH& go, aiNode* node, int meshNumber, aiMesh* mesh, const aiScene* scene);
@@ -69,9 +73,9 @@ class GameObjectLoader
 		 */
 		bool isBone(const aiNode* node);
 
-		std::vector<std::uint32_t>& getInfluencingBones(std::uint32_t vertexIndex);
+		std::vector<std::uint32_t>& getInfluencingBones(std::uint32_t vertexIndex, aiMesh* mesh);
 
-		std::vector<float>& getInfluencingBonesWeights(std::uint32_t vertexIndex);
+		std::vector<float>& getInfluencingBonesWeights(std::uint32_t vertexIndex, aiMesh* mesh);
 
 
     public:
@@ -87,11 +91,16 @@ class GameObjectLoader
           * Loads a GameObject from a model stored on file.
           * The hierarchy of models in the file is represented with
           * a hierarchy of GameObjects.
+		  * If the loaded model has bones a SkeletalAnimationControllerComponent is added
+		  * as its component. If the model also contains a skeletal animation it is added
+		  * to the SkeletalAnimationControllerComponent and its name is "default"
+		  * (@see SkeletalAnimationControllerComponent::playAnimation )
           * @param path the path of the model to load
           * @return a reference to the root GameObject (invalid reference if the model could not be loaded)
-          * @sa GameObjectEH
-          * @sa GameObjectEH::isValid
-          * @sa Transform::getChildren */
+          * @see GameObjectEH
+          * @see GameObjectEH::isValid
+          * @see Transform::getChildren
+		  * @see SkeletalAnimationControllerComponent */
         GameObjectEH fromFile(const std::string& path);
 };
 

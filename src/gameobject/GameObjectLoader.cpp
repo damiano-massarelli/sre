@@ -4,7 +4,7 @@
 #include "BlinnPhongMaterial.h"
 #include "Transform.h"
 #include "SkeletralAnimationControllerComponent.h"
-#include "SkeletralAnimationLoader.h"
+#include "SkeletalAnimationLoader.h"
 #include <iostream>
 #include <cstdint>
 #include <cstdlib>
@@ -31,7 +31,7 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     GameObjectEH go = Engine::gameObjectManager.createGameObject();
     go->name = std::string{node->mName.C_Str()};
 
-    std::cout << "at node " << node->mName.C_Str() << "\n";
+    //std::cout << "at node " << node->mName.C_Str() << "\n";
     for (std::uint32_t i = 0; i < node->mNumMeshes; ++i) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         //std::cout << "loading mesh " << mesh->mName.C_Str() << "\n";
@@ -71,7 +71,6 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     return go;
 }
 
-#include <iterator>
 void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int meshNumber, aiMesh* mesh, const aiScene* scene)
 {
 	// creates the cache name for this mesh
@@ -103,8 +102,8 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
     for (std::uint32_t i = 0; i < mesh->mNumVertices; ++i) {
         Vertex v;
 		
-		auto& bones = getInfluencingBones(i);
-		auto& weights = getInfluencingBonesWeights(i);
+		auto& bones = getInfluencingBones(i, mesh);
+		auto& weights = getInfluencingBonesWeights(i, mesh);
 		influencingBones.insert(influencingBones.end(), bones.begin(), bones.end());
 		boneWeights.insert(boneWeights.end(), weights.begin(), weights.end());
 
@@ -147,9 +146,10 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
     loader.loadData(positions.data(), positions.size(), 3);
     loader.loadData(normals.data(), normals.size(), 3);
     loader.loadData(texCoords.data(), texCoords.size(), 2);
-	loader.loadData(influencingBones.data(), influencingBones.size(), 4, GL_ARRAY_BUFFER, GL_INT);
-	loader.loadData(boneWeights.data(), boneWeights.size(), 4);
-
+	if (mesh->mNumBones != 0) { // add bone data only if this mesh needs it
+		loader.loadData(influencingBones.data(), influencingBones.size(), 4, GL_ARRAY_BUFFER, GL_INT);
+		loader.loadData(boneWeights.data(), boneWeights.size(), 4);
+	}
     loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
 
     Mesh loadedMesh = loader.getMesh(vertices.size(), indices.size());
@@ -163,8 +163,6 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 
 MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene, const std::string& cacheName)
 {
-    //if (mesh->mMaterialIndex == 0) return nullptr;
-
     BlinnPhongMaterialBuilder phongBuilder;
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
@@ -184,6 +182,7 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 
     phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE, cacheName));
     phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR, cacheName));
+	phongBuilder.setAnimated(mesh->mNumBones != 0);
 
     BlinnPhongMaterialPtr loadedMaterial = phongBuilder.build();
 
@@ -197,6 +196,11 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
         loadedMaterial->opacity = opacity;
         loadedMaterial->isTwoSided = opacity < 1.0f;
     }
+
+	// add animationController
+	if (mesh->mNumBones != 0) 
+		loadedMaterial->skeletalAnimationController = mSkeletalAnimationController;
+	
 
     return loadedMaterial;
 }
@@ -268,15 +272,14 @@ void GameObjectLoader::findBones(const aiScene* scene)
 			auto boneName = std::string{ bone->mName.C_Str() };
 			auto boneIndex = mBones.size();
 			mBoneName2Index[boneName] = boneIndex;
-			std::cout << "setting " << boneName << " " << boneIndex << "\n";
 			mBones.push_back(b);
 
 			// loads weights for the vertices influenced by this bone
 			for (unsigned int k = 0; k < bone->mNumWeights; k++) {
 				auto vertexIndex = bone->mWeights[k].mVertexId;
 				float weight = bone->mWeights[k].mWeight;
-				mVertexToInfluencingBones[vertexIndex].push_back(boneIndex);
-				mVertexToInfluencingBonesWeights[vertexIndex].push_back(weight);
+				mVertexToInfluencingBones[std::make_pair(vertexIndex, mesh)].push_back(boneIndex);
+				mVertexToInfluencingBonesWeights[std::make_pair(vertexIndex, mesh)].push_back(weight);
 			}
 		}
 	}
@@ -289,7 +292,6 @@ void GameObjectLoader::buildBonesHierarchy(const aiNode* node)
 		std::uint32_t index = mBoneName2Index[node->mName.C_Str()];
 		auto& bone = mBones[index];
 		bone.name = node->mName.C_Str();
-		bone.toParentSpace = convertMatrix(node->mTransformation);
 		decompose(convertMatrix(node->mTransformation), bone.position, bone.rotation, bone.scale);
 
 		if (isBone(node->mParent))
@@ -298,8 +300,6 @@ void GameObjectLoader::buildBonesHierarchy(const aiNode* node)
 			bone.parent = -1;
 		for (unsigned int i = 0; i < node->mNumChildren; ++i) {
 			aiNode* child = node->mChildren[i];
-			if (isBone(child))
-				bone.children.push_back(mBoneName2Index[child->mName.C_Str()]);
 			buildBonesHierarchy(child);
 		}
 	}
@@ -316,24 +316,22 @@ bool GameObjectLoader::isBone(const aiNode* node)
 }
 
 
-std::vector<std::uint32_t>& GameObjectLoader::getInfluencingBones(std::uint32_t vertexIndex)
+std::vector<std::uint32_t>& GameObjectLoader::getInfluencingBones(std::uint32_t vertexIndex, aiMesh* mesh)
 {
-	auto& bones = mVertexToInfluencingBones[vertexIndex];
+	auto& bones = mVertexToInfluencingBones[std::make_pair(vertexIndex, mesh)];
 	if (bones.size() > 4) std::cerr << "more than 4 bones per vertex, not supported\n";
 	bones.resize(MAX_BONES_PER_VERTEX, 0);
 
 	return bones;
 }
 
-std::vector<float>& GameObjectLoader::getInfluencingBonesWeights(std::uint32_t vertexIndex)
+std::vector<float>& GameObjectLoader::getInfluencingBonesWeights(std::uint32_t vertexIndex, aiMesh* mesh)
 {
-	auto& weights = mVertexToInfluencingBonesWeights[vertexIndex];
+	auto& weights = mVertexToInfluencingBonesWeights[std::make_pair(vertexIndex, mesh)];
 	weights.resize(MAX_BONES_PER_VERTEX, 0.0f);
 
 	return weights;
 }
-
-#include <functional>
 
 GameObjectEH GameObjectLoader::fromFile(const std::string& path)
 {
@@ -341,52 +339,30 @@ GameObjectEH GameObjectLoader::fromFile(const std::string& path)
 	mWorkingDir = (std::filesystem::path{ path }).remove_filename();
 
     Assimp::Importer importer;
-	//importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
+	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cerr << "Error loading mesh " << importer.GetErrorString() << "\n";
         return GameObjectEH{};
     }
 
-	std::function<void(Bone&)> f;
-	f = [this, &f](Bone& b) {
-		std::cout << b.name << ":\n\t";
-		for (auto& i : b.children)
-			std::cout << mBones[i].name << " ";
-		std::cout << "\n\n";
-
-		for (auto& i : b.children)
-			f(mBones[i]);
-	};
-
 	findBones(scene);
 	buildBonesHierarchy(scene->mRootNode);
 
-/*	f(mBones[0]);*/
+	// if bones where found this GameObject supports skeletal animation
+	if (mBones.size() != 0) {
+		mSkeletalAnimationController = std::make_shared<SkeletralAnimationControllerComponent>(GameObjectEH{}, mBones, mBoneName2Index);
+		SkeletalAnimationLoader loader;
+		auto animation = loader.fromAssimpScene(scene, mBoneName2Index);
+		mSkeletalAnimationController->addAnimation("default", animation);
+	}
 
-// 	std::cout << scene->mNumAnimations << "\n";
-// 	for (auto i = 0; i < scene->mNumAnimations; ++i) {
-// 		std::cout << "name: " << scene->mAnimations[i]->mName.C_Str() << "\n";
-// 	}
-// 	std::cout << scene->mAnimations[2]->mDuration << "\n";
-// 	std::cout << scene->mAnimations[2]->mTicksPerSecond << "\n";
+    auto root = processNode(scene->mRootNode, scene);
 
-// 	aiAnimation* anim = scene->mAnimations[1];
-// 	for (int i = 0; i < anim->mNumChannels; ++i) {
-// 		auto ch = anim->mChannels[i];
-// 		std::cout << "pos " << ch->mNumPositionKeys << "\n";
-// 		std::cout << "rot " << ch->mNumRotationKeys << "\n";
-// 		std::cout << "sca " << ch->mNumScalingKeys << "\n";
-// 	}
+	if (mSkeletalAnimationController) {
+		mSkeletalAnimationController->gameObject = root;
+		root->addComponent(mSkeletalAnimationController);
+	}
 
-	SkeletralAnimationLoader loader;
-	auto animation = loader.fromAssimpScene(scene, mBoneName2Index);
-
-    auto go = processNode(scene->mRootNode, scene);
-	go->addComponent(std::make_shared<SkeletralAnimationControllerComponent>(go, mBones));
-	go->getComponent<SkeletralAnimationControllerComponent>()->animation = animation;
-
-	std::cout << "num meshes " << scene->mNumMeshes << "\n";
-
-	return go;
+	return root;
 }
