@@ -15,18 +15,38 @@ private:
 	std::int32_t mOpacityLocation = -1;
 	std::int32_t mUseDiffuseMapLocation = -1;
 	std::int32_t mUseSpecularMapLocation = -1;
+	std::int32_t mBumpMapLocation = -1;
 	std::int32_t mBonesLocation = -1;
 
     Texture diffuseMap;
     Texture specularMap;
+	Texture bumpMap;
+
+	bool mHasBumps = false;
 
 public:
-    BlinnPhongMaterial(bool isAnimated = false);
+    BlinnPhongMaterial(bool hasBumps = false, bool isAnimated = false);
 
-	/** The texture used for diffuse color */
+	/**
+	 * Sets the texture used for diffuse color.
+	 * @param texture the texture used for diffuse color
+	 */
     void setDiffuseMap(const Texture& texture);
-	/** The texture used for specular color */
+	
+	/**
+	 * Sets the texture used for specular color.
+	 * @param texture the texture used for specular color
+	 */
     void setSpecularMap(const Texture& texture);
+	
+	/**
+	 * Sets the texture used for bump mapping (aka normal mapping).
+	 * In order to use a bump map, this material must be created using
+	 * hasBumps = true (@see BlinnPhongMaterial::BlinnPhongMaterial()).
+	 * Moreover, the corresponding mesh must be created with information
+	 * about tangent space.
+	 */
+	void setBumpMap(const Texture& texture);
 
 	/** The diffuse color, if a diffuse map is set it is multiplied by this color */
     glm::vec3 diffuseColor{1.0f, 1.0f, 1.0f};
@@ -63,6 +83,7 @@ private:
 
     Texture mDiffuseMap;
     Texture mSpecularMap;
+	Texture mBumpMap;
 
     bool mSpecularColorSet = false;
     glm::vec3 mSpecularColor{1.0f, 1.0f, 1.0f};
@@ -76,7 +97,7 @@ private:
 
 public:
     BlinnPhongMaterialPtr build() {
-        auto material = std::make_shared<BlinnPhongMaterial>(mAnimated);
+        auto material = std::make_shared<BlinnPhongMaterial>(mBumpMap.isValid() , mAnimated);
 
         if (mDiffuseMapPath != "")
             material->setDiffuseMap(Texture::loadFromFile(mDiffuseMapPath));
@@ -94,6 +115,9 @@ public:
             material->setSpecularMap(mSpecularMap);
             mSpecularColor = glm::vec3{1.0f, 1.0f, 1.0f};
         }
+
+		if (mBumpMap) 
+			material->setBumpMap(mBumpMap);
 
         material->diffuseColor = mDiffuseColor;
         material->specularColor = mSpecularColor;
@@ -121,6 +145,11 @@ public:
         mSpecularMap = texture;
         return *this;
     }
+
+	BlinnPhongMaterialBuilder& setBumpMap(const Texture& texture) {
+		mBumpMap = texture;
+		return *this;
+	}
 
     BlinnPhongMaterialBuilder& setShininess(float s) {
         mShininess = s;

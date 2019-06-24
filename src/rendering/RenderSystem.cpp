@@ -231,7 +231,8 @@ glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
 #include <SDL.h>
 void RenderSystem::prepareRendering()
 {
-	renderShadows();
+	if (shadowMappingSettings.getShadowStrength() != 0.0f)
+		renderShadows();
 
 	glViewport(0, 0, getScreenWidth(), getScreenHeight());
 

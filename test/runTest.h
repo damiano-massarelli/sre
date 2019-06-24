@@ -11,4 +11,5 @@
 //#define multipleTextures 
 //#define fxaa 
 //#define shadowMapping
-#define skeletralAnimation 
+//#define skeletralAnimation
+#define bumpMapping 

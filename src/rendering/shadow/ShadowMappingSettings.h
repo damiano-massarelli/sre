@@ -21,6 +21,9 @@ private:
 
 	float mFadeRange = 30.0f;
 
+	/* How strong shadows are */
+	float mShadowStrength = 0.7f;
+
 	void updateUbo();
 
 public:
@@ -69,6 +72,16 @@ public:
 	 * when depth - range < distance < depth shadows fade out
 	 */
 	void setShadowFadeRange(float range);
+
+	/**
+	 * How strong shadows are.
+	 * A value of 0 means shadows are disabled.
+	 * A value of 1 means only ambient light is not affected by shadows.
+	 * @strength a value in [0, 1]
+	 */
+	void setShadowStrength(float stregth);
+
+	float getShadowStrength() const;
 
 	~ShadowMappingSettings();
 };

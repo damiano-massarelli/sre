@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <string>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/matrix_access.hpp>
 
 std::map<std::string, Mesh> GameObjectLoader::mMeshCache;
 
@@ -92,6 +93,7 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
     std::vector<float> positions;
     std::vector<float> normals;
     std::vector<float> texCoords;
+	std::vector<float> tangents;
 	std::vector<std::int32_t> influencingBones;
 	std::vector<float> boneWeights;
 
@@ -122,7 +124,7 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
         }
 
         // if texture coordinates are not available just put (0, 0)
-        if (mesh->mTextureCoords[0]) {
+        if (mesh->HasTextureCoords(0)) {
             texCoords.insert(texCoords.end(), {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y});
             v.texCoord = glm::vec2{mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
         } else {
@@ -131,21 +133,38 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
             v.texCoord = glm::vec2{0.0f, 0.0f};
         }
 
+		if (mesh->HasTangentsAndBitangents()) {
+			aiVector3D& tangent = mesh->mTangents[i];
+			//tangents.insert(tangents.end(), { tangent.x, tangent.y, tangent.z });
+			// TODO compute direction of bitangent as an int (+1 or -1) to pass to shader
+		}
+		else if (scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_HEIGHT) != 0) {
+			std::cerr << "Mesh " << mesh->mName.C_Str() << " at node " << node->mName.C_Str() << " has bump map but no tangent data\n";
+			tangents.insert(tangents.end(), { 0.0f, 0.0f, 0.0f });
+		}
+
         vertices.push_back(v);
     }
 
     // Load indices
     for (std::uint32_t i = 0; i < mesh->mNumFaces; ++i) {
-        aiFace face = mesh->mFaces[i];
+        aiFace& face = mesh->mFaces[i];
 		for (std::uint32_t j = 0; j < face.mNumIndices; j++) {
 			indices.push_back(face.mIndices[j]);
 		}
     }
 
+	std::vector<int32_t> bitangentSign;
+	computeTangentsAndBitangentSign(mesh, tangents, bitangentSign);
+
     MeshLoader loader;
     loader.loadData(positions.data(), positions.size(), 3);
     loader.loadData(normals.data(), normals.size(), 3);
     loader.loadData(texCoords.data(), texCoords.size(), 2);
+
+	if (mesh->HasTangentsAndBitangents())
+		loader.loadData(tangents.data(), tangents.size(), 3);
+
 	if (mesh->mNumBones != 0) { // add bone data only if this mesh needs it
 		loader.loadData(influencingBones.data(), influencingBones.size(), 4, GL_ARRAY_BUFFER, GL_INT);
 		loader.loadData(boneWeights.data(), boneWeights.size(), 4);
@@ -182,6 +201,12 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 
     phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE, cacheName));
     phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR, cacheName));
+	
+	// add bump map only if available
+	if (material->GetTextureCount(aiTextureType_HEIGHT) != 0)
+		phongBuilder.setBumpMap(loadTexture(material, scene, aiTextureType_HEIGHT, cacheName));
+
+	// is this model animated?
 	phongBuilder.setAnimated(mesh->mNumBones != 0);
 
     BlinnPhongMaterialPtr loadedMaterial = phongBuilder.build();
@@ -315,6 +340,57 @@ bool GameObjectLoader::isBone(const aiNode* node)
 	return mBoneName2Index.find(node->mName.C_Str()) != mBoneName2Index.end();
 }
 
+#include <glm/gtx/string_cast.hpp>
+void GameObjectLoader::computeTangentsAndBitangentSign(const aiMesh* mesh, std::vector<float>& tangents, std::vector<std::int32_t> bitangentSign) const
+{
+	tangents.resize(mesh->mNumVertices * 3, 0.0f);
+	bitangentSign.resize(mesh->mNumVertices, 0.0f);
+
+	std::cout << "numVertices " << mesh->mNumVertices << "\n";
+
+	std::vector<glm::vec3> tangentSum;
+	tangentSum.resize(mesh->mNumVertices, glm::vec3{ 0.0f });
+
+	for (std::uint32_t i = 0; i < mesh->mNumFaces; ++i) {
+		aiFace& face = mesh->mFaces[i];
+		aiVector3D q = mesh->mVertices[face.mIndices[1]] - mesh->mVertices[face.mIndices[0]];
+		aiVector3D p = mesh->mVertices[face.mIndices[2]] - mesh->mVertices[face.mIndices[0]];
+		aiVector3D uv1 = mesh->mTextureCoords[0][face.mIndices[1]] - mesh->mTextureCoords[0][face.mIndices[0]];
+		aiVector3D uv2 = mesh->mTextureCoords[0][face.mIndices[2]] - mesh->mTextureCoords[0][face.mIndices[0]];
+
+		std::cout << "q " << q.x << " " << q.y << " " << q.z << "\n";
+		std::cout << "\t" << uv1.x << " " << uv1.y << "\n";
+		std::cout << "p " << p.x << " " << p.y << " " << p.z << "\n";
+		std::cout << "\t" << uv2.x << " " << uv2.y << "\n";
+
+		glm::mat3x2 pq;
+		pq[0] = glm::vec2{ p.x, q.x };
+		pq[1] = glm::vec2{ p.y, q.y };
+		pq[2] = glm::vec2{ p.z, q.z };
+
+		glm::mat2x2 uv;
+		uv[0] = glm::vec2{ uv1.x, uv2.x };
+		uv[1] = glm::vec2{ uv1.y, uv2.y };
+
+		glm::mat3x2 tangentBitangent = glm::inverse(uv) * pq;
+
+		//std::cout << glm::to_string(tangentBitangent) << "\n";
+
+		glm::vec3 tangent = glm::row(tangentBitangent, 0);
+
+		for (std::uint32_t j = 0; j < face.mNumIndices; j++)
+			tangentSum[j] += tangent;
+	}
+
+	for (std::uint32_t j = 0; j < tangentSum.size(); j++)
+		tangentSum[j] = glm::normalize(tangentSum[j]);
+
+	std::for_each(tangentSum.begin(), tangentSum.end(), [&tangents](auto& t) {
+		std::cout << glm::to_string(t) << "\n";
+		tangents.insert(tangents.end(), { t.x, t.y, t.z });
+	});
+
+}
 
 std::vector<std::uint32_t>& GameObjectLoader::getInfluencingBones(std::uint32_t vertexIndex, aiMesh* mesh)
 {
@@ -338,9 +414,9 @@ GameObjectEH GameObjectLoader::fromFile(const std::string& path)
 	mFilePath = path;
 	mWorkingDir = (std::filesystem::path{ path }).remove_filename();
 
-    Assimp::Importer importer;
+	Assimp::Importer importer;
 	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
-    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cerr << "Error loading mesh " << importer.GetErrorString() << "\n";
         return GameObjectEH{};
