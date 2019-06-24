@@ -73,6 +73,8 @@ class GameObjectLoader
 		 */
 		bool isBone(const aiNode* node);
 
+		void computeTangentsAndBitangentSign(const aiMesh* mesh, std::vector<float>& tangents, std::vector<std::int32_t> bitangentSign) const;
+
 		std::vector<std::uint32_t>& getInfluencingBones(std::uint32_t vertexIndex, aiMesh* mesh);
 
 		std::vector<float>& getInfluencingBonesWeights(std::uint32_t vertexIndex, aiMesh* mesh);

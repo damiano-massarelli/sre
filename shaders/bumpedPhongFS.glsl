@@ -7,6 +7,8 @@ struct PhongMaterial {
     sampler2D specular;
     vec3 specularColor;
 
+    sampler2D bump;
+
     float shininess;
 
     float opacity;
@@ -14,8 +16,13 @@ struct PhongMaterial {
 
 in vec2 texCoord;
 in vec3 position;
-in vec3 normal;
 in vec4 lightSpacePosition;
+
+// debuggg
+in vec3 tgn;
+
+// bump mapping specific ins
+in mat3 tangentToWorldSpace;
 
 out vec4 FragColor;
 
@@ -32,6 +39,10 @@ layout (std140) uniform Camera {
 };
 
 void main() {
+    // get normal from bump map
+    vec3 normal = (texture(material.bump, texCoord).rgb) * 2.0 - 1.0;
+    normal = normalize(tangentToWorldSpace * normal);
+
 	vec3 shadowSampleCoord = lightSpacePosition.xyz / lightSpacePosition.w;
 	shadowSampleCoord = (shadowSampleCoord + vec3(1.0)) / 2.0;
 
@@ -54,11 +65,12 @@ void main() {
 	//specularColor = pow(specularColor, vec3(2.2));
     vec3 color = vec3(0.0f);
     for (int i = 0; i < numLights; i++) {
-        color += phongComputeColor(lights[i], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition, lightSpacePosition, i == 0);
+        color += phongComputeColor(lights[0], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition, lightSpacePosition, i == 0);
     }
 
 	// apply fog
 	color = fogger(color, distance(cameraPosition, position));
 
     FragColor = vec4(color, material.opacity);
+	FragColor = vec4(tgn, 1.0f);
 }

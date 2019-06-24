@@ -1,21 +1,36 @@
 #include "BlinnPhongMaterial.h"
 #include "Engine.h"
+#include <iostream>
 #include <vector>
 
-std::vector<std::string> getVertexShaders(bool isAnimated) {
+std::vector<std::string> getVertexShaders(bool hasBumps, bool isAnimated) {
 	std::vector<std::string> shaders;
+	// animated and with bumps
 	if (isAnimated)
 		shaders.push_back("shaders/animatedPhongVS.glsl");
+	else if (hasBumps)
+		shaders.push_back("shaders/bumpedPhongVS.glsl");
 	else
 		shaders.push_back("shaders/phongVS.glsl");
 	return shaders;
 }
 
-BlinnPhongMaterial::BlinnPhongMaterial(bool isAnimated) 
-	: Material{getVertexShaders(isAnimated),
+std::vector<std::string> getFragmentShaders(bool hasBumps) {
+	if (hasBumps) {
+		return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
+			     "shaders/PhongLightCalculation.glsl", "shaders/bumpedPhongFS.glsl" };
+	}
+	else {
+		return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
+				 "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl" };
+	}
+}
+
+BlinnPhongMaterial::BlinnPhongMaterial(bool hasBumps, bool isAnimated)
+	: Material{getVertexShaders(hasBumps, isAnimated),
 			   {},
-               {"shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-			    "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl"}}
+               getFragmentShaders(hasBumps)},
+	 mHasBumps{hasBumps}
 {
 	shader.use();
 
@@ -33,6 +48,7 @@ BlinnPhongMaterial::BlinnPhongMaterial(bool isAnimated)
 	mOpacityLocation			= shader.getLocationOf("material.opacity");
 	mUseDiffuseMapLocation		= shader.getLocationOf("material.useDiffuseMap");
 	mUseSpecularMapLocation		= shader.getLocationOf("material.useSpecularMap");
+	mBumpMapLocation			= shader.getLocationOf("material.bump");
 	mBonesLocation				= shader.getLocationOf("bones", isAnimated); // only used when animations are available
 }
 
@@ -52,6 +68,17 @@ void BlinnPhongMaterial::setSpecularMap(const Texture& texture)
     specularMap.nameInShader = "material.specular";
     shader.use();
     shader.setInt(specularMap.nameInShader, 1);
+}
+
+void BlinnPhongMaterial::setBumpMap(const Texture& texture)
+{
+	if (!mHasBumps) {
+		std::cerr << "setting bump map on a non-bumped material, discarded.\n";
+		return;
+	}
+	bumpMap = texture;
+	shader.use();
+	shader.setInt("material.bump", 2);
 }
 
 void BlinnPhongMaterial::use()
@@ -76,11 +103,18 @@ void BlinnPhongMaterial::use()
         shader.setInt(mUseDiffuseMapLocation, 0);
 
     if (specularMap) {
-        shader.setInt(mUseSpecularMapLocation, 1);
+        shader.setInt(mUseSpecularMapLocation, 2);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap.getId());
     } else
         shader.setInt(mUseSpecularMapLocation, 0);
+
+	if (mHasBumps && bumpMap) {
+		shader.setInt(mBumpMapLocation, 2);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, bumpMap.getId());
+	} else
+		shader.setInt(mBumpMapLocation, 0);
 
     // disable backface culling
     if (isTwoSided) {
