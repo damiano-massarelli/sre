@@ -3,34 +3,31 @@
 #include <iostream>
 #include <vector>
 
-std::vector<std::string> getVertexShaders(bool hasBumps, bool isAnimated) {
+std::vector<std::string> getVertexShaders(bool hasBumps, bool isAnimated, bool hasParallax) {
 	std::vector<std::string> shaders;
 	// animated and with bumps
-	if (isAnimated)
-		shaders.push_back("shaders/animatedPhongVS.glsl");
-	else if (hasBumps)
-		shaders.push_back("shaders/bumpedPhongVS.glsl");
-	else
-		shaders.push_back("shaders/phongVS.glsl");
+	if (isAnimated)							shaders.push_back("shaders/animatedPhongVS.glsl");
+	else if (hasParallax)					shaders.push_back("shaders/parallaxPhongVS.glsl");
+	else if (hasBumps)						shaders.push_back("shaders/bumpedPhongVS.glsl");
+	else									shaders.push_back("shaders/phongVS.glsl");
 	return shaders;
 }
 
-std::vector<std::string> getFragmentShaders(bool hasBumps) {
-	if (hasBumps) {
-		return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-			     "shaders/PhongLightCalculation.glsl", "shaders/bumpedPhongFS.glsl" };
-	}
-	else {
-		return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-				 "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl" };
-	}
+std::vector<std::string> getFragmentShaders(bool hasBumps, bool hasParallax) {
+	if (hasParallax) return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
+							  "shaders/PhongLightCalculation.glsl", "shaders/parallaxPhongFS.glsl" };
+	if (hasBumps) return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
+						   "shaders/PhongLightCalculation.glsl", "shaders/bumpedPhongFS.glsl" };
+
+	else return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
+				  "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl" };
 }
 
-BlinnPhongMaterial::BlinnPhongMaterial(bool hasBumps, bool isAnimated)
-	: Material{getVertexShaders(hasBumps, isAnimated),
+BlinnPhongMaterial::BlinnPhongMaterial(bool hasBumps, bool isAnimated, bool hasParallax)
+	: Material{getVertexShaders(hasBumps, isAnimated, hasParallax),
 			   {},
-               getFragmentShaders(hasBumps)},
-	 mHasBumps{hasBumps}
+               getFragmentShaders(hasBumps, hasParallax)},
+	 mHasBumps{hasBumps}, mHasParallax{hasParallax}
 {
 	shader.use();
 
@@ -48,7 +45,8 @@ BlinnPhongMaterial::BlinnPhongMaterial(bool hasBumps, bool isAnimated)
 	mOpacityLocation			= shader.getLocationOf("material.opacity");
 	mUseDiffuseMapLocation		= shader.getLocationOf("material.useDiffuseMap");
 	mUseSpecularMapLocation		= shader.getLocationOf("material.useSpecularMap");
-	mBumpMapLocation			= shader.getLocationOf("material.bump");
+	mBumpMapLocation			= shader.getLocationOf("material.bump", hasBumps); // only used when has bumps is true
+	mParallaxMapLocation		= shader.getLocationOf("material.parallax", hasParallax); // only used when has parallax is true
 	mBonesLocation				= shader.getLocationOf("bones", isAnimated); // only used when animations are available
 }
 
@@ -78,7 +76,18 @@ void BlinnPhongMaterial::setBumpMap(const Texture& texture)
 	}
 	bumpMap = texture;
 	shader.use();
-	shader.setInt("material.bump", 2);
+	shader.setInt(mBumpMapLocation, 2);
+}
+
+void BlinnPhongMaterial::setParallaxMap(const Texture& texture)
+{
+	if (!mHasParallax) {
+		std::cerr << "setting parallax map on a material that does not support it, discarded. \n";
+		return;
+	}
+	parallaxMap = texture;
+	shader.use();
+	shader.setInt(mParallaxMapLocation, 3);
 }
 
 void BlinnPhongMaterial::use()
@@ -113,8 +122,13 @@ void BlinnPhongMaterial::use()
 		shader.setInt(mBumpMapLocation, 2);
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, bumpMap.getId());
-	} else
-		shader.setInt(mBumpMapLocation, 0);
+	}
+
+	if (mHasParallax && parallaxMap) {
+		shader.setInt(mParallaxMapLocation, 3);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, parallaxMap.getId());
+	}
 
     // disable backface culling
     if (isTwoSided) {
@@ -157,6 +171,3 @@ BlinnPhongMaterial::~BlinnPhongMaterial()
 {
 
 }
-
-
-
