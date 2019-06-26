@@ -7,7 +7,8 @@
 #include "Light.h"
 #include "MeshCreator.h"
 #include "GameObjectLoader.h"
-
+#include "FXAA.h"
+#include <memory>
 #include <runTest.h>
 
 #include <iostream>
@@ -32,7 +33,7 @@ struct MoveComponent : public Component, public EventListener {
     }
 
 };
-#ifdef bumpMapping
+#ifdef parallaxMapping
 int main(int argc, char* argv[]) {
     Engine::init();
 
@@ -48,22 +49,31 @@ int main(int argc, char* argv[]) {
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
-    auto bumped = GameObjectLoader().fromFile("test_data/bump_mapping/bumped.fbx");
-    bumped->addComponent(std::make_shared<MoveComponent>(bumped));
-	bumped->transform.setPosition(glm::vec3{ 6, 0, -12 });
-	bumped->transform.scaleBy(glm::vec3{ 0.3f });
+	Engine::renderSys.effectManager.enableEffects();
+	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 
-	auto notBumped = GameObjectLoader().fromFile("test_data/bump_mapping/not_bumped.fbx");
-	notBumped->addComponent(std::make_shared<MoveComponent>(notBumped));
-	notBumped->transform.setPosition(glm::vec3{ -6, 0, -12 });
-	notBumped->transform.scaleBy(glm::vec3{ 0.3f });
+    auto withParallax = GameObjectLoader().fromFile("test_data/parallax_mapping/parallax.fbx");
+	auto material = std::dynamic_pointer_cast<BlinnPhongMaterial>(withParallax->transform.getChildren()[0]->getMaterials()[0]);
+	if (material)
+		material->shininess = 72.0f;
+    withParallax->addComponent(std::make_shared<MoveComponent>(withParallax));
+	withParallax->transform.setPosition(glm::vec3{ 6, 0, -12 });
+	withParallax->transform.scaleBy(glm::vec3{ 0.3f });
+
+	auto noParallax = GameObjectLoader().fromFile("test_data/parallax_mapping/no_parallax.fbx");
+	material = std::dynamic_pointer_cast<BlinnPhongMaterial>(noParallax->transform.getChildren()[0]->getMaterials()[0]);
+	if (material)
+		material->shininess = 72.0f;
+	noParallax->addComponent(std::make_shared<MoveComponent>(noParallax));
+	noParallax->transform.setPosition(glm::vec3{ -6, 0, -12 });
+	noParallax->transform.scaleBy(glm::vec3{ 0.3f });
 
     auto light3 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light3->name = "light3";
     light3->addComponent(std::make_shared<Light>(light3, Light::Type::POINT));
     light3->transform.setPosition(glm::vec3{0.0f, 0.0f, 5.0f});
     Engine::renderSys.addLight(light3);
-	light3->getComponent<Light>()->attenuationLinear = 0.1f;
+	light3->getComponent<Light>()->attenuationLinear = 0.01f;
 	light3->getComponent<Light>()->attenuationQuadratic = 0;
     light3->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light3->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};

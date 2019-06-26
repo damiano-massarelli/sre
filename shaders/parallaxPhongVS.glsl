@@ -10,13 +10,19 @@ layout (std140) uniform CommonMat {
 	mat4 shadowLightSpace;
 };
 
+layout (std140) uniform Camera {
+    vec3 cameraPosition;
+    vec3 cameraDirection;
+};
+
 out vec2 texCoord;
 out vec3 position;
 out vec4 lightSpacePosition;
 
 // bump mapping specific outs
 out mat3 tangentToWorldSpace;
- 
+out vec3 tangentSpaceRayToCamera;
+
 void main() {
     texCoord = vTexCoord;
 
@@ -31,6 +37,7 @@ void main() {
     vec3 bitangent = cross(normal, tangent);
 
     tangentToWorldSpace = mat3(tangent, bitangent, normal);
+    tangentSpaceRayToCamera = transpose(tangentToWorldSpace) * normalize(cameraPosition - position);
 
 	lightSpacePosition = shadowLightSpace * vec4(position, 1.0f);
 

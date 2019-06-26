@@ -18,9 +18,6 @@ in vec2 texCoord;
 in vec3 position;
 in vec4 lightSpacePosition;
 
-// debuggg
-in vec3 tgn;
-
 // bump mapping specific ins
 in mat3 tangentToWorldSpace;
 
@@ -72,5 +69,4 @@ void main() {
 	color = fogger(color, distance(cameraPosition, position));
 
     FragColor = vec4(color, material.opacity);
-	FragColor = vec4(tgn, 1.0f);
 }

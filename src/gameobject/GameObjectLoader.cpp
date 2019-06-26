@@ -90,6 +90,18 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 		return;
 	}
 
+	// warning messages
+	if (!mesh->HasNormals())
+		std::cout << "Mesh: " << mesh->mName.C_Str() << " node: " << node->mName.C_Str() << ": cannot find normals, setting them to (0, 0, 0)\n";
+
+	if (!mesh->HasTextureCoords(0))
+		std::cout << "Mesh: " << mesh->mName.C_Str() << " node: " << node->mName.C_Str() << ": cannot find uv coords, setting them to (0, 0)\n";
+
+	bool needsTangents = ((scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_HEIGHT) != 0
+		|| scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_DISPLACEMENT)) && !mesh->HasTangentsAndBitangents());
+	if (needsTangents)
+		std::cout << "Mesh: " << mesh->mName.C_Str() << " node: " << node->mName.C_Str() << ": has bump map/parallax map but no tangent data, will be calculated\n";
+
     std::vector<float> positions;
     std::vector<float> normals;
     std::vector<float> texCoords;
@@ -118,7 +130,6 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
             normals.insert(normals.end(), {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z});
             v.normal = glm::vec3{mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
         } else {
-            std::cout << "cannot find normals, setting them to (0, 0, 0)\n";
             normals.insert(normals.end(), {0.0f, 0.0f, 0.0f});
             v.normal = glm::vec3{0.0f, 0.0f, 0.0f};
         }
@@ -128,19 +139,14 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
             texCoords.insert(texCoords.end(), {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y});
             v.texCoord = glm::vec2{mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
         } else {
-            std::cout << "cannot find uv coords, setting them to (0, 0)\n";
             texCoords.insert(texCoords.end(), {0.0f, 0.0f});
             v.texCoord = glm::vec2{0.0f, 0.0f};
         }
 
 		if (mesh->HasTangentsAndBitangents()) {
 			aiVector3D& tangent = mesh->mTangents[i];
-			//tangents.insert(tangents.end(), { tangent.x, tangent.y, tangent.z });
+			tangents.insert(tangents.end(), { tangent.x, tangent.y, tangent.z });
 			// TODO compute direction of bitangent as an int (+1 or -1) to pass to shader
-		}
-		else if (scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_HEIGHT) != 0) {
-			std::cerr << "Mesh " << mesh->mName.C_Str() << " at node " << node->mName.C_Str() << " has bump map but no tangent data\n";
-			tangents.insert(tangents.end(), { 0.0f, 0.0f, 0.0f });
 		}
 
         vertices.push_back(v);
@@ -155,14 +161,15 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
     }
 
 	std::vector<int32_t> bitangentSign;
-	computeTangentsAndBitangentSign(mesh, tangents, bitangentSign);
+	if (needsTangents)
+		computeTangentsAndBitangentSign(mesh, tangents, bitangentSign);
 
     MeshLoader loader;
     loader.loadData(positions.data(), positions.size(), 3);
     loader.loadData(normals.data(), normals.size(), 3);
     loader.loadData(texCoords.data(), texCoords.size(), 2);
 
-	if (mesh->HasTangentsAndBitangents())
+	if (tangents.size() != 0)
 		loader.loadData(tangents.data(), tangents.size(), 3);
 
 	if (mesh->mNumBones != 0) { // add bone data only if this mesh needs it
@@ -205,6 +212,9 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 	// add bump map only if available
 	if (material->GetTextureCount(aiTextureType_HEIGHT) != 0)
 		phongBuilder.setBumpMap(loadTexture(material, scene, aiTextureType_HEIGHT, cacheName));
+
+	if (material->GetTextureCount(aiTextureType_DISPLACEMENT) != 0)
+		phongBuilder.setParallaxMap(loadTexture(material, scene, aiTextureType_DISPLACEMENT, cacheName));
 
 	// is this model animated?
 	phongBuilder.setAnimated(mesh->mNumBones != 0);
@@ -340,13 +350,14 @@ bool GameObjectLoader::isBone(const aiNode* node)
 	return mBoneName2Index.find(node->mName.C_Str()) != mBoneName2Index.end();
 }
 
-#include <glm/gtx/string_cast.hpp>
 void GameObjectLoader::computeTangentsAndBitangentSign(const aiMesh* mesh, std::vector<float>& tangents, std::vector<std::int32_t> bitangentSign) const
 {
-	tangents.resize(mesh->mNumVertices * 3, 0.0f);
-	bitangentSign.resize(mesh->mNumVertices, 0.0f);
-
-	std::cout << "numVertices " << mesh->mNumVertices << "\n";
+	if (!mesh->HasTextureCoords(0)) {
+		tangents.resize(3 * mesh->mNumVertices, 0.0f);
+		bitangentSign.resize(mesh->mNumVertices, 0);
+		std::cerr << "cannot calculate tangent space: texture coordinates are missing\n";
+		return;
+	}
 
 	std::vector<glm::vec3> tangentSum;
 	tangentSum.resize(mesh->mNumVertices, glm::vec3{ 0.0f });
@@ -358,38 +369,29 @@ void GameObjectLoader::computeTangentsAndBitangentSign(const aiMesh* mesh, std::
 		aiVector3D uv1 = mesh->mTextureCoords[0][face.mIndices[1]] - mesh->mTextureCoords[0][face.mIndices[0]];
 		aiVector3D uv2 = mesh->mTextureCoords[0][face.mIndices[2]] - mesh->mTextureCoords[0][face.mIndices[0]];
 
-		std::cout << "q " << q.x << " " << q.y << " " << q.z << "\n";
-		std::cout << "\t" << uv1.x << " " << uv1.y << "\n";
-		std::cout << "p " << p.x << " " << p.y << " " << p.z << "\n";
-		std::cout << "\t" << uv2.x << " " << uv2.y << "\n";
-
 		glm::mat3x2 pq;
-		pq[0] = glm::vec2{ p.x, q.x };
-		pq[1] = glm::vec2{ p.y, q.y };
-		pq[2] = glm::vec2{ p.z, q.z };
+		pq[0] = glm::vec2{ q.x, p.x };
+		pq[1] = glm::vec2{ q.y, p.y };
+		pq[2] = glm::vec2{ q.z, p.z };
 
 		glm::mat2x2 uv;
 		uv[0] = glm::vec2{ uv1.x, uv2.x };
 		uv[1] = glm::vec2{ uv1.y, uv2.y };
 
-		glm::mat3x2 tangentBitangent = glm::inverse(uv) * pq;
-
-		//std::cout << glm::to_string(tangentBitangent) << "\n";
+		glm::mat3x2 tangentBitangent = glm::inverse(uv) * pq; // TODO: improve, do not use inverse
 
 		glm::vec3 tangent = glm::row(tangentBitangent, 0);
 
 		for (std::uint32_t j = 0; j < face.mNumIndices; j++)
-			tangentSum[j] += tangent;
+			tangentSum[face.mIndices[j]] += tangent;
 	}
 
 	for (std::uint32_t j = 0; j < tangentSum.size(); j++)
 		tangentSum[j] = glm::normalize(tangentSum[j]);
 
 	std::for_each(tangentSum.begin(), tangentSum.end(), [&tangents](auto& t) {
-		std::cout << glm::to_string(t) << "\n";
 		tangents.insert(tangents.end(), { t.x, t.y, t.z });
-	});
-
+	}); 
 }
 
 std::vector<std::uint32_t>& GameObjectLoader::getInfluencingBones(std::uint32_t vertexIndex, aiMesh* mesh)

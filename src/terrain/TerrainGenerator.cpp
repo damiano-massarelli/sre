@@ -62,6 +62,11 @@ Mesh TerrainGenerator::createTerrain(const TerrainHeightProvider& heightProvider
     return loader.getMesh(0, indices.size());
 }
 
+void TerrainGenerator::includeTangentSpace(bool include)
+{
+	mIncludeTangentSpace = include;
+}
+
 void TerrainGenerator::addGeoMipMapComponent(const GameObjectEH & go)
 {
 	auto component = std::make_shared<GeoMipMappingComponent>(go, (float)mWidth, (float)mDepth, mHVertex, mVVertex);

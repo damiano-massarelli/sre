@@ -16,16 +16,19 @@ private:
 	std::int32_t mUseDiffuseMapLocation = -1;
 	std::int32_t mUseSpecularMapLocation = -1;
 	std::int32_t mBumpMapLocation = -1;
+	std::int32_t mParallaxMapLocation = -1;
 	std::int32_t mBonesLocation = -1;
 
     Texture diffuseMap;
     Texture specularMap;
 	Texture bumpMap;
+	Texture parallaxMap;
 
 	bool mHasBumps = false;
+	bool mHasParallax = false;
 
 public:
-    BlinnPhongMaterial(bool hasBumps = false, bool isAnimated = false);
+    BlinnPhongMaterial(bool hasBumps = false, bool isAnimated = false, bool hasParallax = false);
 
 	/**
 	 * Sets the texture used for diffuse color.
@@ -45,8 +48,20 @@ public:
 	 * hasBumps = true (@see BlinnPhongMaterial::BlinnPhongMaterial()).
 	 * Moreover, the corresponding mesh must be created with information
 	 * about tangent space.
+	 * @param texture the bump map
 	 */
 	void setBumpMap(const Texture& texture);
+
+	/**
+	 * Sets the texture used for parallax mapping.
+	 * In order to use a parallax map this material must be
+	 * created using hasParallax = true (@see BlinnPhongMaterial::BlinnPhongMaterial(), 
+	 * @see BlinnPhongMaterialBuilder::setParallaxMap()).
+	 * Moreover, the corresponding mesh must be created with information
+	 * about tangent space.
+	 * @param texture the height map
+	 */
+	void setParallaxMap(const Texture& texture);
 
 	/** The diffuse color, if a diffuse map is set it is multiplied by this color */
     glm::vec3 diffuseColor{1.0f, 1.0f, 1.0f};
@@ -84,6 +99,7 @@ private:
     Texture mDiffuseMap;
     Texture mSpecularMap;
 	Texture mBumpMap;
+	Texture mParallaxMap;
 
     bool mSpecularColorSet = false;
     glm::vec3 mSpecularColor{1.0f, 1.0f, 1.0f};
@@ -97,7 +113,7 @@ private:
 
 public:
     BlinnPhongMaterialPtr build() {
-        auto material = std::make_shared<BlinnPhongMaterial>(mBumpMap.isValid() , mAnimated);
+        auto material = std::make_shared<BlinnPhongMaterial>(mBumpMap.isValid() , mAnimated, mParallaxMap.isValid());
 
         if (mDiffuseMapPath != "")
             material->setDiffuseMap(Texture::loadFromFile(mDiffuseMapPath));
@@ -148,6 +164,11 @@ public:
 
 	BlinnPhongMaterialBuilder& setBumpMap(const Texture& texture) {
 		mBumpMap = texture;
+		return *this;
+	}
+
+	BlinnPhongMaterialBuilder& setParallaxMap(const Texture& texture) {
+		mParallaxMap = texture;
 		return *this;
 	}
 

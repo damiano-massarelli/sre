@@ -12,4 +12,5 @@
 //#define fxaa 
 //#define shadowMapping
 //#define skeletralAnimation
-#define bumpMapping 
+//#define bumpMapping 
+#define parallaxMapping 
