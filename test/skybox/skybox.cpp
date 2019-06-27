@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
 
-    MaterialPtr phong = PhongMaterialBuilder()
+    MaterialPtr phong = BlinnPhongMaterialBuilder()
     .setDiffuseMap("test_data/transform_local/container.png")
     .setSpecularMap("test_data/transform_local/container_specular.png")
     .build();

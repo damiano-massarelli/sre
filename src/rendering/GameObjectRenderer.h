@@ -13,8 +13,8 @@ private:
 	 * This is useful when rendering for shadows and so on */
 	MaterialPtr mForcedMaterial = nullptr;
 
-    /** Actually renders a Mesh with its Material */
-    void draw(Mesh mesh, MaterialPtr material);
+    /** Actually renders a Mesh its corresponding material should be in use */
+    void draw(Mesh mesh);
 
     GameObjectRenderer() = default;
 

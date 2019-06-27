@@ -32,13 +32,6 @@ layout (std140) uniform Camera {
 };
 
 void main() {
-	vec3 shadowSampleCoord = lightSpacePosition.xyz / lightSpacePosition.w;
-	shadowSampleCoord = (shadowSampleCoord + vec3(1.0)) / 2.0;
-
-	// TODO check the value of w to see if
-	// perspective projection is being used. If that's the case linearize depth.
-	float depthInShadowMap = texture(shadowMap, shadowSampleCoord.xy).r;
-
 	vec4 sampledDiffuseColor = texture(material.diffuse, texCoord);
 	if (material.opacity == 0.0f || sampledDiffuseColor.a < 0.01) discard;
 
