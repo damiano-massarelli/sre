@@ -40,13 +40,6 @@ void main() {
     vec3 normal = (texture(material.bump, texCoord).rgb) * 2.0 - 1.0;
     normal = normalize(tangentToWorldSpace * normal);
 
-	vec3 shadowSampleCoord = lightSpacePosition.xyz / lightSpacePosition.w;
-	shadowSampleCoord = (shadowSampleCoord + vec3(1.0)) / 2.0;
-
-	// TODO check the value of w to see if
-	// perspective projection is being used. If that's the case linearize depth.
-	float depthInShadowMap = texture(shadowMap, shadowSampleCoord.xy).r;
-
 	vec4 sampledDiffuseColor = texture(material.diffuse, texCoord);
 	if (material.opacity == 0.0f || sampledDiffuseColor.a < 0.01) discard;
 
@@ -62,7 +55,7 @@ void main() {
 	//specularColor = pow(specularColor, vec3(2.2));
     vec3 color = vec3(0.0f);
     for (int i = 0; i < numLights; i++) {
-        color += phongComputeColor(lights[0], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition, lightSpacePosition, i == 0);
+        color += phongComputeColor(lights[i], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition, lightSpacePosition, i == 0);
     }
 
 	// apply fog

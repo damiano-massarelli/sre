@@ -5,7 +5,7 @@ MultiTextureLambertMaterial::MultiTextureLambertMaterial(Texture base, Texture r
 	: Material{ {"shaders/phongVS.glsl"},
 				{},
 				{"shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl", 
-				 "shaders/PhongLightCalculation.glsl", "shaders/multiTexturePhongFS.glsl"} },
+				 "shaders/PhongLightCalculation.glsl", "shaders/multiTextureLambertFS.glsl"} },
 	baseTexture {base}, redTexture{ red }, greenTexture{ green }, blueTexture{ blue }, blendTexture{ blend }
 {
 	shader.use();

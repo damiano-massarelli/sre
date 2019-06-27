@@ -105,7 +105,7 @@ void main() {
 	//specularColor = pow(specularColor, vec3(2.2));
     vec3 color = vec3(0.0f);
     for (int i = 0; i < numLights; i++) {
-        color += phongComputeColor(lights[0], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition, lightSpacePosition, i == 0);
+        color += phongComputeColor(lights[i], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition, lightSpacePosition, i == 0);
     }
 
 	// apply fog

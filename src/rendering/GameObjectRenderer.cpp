@@ -3,11 +3,11 @@
 #include "Material.h"
 #include "Engine.h"
 #include <map>
+#include <tuple>
 #include <glad/glad.h>
 
-void GameObjectRenderer::draw(Mesh mesh, MaterialPtr material)
+void GameObjectRenderer::draw(Mesh mesh)
 {
-    material->use();
     glBindVertexArray(mesh.mVao);
 
     if (mesh.mUsesIndices)
@@ -16,13 +16,11 @@ void GameObjectRenderer::draw(Mesh mesh, MaterialPtr material)
         glDrawArrays(mesh.mDrawMode, 0, mesh.mVertexNumber);
 
     glBindVertexArray(0);
-
-    material->after();
 }
-#include <iostream>
+
 void GameObjectRenderer::render(const std::vector<GameObject>& gameObjects)
 {
-    std::map<float, std::pair<Mesh, MaterialPtr>> orderedRender;
+    std::map<float, std::tuple<Mesh, MaterialPtr, glm::mat4>> orderedRender;
     for (auto const& go : gameObjects) {
         for (std::size_t meshIndex = 0; meshIndex < go.mMeshes.size(); meshIndex++) {
 
@@ -36,31 +34,30 @@ void GameObjectRenderer::render(const std::vector<GameObject>& gameObjects)
 			const MaterialPtr& material = mForcedMaterial ? mForcedMaterial : meshMaterial;
             const Mesh& mesh = go.mMeshes[meshIndex];
             if (material) {
-                Material* mat = material.get();
+				if (material->needsOrderedRendering()) {
+					float order = material->renderOrder(go.transform.getPosition());
+					orderedRender[order] = std::make_tuple(mesh, material, go.transform.modelToWorld());
+					continue;
+				}
+				else {
+					Material* mat = material.get();
 
-				// TODO optimization draw should set the model transform matrix
-                mat->use();
-                mat->shader.setMat4(mat->getModelLocation(), go.transform.modelToWorld());
-				mat->after();
-            }
-
-            if (material->needsOrderedRendering()) {
-                float order = material->renderOrder(go.transform.getPosition());
-                orderedRender[order] = std::make_pair(mesh, material);
-                continue;
-            }
-
-            draw(mesh, material);
+					mat->use();
+					mat->shader.setMat4(mat->getModelLocation(), go.transform.modelToWorld());
+					draw(mesh);
+					mat->after();
+				}
+            }            
         }
     }
 
     // render meshed that need to be rendered in a specific order
     for (auto ord = orderedRender.rbegin(); ord != orderedRender.rend(); ++ord) {
-        auto data = ord->second;
-        auto mesh = data.first;
-        auto material = data.second;
-
-        draw(mesh, material);
+        auto& [mesh, mat, toWorld] = ord->second;
+		mat->use();
+		mat->shader.setMat4(mat->getModelLocation(), toWorld);
+        draw(mesh);
+		mat->after();
     }
 }
 
