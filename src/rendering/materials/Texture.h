@@ -62,11 +62,12 @@ class Texture {
 		 * @param wrapS repeat mode on x axis
 		 * @param wrapT repeat mode on y axis
 		 * @param mipmap should use mipmap?
-		 * @param format OpenGL format (GL_RGB, GL_RGBA, etc)
+		 * @param format pixel data format format (GL_RGB, GL_RGBA, etc)
 		 * @param type the type of data stored in the texture
+		 * @param internalFormat the format of the data stored in the texture (if GL_REPEAT then it will be the same as format)
 		 */
 		static Texture load(std::uint8_t* data, int width, int height,
-			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, bool mipmap = true, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE);
+			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, bool mipmap = true, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE, int internalFormat = GL_REPEAT);
 
         /**
           * Loads a cubmap from file.
@@ -82,7 +83,7 @@ class Texture {
         /**
           * Returns the texture id for this texture.
           * Needed for rendering */
-        std::uint32_t getId();
+        std::uint32_t getId() const;
 
         /**
           * Checks whether this is a valid (usable) texture

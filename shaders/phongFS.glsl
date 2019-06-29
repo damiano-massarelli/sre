@@ -1,3 +1,8 @@
+layout (location = 0) out vec4 Diffuse;
+layout (location = 1) out vec4 Specular;
+layout (location = 2) out vec3 Position;
+layout (location = 3) out vec3 Normal;
+
 struct PhongMaterial {
     bool useDiffuseMap;
     sampler2D diffuse;
@@ -17,8 +22,6 @@ in vec3 position;
 in vec3 normal;
 in vec4 lightSpacePosition;
 
-out vec4 FragColor;
-
 uniform PhongMaterial material;
 
 layout (std140) uniform Lights {
@@ -32,26 +35,17 @@ layout (std140) uniform Camera {
 };
 
 void main() {
+	Position = position;
+	Normal = normal;
+
 	vec4 sampledDiffuseColor = texture(material.diffuse, texCoord);
-	if (material.opacity == 0.0f || sampledDiffuseColor.a < 0.01) discard;
+	if (material.opacity == 0.0f || sampledDiffuseColor.a < 0.5) discard;
 
-    vec3 diffuseColor = material.diffuseColor;
+    Diffuse = vec4(material.diffuseColor, 1.0);
     if (material.useDiffuseMap)
-        diffuseColor *= sampledDiffuseColor.rgb;
+        Diffuse.rgb *= sampledDiffuseColor.rgb;
 
-    vec3 specularColor = material.specularColor;
+    Specular = vec4(material.specularColor, material.shininess);
     if (material.useSpecularMap)
-        specularColor *= vec3(texture(material.specular, texCoord));
-
-	//diffuseColor = pow(diffuseColor, vec3(2.2));
-	//specularColor = pow(specularColor, vec3(2.2));
-    vec3 color = vec3(0.0f);
-    for (int i = 0; i < numLights; i++) {
-        color += phongComputeColor(lights[i], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition, lightSpacePosition, i == 0);
-    }
-
-	// apply fog
-	color = fogger(color, distance(cameraPosition, position));
-
-    FragColor = vec4(color, material.opacity);
+        Specular.rgb *= vec3(texture(material.specular, texCoord));
 }

@@ -58,6 +58,17 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 	initShadowFbo();
 	fogSettings.init();
 	shadowMappingSettings.init();
+
+	// TODO move to a dedicated method
+	deferredRenderingFBO.init(width, height);
+	deferredShader = Shader::loadFromFile({ "shaders/deferred_rendering/deferredVS.glsl" },
+		{},
+		{ "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
+		"shaders/PhongLightCalculation.glsl", "shaders/deferred_rendering/deferredFS.glsl" });
+	deferredShader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
+	deferredShader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
+	deferredShader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
+	deferredShader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -105,8 +116,6 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     /* General OpenGL settings */
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-	//glEnable(GL_MULTISAMPLE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -228,7 +237,6 @@ glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
 	return mInvertView * view;
 }
 
-#include <SDL.h>
 void RenderSystem::prepareRendering()
 {
 	if (shadowMappingSettings.getShadowStrength() != 0.0f)
@@ -237,23 +245,15 @@ void RenderSystem::prepareRendering()
 	glViewport(0, 0, getScreenWidth(), getScreenHeight());
 
 	glEnable(GL_DEPTH_TEST);
-	if (effectManager.mEnabled)
-		glBindFramebuffer(GL_FRAMEBUFFER, mScreenFbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, deferredRenderingFBO.getFBO());
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	Transform fromUp;
-	fromUp.setRotation(glm::angleAxis(glm::radians(90.0f), glm::vec3{ 1, 0, 0 }));
-	fromUp.setPosition(glm::vec3{ 0, 100, 0 });
     /* Camera calculations */
     glm::mat4 view = glm::mat4{1.0f};
 	if (camera) {
-		if (SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE])
-			view = getViewMatrix(fromUp);
-		else
-			view = getViewMatrix(camera->transform);
-
+		view = getViewMatrix(camera->transform);
 	}
 
     /* Sets the camera matrix to a UBO so that it is shared */
@@ -274,22 +274,26 @@ void RenderSystem::render(RenderPhase phase)
 
 void RenderSystem::finalizeRendering()
 {
-	if (effectManager.mEnabled) {
+	/*if (effectManager.mEnabled) {*/
 		// unbind frame buffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_DEPTH_TEST);
-		effectManager.mPostProcessingShader.use();
+		deferredShader.use();
 		glBindVertexArray(mScreenMesh.mVao);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mColorBuffer.getId());
+		glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getDiffuseBuffer().getId());
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, mDepthBuffer.getId());
+		glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getSpecularBuffer().getId());
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getPositionBuffer().getId());
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getNormalBuffer().getId());
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 		glEnable(GL_DEPTH_TEST);
-	}
+	/*}*/
 
     SDL_GL_SwapWindow(mWindow);
 }
