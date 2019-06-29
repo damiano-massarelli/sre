@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
                     {"right", "test_data/skybox/right.tga"},
                 });
     auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
-    auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
+    //auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
 	auto multiTextured = std::make_shared<MultiTextureBlinnPhongMaterial>();
 	multiTextured->baseTexture = Texture::loadFromFile("test_data/multiple_textures_blinn/grass.jpg");
@@ -58,17 +58,17 @@ int main(int argc, char* argv[]) {
 	multiTextured->blendTexture = Texture::loadFromFile("test_data/multiple_textures_blinn/blend.png");
 	multiTextured->greenShininess = 8.0f;
 
-	HeightMapTerrainHeightProvider hProvider{ "test_data/multiple_textures_blinn/height.jpg", -10, 10 };
-	TerrainGenerator generator{ 128, 128, 1000, 1000 };
+	HeightMapTerrainHeightProvider hProvider{ "test_data/multiple_textures_blinn/height.jpg", -5, 5 };
+	TerrainGenerator generator{ 128, 128, 500, 500 };
 	generator.includeTangentSpace(true);
-	auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
+	//auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
 
 	for (int i = 0; i < 50; i++) {
 		auto tree = GameObjectLoader().fromFile("test_data/multiple_textures_blinn/trees.fbx");
 		int x = (rand() % 500) - 250;
 		int z = (rand() % 500) - 250;
 		float y = hProvider.get((x + 250) / 500.0f, (z + 250) / 500.0f);
-		tree->transform.setPosition(glm::vec3{ x, y, z });
+		tree->transform.setPosition(glm::vec3{ x, y - .5f, z });
 	}
 
 	for (int i = 0; i < 50; i++) {
@@ -76,15 +76,16 @@ int main(int argc, char* argv[]) {
 		int x = (rand() % 500) - 250;
 		int z = (rand() % 500) - 250;
 		float y = hProvider.get((x + 250) / 500.0f, (z + 250) / 500.0f);
-		tree->transform.setPosition(glm::vec3{ x, y, z });
+		tree->transform.setPosition(glm::vec3{ x, y - .5f, z });
 	}
 
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 150; i++) {
 		auto bush = GameObjectLoader().fromFile("test_data/multiple_textures_blinn/bush.fbx");
 		int x = (rand() % 500) - 250;
 		int z = (rand() % 500) - 250;
 		float y = hProvider.get((x + 250) / 500.0f, (z + 250) / 500.0f);
-		bush->transform.setPosition(glm::vec3{ x, y, z });
+		bush->transform.setPosition(glm::vec3{ x, y - .5f, z });
+		bush->transform.scaleBy(glm::vec3{ 0.5f });
 	}
 
 

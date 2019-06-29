@@ -10,6 +10,7 @@
 #include "EffectManager.h"
 #include "FogSettings.h"
 #include "ShadowMappingSettings.h"
+#include "DeferredRenderingFBO.h"
 #include <cstdint>
 #include <vector>
 #include <glad/glad.h>
@@ -73,8 +74,6 @@ class RenderSystem
         /** Updates the camera ubo */
         void updateCamera();
 
-		
-
         /** Performs all operations needed by rendering */
         void prepareRendering();
 
@@ -111,6 +110,10 @@ class RenderSystem
 		static constexpr std::uint32_t FOG_UNIFORM_BLOCK_INDEX = 3;
 
 		static constexpr std::uint32_t SHADOWMAP_UNIFORM_BLOCK_INDEX = 4;
+
+		/** fbo used for deferred rendering */
+		DeferredRenderingFBO deferredRenderingFBO;
+		Shader deferredShader;
 
 		/** settings for shadow mapping */
 		ShadowMappingSettings shadowMappingSettings;
