@@ -14,13 +14,10 @@ std::vector<std::string> getVertexShaders(bool hasBumps, bool isAnimated, bool h
 }
 
 std::vector<std::string> getFragmentShaders(bool hasBumps, bool hasParallax) {
-	if (hasParallax) return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-							  "shaders/PhongLightCalculation.glsl", "shaders/parallaxPhongFS.glsl" };
-	if (hasBumps) return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-						   "shaders/PhongLightCalculation.glsl", "shaders/bumpedPhongFS.glsl" };
+	if (hasParallax) return { "shaders/parallaxPhongFS.glsl" };
+	if (hasBumps) return { "shaders/bumpedPhongFS.glsl" };
 
-	else return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-				  "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl" };
+	else return { "shaders/phongFS.glsl" };
 }
 
 BlinnPhongMaterial::BlinnPhongMaterial(bool hasBumps, bool isAnimated, bool hasParallax)
@@ -31,13 +28,9 @@ BlinnPhongMaterial::BlinnPhongMaterial(bool hasBumps, bool isAnimated, bool hasP
 {
 	shader.use();
 
-	shader.setInt("shadowMap", 15);
-
     shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
-    shader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
-    shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
+	if (hasParallax) // parallax mapping needs the position of the camera
+		shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
 
 	mDiffuseColorLocation		= shader.getLocationOf("material.diffuseColor");
 	mSpecularColorLocation		= shader.getLocationOf("material.specularColor");

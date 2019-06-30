@@ -65,10 +65,15 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 		{},
 		{ "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
 		"shaders/PhongLightCalculation.glsl", "shaders/deferred_rendering/deferredFS.glsl" });
+	deferredShader.use();
 	deferredShader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
 	deferredShader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
 	deferredShader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
 	deferredShader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
+	deferredShader.setInt("DiffuseData", 0);
+	deferredShader.setInt("SpecularData", 1);
+	deferredShader.setInt("PositionData", 2);
+	deferredShader.setInt("NormalData", 3);
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -247,14 +252,13 @@ void RenderSystem::prepareRendering()
 	glEnable(GL_DEPTH_TEST);
 	glBindFramebuffer(GL_FRAMEBUFFER, deferredRenderingFBO.getFBO());
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /* Camera calculations */
-    glm::mat4 view = glm::mat4{1.0f};
-	if (camera) {
+    glm::mat4 view = glm::mat4{ 1.0f };
+	if (camera) 
 		view = getViewMatrix(camera->transform);
-	}
 
     /* Sets the camera matrix to a UBO so that it is shared */
 	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
@@ -338,6 +342,7 @@ void RenderSystem::renderShadows()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	// Bind texture so that it is available
 	glActiveTexture(GL_TEXTURE15);
 	glBindTexture(GL_TEXTURE_2D, mShadowMap.getId());
 }
@@ -396,6 +401,7 @@ void RenderSystem::cleanUp()
 	mShadowMapMaterial = nullptr;
 
 	effectManager.cleanUp();
+	deferredShader = Shader();
 
     // Destroys the window and quit SDL
     SDL_DestroyWindow(mWindow);

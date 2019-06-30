@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     Engine::init();
 
     Engine::renderSys.createWindow(1280, 720);
-	//Engine::renderSys.shadowMappingSettings.setShadowStrength(0.0f);
+	Engine::renderSys.shadowMappingSettings.setShadowStrength(0.0f);
 
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";

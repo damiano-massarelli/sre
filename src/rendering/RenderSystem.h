@@ -113,6 +113,7 @@ class RenderSystem
 
 		/** fbo used for deferred rendering */
 		DeferredRenderingFBO deferredRenderingFBO;
+		/** Shader used to render with deferred rendering */
 		Shader deferredShader;
 
 		/** settings for shadow mapping */
@@ -163,8 +164,8 @@ class RenderSystem
 		float getVerticalFov() const;
 
 		/**
-		 * @return the current rendering pahse
-		 * @sa RenderPhase
+		 * @return the current rendering phase
+		 * @see RenderPhase
 		 */
 		RenderPhase getRenderPhase() const;
 
