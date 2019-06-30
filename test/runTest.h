@@ -13,5 +13,5 @@
 //#define shadowMapping
 //#define skeletralAnimation
 //#define bumpMapping 
-//#define parallaxMapping 
-#define multipleTextureBlinn 
+#define parallaxMapping 
+//#define multipleTextureBlinn 

@@ -48,7 +48,7 @@ public:
 	 * their normal shader. Using the fast shader improves performance
 	 * but transparent textures are not reported in the shadow.
 	 */
-	bool useFastShader = true;
+	bool useFastShader = false;
 
 	ShadowMappingSettings(const ShadowMappingSettings& sms) = delete;
 

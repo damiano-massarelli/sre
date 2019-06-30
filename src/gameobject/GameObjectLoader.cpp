@@ -206,7 +206,7 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS, shininess))
         phongBuilder.setShininess(shininess);
 
-    phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE, cacheName));
+	phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE, cacheName));
     phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR, cacheName));
 	
 	// add bump map only if available
