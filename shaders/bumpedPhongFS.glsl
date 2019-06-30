@@ -1,4 +1,4 @@
-layout (location = 0) out vec3 Diffuse;
+layout (location = 0) out vec4 Diffuse;
 layout (location = 1) out vec4 Specular;
 layout (location = 2) out vec3 Position;
 layout (location = 3) out vec3 Normal;
@@ -39,9 +39,9 @@ void main() {
 	vec4 sampledDiffuseColor = texture(material.diffuse, texCoord);
 	if (material.opacity == 0.0f || sampledDiffuseColor.a < 0.5) discard;
 
-    Diffuse = material.diffuseColor;
+    Diffuse = vec4(material.diffuseColor, 1.0);
     if (material.useDiffuseMap)
-        Diffuse *= sampledDiffuseColor.rgb;
+        Diffuse.rgb *= sampledDiffuseColor.rgb;
 
     Specular = vec4(material.specularColor, material.shininess);
     if (material.useSpecularMap)

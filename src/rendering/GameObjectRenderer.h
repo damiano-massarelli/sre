@@ -14,7 +14,7 @@ private:
 	MaterialPtr mForcedMaterial = nullptr;
 
     /** Actually renders a Mesh its corresponding material should be in use */
-    void draw(Mesh mesh);
+    void draw(const Mesh& mesh);
 
     GameObjectRenderer() = default;
 

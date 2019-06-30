@@ -1,9 +1,12 @@
+layout (location = 0) out vec4 Diffuse;
+layout (location = 1) out vec4 Specular;
+layout (location = 2) out vec3 Position;
+layout (location = 3) out vec3 Normal;
+
 in vec2 texCoord;
 in vec3 position;
 in vec3 normal;
 in vec4 lightSpacePosition;
-
-out vec4 FragColor;
 
 uniform sampler2D baseTexture;
 uniform sampler2D redTexture;
@@ -14,15 +17,6 @@ uniform sampler2D blendTexture;
 uniform float horizontalTiles;
 uniform float verticalTiles;
 
-layout (std140) uniform Lights {
-    int numLights;
-    Light lights[10];
-};
-
-layout (std140) uniform Camera {
-    vec3 cameraPosition;
-    vec3 cameraDirection;
-};
 
 void main() {
     vec4 channels = texture2D(blendTexture, texCoord / vec2(horizontalTiles, verticalTiles));
@@ -33,16 +27,9 @@ void main() {
     vec3 green = vec3(texture2D(greenTexture, texCoord));
     vec3 blue = vec3(texture2D(blueTexture, texCoord));
 
-    vec3 diffuseColor = base * baseFactor + red * channels.r + green * channels.g + blue * channels.b; 
-
-    // gamma correction
-	diffuseColor = pow(diffuseColor, vec3(2.2));
-    vec3 color = vec3(0.0f);
-    for (int i = 0; i < numLights; i++) {
-        color += phongComputeColor(lights[i], diffuseColor, vec3(0.0f), 0.0f, position, normal, cameraPosition, lightSpacePosition, i == 0);
-    }
-
-    color = fogger(color, distance(cameraPosition, position));
-
-    FragColor = vec4(color, 1.0f);
+    Diffuse.rgb = base * baseFactor + red * channels.r + green * channels.g + blue * channels.b;
+	Diffuse.a = 1.0;
+	Specular = vec4(0.0);
+	Position = position;
+	Normal = normal;
 }

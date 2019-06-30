@@ -4,14 +4,14 @@
 
 class LineMaterial : public Material
 {
-    public:
-        LineMaterial();
+public:
+    LineMaterial();
 
-        virtual void use() override;
+    virtual void use() override;
 
-        virtual void after() override;
+    virtual void after() override;
 
-        virtual ~LineMaterial();
+    virtual ~LineMaterial();
 };
 
 #endif // LINEMATERIAL_H

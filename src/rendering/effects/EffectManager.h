@@ -8,26 +8,26 @@
 
 class EffectManager
 {
-	friend class RenderSystem;
+friend class RenderSystem;
 
-	private:
-		bool mEnabled = false;
+private:
+	bool mEnabled = false;
 
-		Shader mPostProcessingShader;
+	Shader mPostProcessingShader;
 
-		std::vector<std::shared_ptr<Effect>> mEffects;
+	std::vector<std::shared_ptr<Effect>> mEffects;
 
-		void createShader();
+	void createShader();
 
-	public:
-		EffectManager() = default;
+public:
+	EffectManager() = default;
 
-		void addEffect(const std::shared_ptr<Effect>& effect);
+	void addEffect(const std::shared_ptr<Effect>& effect);
 
-		void enableEffects();
+	void enableEffects();
 
-		void disableEffects();
+	void disableEffects();
 
-		void cleanUp();
+	void cleanUp();
 };
 
