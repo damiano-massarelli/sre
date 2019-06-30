@@ -6,7 +6,7 @@
 #include <tuple>
 #include <glad/glad.h>
 
-void GameObjectRenderer::draw(Mesh mesh)
+void GameObjectRenderer::draw(const Mesh& mesh)
 {
     glBindVertexArray(mesh.mVao);
 

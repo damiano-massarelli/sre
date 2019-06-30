@@ -11,6 +11,7 @@
 #include "FogSettings.h"
 #include "ShadowMappingSettings.h"
 #include "DeferredRenderingFBO.h"
+#include "EffectsFBO.h"
 #include <cstdint>
 #include <vector>
 #include <glad/glad.h>
@@ -40,10 +41,7 @@ class RenderSystem
         /** reference for camera ubo */
         std::uint32_t mUboCamera;
 
-		/** reference to screen frame buffer */
-		std::uint32_t mScreenFbo;
-		Texture mColorBuffer;
-		Texture mDepthBuffer;
+		/** Simple rect that represents the screen */
 		Mesh mScreenMesh;
 
 		/** reference to shadow map frame buffer */
@@ -51,6 +49,14 @@ class RenderSystem
 		Texture mShadowMap;
 		// used for rendering meshes for shadow mapping
 		MaterialPtr mShadowMapMaterial;
+
+		/** fbo used for deferred rendering */
+		DeferredRenderingFBO mDeferredRenderingFBO;
+		/** Shader used to render with deferred rendering */
+		Shader mDeferredShader;
+
+		/** fbo used to render effects */
+		EffectsFBO mEffectFBO;
 
 		/** near and far clipping planes */
 		float mNearPlane = 0.0f;
@@ -64,7 +70,7 @@ class RenderSystem
 
         void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
 
-		void initScreenFbo();
+		void initDeferredRendering();
 
 		void initShadowFbo();
 
@@ -110,11 +116,6 @@ class RenderSystem
 		static constexpr std::uint32_t FOG_UNIFORM_BLOCK_INDEX = 3;
 
 		static constexpr std::uint32_t SHADOWMAP_UNIFORM_BLOCK_INDEX = 4;
-
-		/** fbo used for deferred rendering */
-		DeferredRenderingFBO deferredRenderingFBO;
-		/** Shader used to render with deferred rendering */
-		Shader deferredShader;
 
 		/** settings for shadow mapping */
 		ShadowMappingSettings shadowMappingSettings;

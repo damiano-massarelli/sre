@@ -2,21 +2,11 @@
 #include "RenderSystem.h"
 
 MultiTextureBlinnPhongMaterial::MultiTextureBlinnPhongMaterial() :
-	Material{ {"shaders/bumpedPhongVS.glsl"},
-			  {}, 
-			  {"shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-			   "shaders/PhongLightCalculation.glsl", "shaders/multiTexturePhongFS.glsl"} }
+	Material{"shaders/bumpedPhongVS.glsl",
+		     "shaders/multiTexturePhongFS.glsl" }
 {
 	shader.use();
-
-	shader.setInt("shadowMap", 15);
-
-	shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
-
+	
 	shader.setInt("baseTexture", 0);
 	shader.setInt("baseTextureBump", 1);
 	shader.setInt("redTexture", 2);

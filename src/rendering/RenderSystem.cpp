@@ -46,7 +46,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     SDL_GL_CreateContext(mWindow);
 
     // Use v-sync
-    SDL_GL_SetSwapInterval(1);
+    //SDL_GL_SetSwapInterval(1);
 
     if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
         std::cout << "Failed to initialize GLAD\n";
@@ -54,26 +54,11 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     }
 
     initGL(width, height, fovy, nearPlane, farPlane);
-	initScreenFbo();
+	initDeferredRendering();
+	mEffectFBO.init(width, height);
 	initShadowFbo();
 	fogSettings.init();
 	shadowMappingSettings.init();
-
-	// TODO move to a dedicated method
-	deferredRenderingFBO.init(width, height);
-	deferredShader = Shader::loadFromFile({ "shaders/deferred_rendering/deferredVS.glsl" },
-		{},
-		{ "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-		"shaders/PhongLightCalculation.glsl", "shaders/deferred_rendering/deferredFS.glsl" });
-	deferredShader.use();
-	deferredShader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
-	deferredShader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
-	deferredShader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
-	deferredShader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
-	deferredShader.setInt("DiffuseData", 0);
-	deferredShader.setInt("SpecularData", 1);
-	deferredShader.setInt("PositionData", 2);
-	deferredShader.setInt("NormalData", 3);
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -127,20 +112,26 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     glFrontFace(GL_CCW);
 }
 
-void RenderSystem::initScreenFbo()
+void RenderSystem::initDeferredRendering()
 {
-	mColorBuffer = Texture::load(nullptr, getScreenWidth(), getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_RGB);
-	mDepthBuffer = Texture::load(nullptr, getScreenWidth(), getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_DEPTH_COMPONENT, GL_FLOAT);
+	mDeferredRenderingFBO.init(getScreenWidth(), getScreenHeight());
+	mDeferredShader = Shader::loadFromFile({ "shaders/deferred_rendering/deferredVS.glsl" },
+		{},
+		{ "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
+		"shaders/PhongLightCalculation.glsl", "shaders/deferred_rendering/deferredFS.glsl" });
+	mDeferredShader.use();
+	mDeferredShader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
+	mDeferredShader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
+	mDeferredShader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
+	mDeferredShader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
+	mDeferredShader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
+	mDeferredShader.setInt("DiffuseData", 0);
+	mDeferredShader.setInt("SpecularData", 1);
+	mDeferredShader.setInt("PositionData", 2);
+	mDeferredShader.setInt("NormalData", 3);
+	mDeferredShader.setInt("NonDeferredColor", 4);
 
-	glGenFramebuffers(1, &mScreenFbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, mScreenFbo);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mColorBuffer.getId(), 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthBuffer.getId(), 0);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "Render to texture frame buffer is incomplete\n";
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	mDeferredShader.setInt("shadowMap", 15);
 
 	MeshLoader loader;
 	float verts[]{ -1, -1, -1, 1, 1, 1, 1, -1 };
@@ -250,7 +241,7 @@ void RenderSystem::prepareRendering()
 	glViewport(0, 0, getScreenWidth(), getScreenHeight());
 
 	glEnable(GL_DEPTH_TEST);
-	glBindFramebuffer(GL_FRAMEBUFFER, deferredRenderingFBO.getFBO());
+	glBindFramebuffer(GL_FRAMEBUFFER, mDeferredRenderingFBO.getFBO());
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -278,26 +269,47 @@ void RenderSystem::render(RenderPhase phase)
 
 void RenderSystem::finalizeRendering()
 {
-	/*if (effectManager.mEnabled) {*/
-		// unbind frame buffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// disable deferred rendering frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	if (effectManager.mEnabled)
+		glBindFramebuffer(GL_FRAMEBUFFER, mEffectFBO.getFbo());
+		
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+	mDeferredShader.use();
+	glBindVertexArray(mScreenMesh.mVao);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getDiffuseBuffer().getId());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getSpecularBuffer().getId());
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getPositionBuffer().getId());
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getNormalBuffer().getId());
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getNonDeferredBuffer().getId());
+	glActiveTexture(GL_TEXTURE15);
+	glBindTexture(GL_TEXTURE_2D, mShadowMap.getId());
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+	glEnable(GL_DEPTH_TEST);
+	
+	if (effectManager.mEnabled) {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_DEPTH_TEST);
-		deferredShader.use();
+		effectManager.mPostProcessingShader.use();
 		glBindVertexArray(mScreenMesh.mVao);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getDiffuseBuffer().getId());
+		glBindTexture(GL_TEXTURE_2D, mEffectFBO.getColorBuffer().getId());
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getSpecularBuffer().getId());
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getPositionBuffer().getId());
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getNormalBuffer().getId());
+		glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getDepthBuffer().getId());
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 		glEnable(GL_DEPTH_TEST);
-	/*}*/
+	}
 
     SDL_GL_SwapWindow(mWindow);
 }
@@ -396,12 +408,11 @@ void RenderSystem::cleanUp()
     // Delete uniform buffers
     glDeleteBuffers(1, &mUboCommonMat);
     glDeleteBuffers(1, &mUboLights);
-	glDeleteFramebuffers(1, &mScreenFbo);
 	glDeleteFramebuffers(1, &mShadowFbo);
 	mShadowMapMaterial = nullptr;
 
 	effectManager.cleanUp();
-	deferredShader = Shader();
+	mDeferredShader = Shader();
 
     // Destroys the window and quit SDL
     SDL_DestroyWindow(mWindow);

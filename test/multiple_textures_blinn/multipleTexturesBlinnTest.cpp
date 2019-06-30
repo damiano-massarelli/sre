@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
                     {"right", "test_data/skybox/right.tga"},
                 });
     auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
-    //auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
+    auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
 	auto multiTextured = std::make_shared<MultiTextureBlinnPhongMaterial>();
 	multiTextured->baseTexture = Texture::loadFromFile("test_data/multiple_textures_blinn/grass.jpg");
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 	HeightMapTerrainHeightProvider hProvider{ "test_data/multiple_textures_blinn/height.jpg", -5, 5 };
 	TerrainGenerator generator{ 128, 128, 500, 500 };
 	generator.includeTangentSpace(true);
-	//auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
+	auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
 
 	for (int i = 0; i < 50; i++) {
 		auto tree = GameObjectLoader().fromFile("test_data/multiple_textures_blinn/trees.fbx");
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 	}
 
 
-	Engine::renderSys.effectManager.enableEffects();
+	//Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 	Engine::renderSys.shadowMappingSettings.setShadowStrength(0.3f);
 	Engine::renderSys.shadowMappingSettings.useFastShader = false;

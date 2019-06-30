@@ -54,7 +54,6 @@ int main(int argc, char* argv[]) {
 
 	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
-	Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
