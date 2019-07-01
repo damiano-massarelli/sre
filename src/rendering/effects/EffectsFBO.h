@@ -10,6 +10,7 @@ class EffectsFBO
 private:
 	std::uint32_t mFbo;
 	Texture mColorBuffer;
+	Texture mDepthBuffer;
 
 public:
 	EffectsFBO() = default;
@@ -23,6 +24,8 @@ public:
 	std::uint32_t getFbo() const;
 
 	const Texture& getColorBuffer() const;
+
+	const Texture& getDepthBuffer() const;
 
 	~EffectsFBO();
 };

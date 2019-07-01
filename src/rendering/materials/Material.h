@@ -24,7 +24,7 @@ public:
 	/** The render phases supported by this material.
 	  * if a render phase is not supported the mesh having this material
 	  * wont be rendered during that phase */
-	RenderPhase supportedRenderPhases = RenderPhase::ALL;
+	int supportedRenderPhases = RenderPhase::ALL;
 
     /** the shader program used to render the mesh using this material */
     Shader shader;
