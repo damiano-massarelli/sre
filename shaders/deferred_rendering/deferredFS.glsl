@@ -14,7 +14,6 @@ uniform sampler2D DiffuseData;
 uniform sampler2D SpecularData;
 uniform sampler2D PositionData;
 uniform sampler2D NormalData;
-uniform sampler2D NonDeferredColor;
 
 layout (std140) uniform CommonMat {
     mat4 projection;
@@ -42,5 +41,5 @@ void main() {
 	// apply fog
 	color = fogger(color, distance(cameraPosition, position));
 
-    FragColor = vec4(color, 1.0) * diffuseSample.a + texture(NonDeferredColor, texCoord);
+    FragColor = vec4(color, 1.0) * diffuseSample.a;
 }

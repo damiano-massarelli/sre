@@ -83,11 +83,16 @@ class RenderSystem
         /** Performs all operations needed by rendering */
         void prepareRendering();
 
-		/** Calls rendering submodules to perform rendering */
-		void render(RenderPhase phase = RenderPhase::NORMAL);
+		/** Performs deferred and forward rendering */
+		void renderScene();
 
-        /** Performs all operations needed to finalize rendering: blitting to screen */
-        void finalizeRendering();
+		/** Calls rendering submodules to perform rendering */
+		void render(RenderPhase phase = RenderPhase::FORWARD_RENDERING);
+
+        /** Performs all operations needed to finalize deferred rendering: combine g-buffer data */
+        void finalizeDeferredRendering();
+
+		void finalizeRendering();
 
 		/** Performs shadow mapping */
 		void renderShadows();

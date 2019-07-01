@@ -261,23 +261,42 @@ void RenderSystem::prepareRendering()
     updateCamera();
 }
 
+void RenderSystem::renderScene()
+{
+	prepareRendering();
+	render(RenderPhase::DEFERRED_RENDERING);
+	finalizeDeferredRendering();
+
+	render(RenderPhase::FORWARD_RENDERING);
+	finalizeRendering();
+}
+
 void RenderSystem::render(RenderPhase phase)
 {
 	mRenderPhase = phase;
 	Engine::gameObjectRenderer.render(Engine::gameObjectManager.getGameObjects());
 }
 
-void RenderSystem::finalizeRendering()
+void RenderSystem::finalizeDeferredRendering()
 {
-	// disable deferred rendering frame buffer
+	std::uint32_t targetFbo = 0; // default frame buffer
+	if (effectManager.mEnabled)
+		targetFbo = mEffectFBO.getFbo();
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, mDeferredRenderingFBO.getFBO());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFbo);
+	glBlitFramebuffer(
+		0, 0, getScreenWidth(), getScreenHeight(), 0, 0, getScreenWidth(), getScreenHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST
+	);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	if (effectManager.mEnabled)
-		glBindFramebuffer(GL_FRAMEBUFFER, mEffectFBO.getFbo());
-		
+	glBindFramebuffer(GL_FRAMEBUFFER, targetFbo);
+
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+
 	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
 	mDeferredShader.use();
 	glBindVertexArray(mScreenMesh.mVao);
 	glActiveTexture(GL_TEXTURE0);
@@ -288,30 +307,35 @@ void RenderSystem::finalizeRendering()
 	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getPositionBuffer().getId());
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getNormalBuffer().getId());
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getNonDeferredBuffer().getId());
 	glActiveTexture(GL_TEXTURE15);
 	glBindTexture(GL_TEXTURE_2D, mShadowMap.getId());
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+
 	glEnable(GL_DEPTH_TEST);
-	
+}
+
+void RenderSystem::finalizeRendering()
+{
 	if (effectManager.mEnabled) {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_DEPTH_TEST);
+
 		effectManager.mPostProcessingShader.use();
 		glBindVertexArray(mScreenMesh.mVao);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, mEffectFBO.getColorBuffer().getId());
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getDepthBuffer().getId());
+		glBindTexture(GL_TEXTURE_2D, mEffectFBO.getDepthBuffer().getId());
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+
 		glEnable(GL_DEPTH_TEST);
 	}
 
-    SDL_GL_SwapWindow(mWindow);
+	glDepthMask(GL_TRUE);
+	SDL_GL_SwapWindow(mWindow);
 }
 
 void RenderSystem::renderShadows()

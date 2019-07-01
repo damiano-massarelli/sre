@@ -6,6 +6,8 @@ MultiTextureLambertMaterial::MultiTextureLambertMaterial(Texture base, Texture r
 				"shaders/multiTextureLambertFS.glsl" },
 	baseTexture { base }, redTexture{ red }, greenTexture{ green }, blueTexture{ blue }, blendTexture{ blend }
 {
+	supportedRenderPhases &= ~RenderPhase::FORWARD_RENDERING;
+
 	shader.use();
 
 	shader.setFloat("horizontalTiles", horizontalTiles);

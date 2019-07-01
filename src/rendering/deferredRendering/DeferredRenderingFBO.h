@@ -14,7 +14,6 @@ private:
 	Texture mPositionBuffer;
 	Texture mNormalBuffer;
 	Texture mDepthBuffer;
-	Texture mNonDeferredBuffer;
 
 public:
 	DeferredRenderingFBO() = default;
@@ -32,8 +31,6 @@ public:
 	const Texture& getNormalBuffer() const;
 
 	const Texture& getDepthBuffer() const;
-
-	const Texture& getNonDeferredBuffer() const;
 
 	~DeferredRenderingFBO();
 };

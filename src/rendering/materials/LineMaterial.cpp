@@ -2,6 +2,7 @@
 
 LineMaterial::LineMaterial() : Material{"shaders/lineVS.glsl", "shaders/lineFS.glsl"}
 {
+	supportedRenderPhases = RenderPhase::FORWARD_RENDERING;
 
 }
 

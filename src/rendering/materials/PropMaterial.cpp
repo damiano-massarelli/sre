@@ -6,6 +6,8 @@ PropMaterial::PropMaterial(bool showNormals)
      (showNormals ? std::vector<std::string>{"shaders/propGS.glsl"} : std::vector<std::string>{}),
      {"shaders/propFS.glsl"}}
 {
+	supportedRenderPhases = RenderPhase::FORWARD_RENDERING;
+
 	mColorLocation = shader.getLocationOf("color");
 
     shader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
