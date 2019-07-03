@@ -30,7 +30,8 @@ class MeshCreator
           * @return a cone Mesh */
         static Mesh cone(float radius = 1.0f, std::uint32_t resolution = 50);
 
-        static Mesh sphere(float radius = 1.0f, std::uint32_t sectors = 20, std::uint32_t stacks = 20);
+        static Mesh sphere(float radius = 1.0f, std::uint32_t sectors = 20, std::uint32_t stacks = 20, 
+			bool includeTextureCoordinates = true, bool includeNormals = true);
 };
 
 #endif // MESHCREATOR_H

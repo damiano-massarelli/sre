@@ -253,7 +253,8 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
     return loader.getMesh(0, indices.size());
 }
 
-Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stacks)
+Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stacks,
+	bool includeTextureCoordinates, bool includeNormals)
 {
     std::vector<float> positions;
     std::vector<float> normals;
@@ -293,8 +294,10 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
 
     MeshLoader loader;
     loader.loadData(positions.data(), positions.size(), 3);
-    loader.loadData(normals.data(), normals.size(), 3);
-    loader.loadData(uvs.data(), uvs.size(), 2);
+	if (includeNormals)
+		loader.loadData(normals.data(), normals.size(), 3);
+	if (includeTextureCoordinates)
+		loader.loadData(uvs.data(), uvs.size(), 2);
     loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
 
     return loader.getMesh(0, indices.size());

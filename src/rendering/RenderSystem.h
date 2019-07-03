@@ -12,6 +12,7 @@
 #include "ShadowMappingSettings.h"
 #include "DeferredRenderingFBO.h"
 #include "EffectsFBO.h"
+#include "Light.h"
 #include <cstdint>
 #include <vector>
 #include <glad/glad.h>
@@ -23,165 +24,184 @@
   * global for all renderers */
 class RenderSystem
 {
-    friend class Engine;
+friend class Engine;
 
-    private:
-        SDL_Window* mWindow = nullptr;
+private:
+    SDL_Window* mWindow = nullptr;
 
-        glm::mat4 mProjection{1.0f};
+    glm::mat4 mProjection{1.0f};
 
-		glm::mat4 mInvertView;
+	glm::mat4 mInvertView;
 
-        /** reference for the common matrix ubo */
-        std::uint32_t mUboCommonMat;
+    /** reference for the common matrix ubo */
+    std::uint32_t mUboCommonMat;
 
-        /** reference for the lights ubo */
-        std::uint32_t mUboLights;
+    /** reference for the lights ubo */
+    std::uint32_t mUboLights;
 
-        /** reference for camera ubo */
-        std::uint32_t mUboCamera;
+    /** reference for camera ubo */
+    std::uint32_t mUboCamera;
 
-		/** Simple rect that represents the screen */
-		Mesh mScreenMesh;
+	/** Simple rect that represents the screen */
+	Mesh mScreenMesh;
+	/** Simple unit sphere used to render point lights in deferred rendering */
+	Mesh mPointLightSphere;
 
-		/** reference to shadow map frame buffer */
-		std::uint32_t mShadowFbo;
-		Texture mShadowMap;
-		// used for rendering meshes for shadow mapping
-		MaterialPtr mShadowMapMaterial;
+	/** reference to shadow map frame buffer */
+	std::uint32_t mShadowFbo;
+	Texture mShadowMap;
+	// used for rendering meshes for shadow mapping
+	MaterialPtr mShadowMapMaterial;
 
-		/** fbo used for deferred rendering */
-		DeferredRenderingFBO mDeferredRenderingFBO;
-		/** Shader used to render with deferred rendering */
-		Shader mDeferredShader;
+	/** fbo used for deferred rendering */
+	DeferredRenderingFBO mDeferredRenderingFBO;
+	/** Shaders used to render with deferred rendering */
+	Shader mDirectionalLightDeferred; // shader used to do directional lighting
+	std::uint32_t mDirectionalLightDeferredLightIndexLocation = 0;
 
-		/** fbo used to render effects */
-		EffectsFBO mEffectFBO;
+	Shader mPointLightDeferredStencil; // shader used for stencil pass of point lights
+	std::uint32_t mPointLightStencilLightIndexLocation = 0;
+	std::uint32_t mPointLightStencilScaleLocation = 0;
 
-		/** near and far clipping planes */
-		float mNearPlane = 0.0f;
-		float mFarPlane = 0.0f;
-		float mVerticalFov = 0.0f;
+	Shader mPointLightDeferred; // shader used to do point light
+	std::uint32_t mPointLightDeferredLightIndexLocation = 0;
 
-        std::vector<GameObjectEH> mLights;
 
-		/** Current rendering phase */
-		RenderPhase mRenderPhase;
+	/** fbo used to render effects */
+	EffectsFBO mEffectFBO;
 
-        void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
+	/** near and far clipping planes */
+	float mNearPlane = 0.0f;
+	float mFarPlane = 0.0f;
+	float mVerticalFov = 0.0f;
 
-		void initDeferredRendering();
+    std::vector<GameObjectEH> mLights;
 
-		void initShadowFbo();
+	/** Current rendering phase */
+	RenderPhase mRenderPhase;
 
-        /** Updates the lights ubo */
-        void updateLights();
+    void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
 
-        /** Updates the camera ubo */
-        void updateCamera();
+	void initDeferredRendering();
 
-        /** Performs all operations needed by rendering */
-        void prepareRendering();
+	void initShadowFbo();
 
-		/** Performs deferred and forward rendering */
-		void renderScene();
+    /** Updates the lights ubo */
+    void updateLights();
 
-		/** Calls rendering submodules to perform rendering */
-		void render(RenderPhase phase = RenderPhase::FORWARD_RENDERING);
+    /** Updates the camera ubo */
+    void updateCamera();
 
-        /** Performs all operations needed to finalize deferred rendering: combine g-buffer data */
-        void finalizeDeferredRendering();
+    /** Performs all operations needed by rendering */
+    void prepareDeferredRendering();
 
-		void finalizeRendering();
+	/** Performs deferred and forward rendering */
+	void renderScene();
 
-		/** Performs shadow mapping */
-		void renderShadows();
+	/** Calls rendering submodules to perform rendering */
+	void render(RenderPhase phase);
 
-        // private constructor, only the engine can create a render system
-        RenderSystem();
+    /** Performs all operations needed to finalize deferred rendering: combine g-buffer data */
+    void finalizeDeferredRendering();
 
-		void cleanUp();
+	void finalizeRendering();
 
-    public:
-        /** Creates a new window */
-        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 400.0f);
+	void stencilPass(int lightIndex, float radius);
 
-        /** Maximum number of lights */
-        static constexpr std::size_t MAX_LIGHT_NUMBER = 10;
+	void pointLightPass();
 
-        /** The index of the common matrices uniform block */
-        static constexpr std::uint32_t COMMON_MAT_UNIFORM_BLOCK_INDEX = 0;
+	void directionalLightPass();
 
-        /** The index of uniform block used for lights */
-        static constexpr std::uint32_t LIGHT_UNIFORM_BLOCK_INDEX = 1;
+	/** Performs shadow mapping */
+	void renderShadows();
 
-        /** The index of uniform block used for lights */
-        static constexpr std::uint32_t CAMERA_UNIFORM_BLOCK_INDEX = 2;
+	float computePointLightRadius(const std::shared_ptr<Light>& light) const;
 
-		static constexpr std::uint32_t FOG_UNIFORM_BLOCK_INDEX = 3;
+    // private constructor, only the engine can create a render system
+    RenderSystem();
 
-		static constexpr std::uint32_t SHADOWMAP_UNIFORM_BLOCK_INDEX = 4;
+	void cleanUp();
 
-		/** settings for shadow mapping */
-		ShadowMappingSettings shadowMappingSettings;
+public:
+    /** Creates a new window */
+    void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 400.0f);
 
-		/** settings for fog */
-		FogSettings fogSettings;
+    /** Maximum number of lights */
+    static constexpr std::size_t MAX_LIGHT_NUMBER = 32;
 
-        /** The camera used for rendering */
-        GameObjectEH camera;
+    /** The index of the common matrices uniform block */
+    static constexpr std::uint32_t COMMON_MAT_UNIFORM_BLOCK_INDEX = 0;
 
-		/** The effect manager handles post processing effects */
-		EffectManager effectManager;
+    /** The index of uniform block used for lights */
+    static constexpr std::uint32_t LIGHT_UNIFORM_BLOCK_INDEX = 1;
 
-    public:
-        // Cannot copy this system, only the engine has an instance
-        RenderSystem(const RenderSystem& rs) = delete;
-        RenderSystem& operator=(const RenderSystem& rs) = delete;
+    /** The index of uniform block used for lights */
+    static constexpr std::uint32_t CAMERA_UNIFORM_BLOCK_INDEX = 2;
 
-        /**
-          * Adds a light to the scene
-          * if the GameObject does not have a Light component it is silently
-          * discarded.
-          * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
-          */
-        void addLight(const GameObjectEH& light);
+	static constexpr std::uint32_t FOG_UNIFORM_BLOCK_INDEX = 3;
 
-		/**
-		 * @return the width of the current window
-		 */
-		std::int32_t getScreenWidth() const;
+	static constexpr std::uint32_t SHADOWMAP_UNIFORM_BLOCK_INDEX = 4;
 
-		/**
-		 * @return the height of the current window
-		 */
-		std::int32_t getScreenHeight() const;
+	/** settings for shadow mapping */
+	ShadowMappingSettings shadowMappingSettings;
 
-		/**
-		 * @return the near clipping plane distance
-		 */
-		float getNearPlane() const;
+	/** settings for fog */
+	FogSettings fogSettings;
 
-		/**
-		 * @return the far clipping plane distance
-		 */
-		float getFarPlane() const;
+    /** The camera used for rendering */
+    GameObjectEH camera;
 
-		float getVerticalFov() const;
+	/** The effect manager handles post processing effects */
+	EffectManager effectManager;
 
-		/**
-		 * @return the current rendering phase
-		 * @see RenderPhase
-		 */
-		RenderPhase getRenderPhase() const;
+public:
+    // Cannot copy this system, only the engine has an instance
+    RenderSystem(const RenderSystem& rs) = delete;
+    RenderSystem& operator=(const RenderSystem& rs) = delete;
 
-		/**
-		 * Returns the view matrix for a certain transform.
-		 * The actual matrix is multiplied by mInvertView
-		 */
-		glm::mat4 getViewMatrix(const Transform& transform);
+    /**
+        * Adds a light to the scene
+        * if the GameObject does not have a Light component it is silently
+        * discarded.
+        * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
+        */
+    void addLight(const GameObjectEH& light);
 
-		virtual ~RenderSystem() = default;
+	/**
+	* @return the width of the current window
+	*/
+	std::int32_t getScreenWidth() const;
+
+	/**
+		* @return the height of the current window
+		*/
+	std::int32_t getScreenHeight() const;
+
+	/**
+		* @return the near clipping plane distance
+		*/
+	float getNearPlane() const;
+
+	/**
+		* @return the far clipping plane distance
+		*/
+	float getFarPlane() const;
+
+	float getVerticalFov() const;
+
+	/**
+		* @return the current rendering phase
+		* @see RenderPhase
+		*/
+	RenderPhase getRenderPhase() const;
+
+	/**
+		* Returns the view matrix for a certain transform.
+		* The actual matrix is multiplied by mInvertView
+		*/
+	glm::mat4 getViewMatrix(const Transform& transform);
+
+	virtual ~RenderSystem() = default;
 };
 
 #endif // RENDERSYSTEM_H

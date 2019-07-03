@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 	}
 
 
-	Engine::renderSys.effectManager.enableEffects();
+	//Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 	Engine::renderSys.shadowMappingSettings.setShadowStrength(0.3f);
 	Engine::renderSys.shadowMappingSettings.useFastShader = false;
@@ -120,7 +120,8 @@ int main(int argc, char* argv[]) {
     light2->name = "light2";
     light2->addComponent(std::make_shared<Light>(light2));
     Engine::renderSys.addLight(light2);
-    light2->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
+	light2->transform.setPosition(glm::vec3{ 3.0f, 3.0f, 0.0f });
+    light2->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 0.0f, 0.0f};
     light2->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
 
     light2->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
