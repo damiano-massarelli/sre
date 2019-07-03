@@ -4,6 +4,7 @@
 #include "Engine.h"
 #include "MeshLoader.h"
 #include "ShadowMapMaterial.h"
+#include "MeshCreator.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -33,6 +34,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 //	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 //	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
@@ -106,8 +108,8 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     /* General OpenGL settings */
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_CULL_FACE);
+	glEnable(GL_STENCIL_TEST);
+	glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 }
@@ -115,23 +117,23 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
 void RenderSystem::initDeferredRendering()
 {
 	mDeferredRenderingFBO.init(getScreenWidth(), getScreenHeight());
-	mDeferredShader = Shader::loadFromFile({ "shaders/deferred_rendering/deferredVS.glsl" },
-		{},
-		{ "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-		"shaders/PhongLightCalculation.glsl", "shaders/deferred_rendering/deferredFS.glsl" });
-	mDeferredShader.use();
-	mDeferredShader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
-	mDeferredShader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
-	mDeferredShader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
-	mDeferredShader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
-	mDeferredShader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
-	mDeferredShader.setInt("DiffuseData", 0);
-	mDeferredShader.setInt("SpecularData", 1);
-	mDeferredShader.setInt("PositionData", 2);
-	mDeferredShader.setInt("NormalData", 3);
-	mDeferredShader.setInt("NonDeferredColor", 4);
 
-	mDeferredShader.setInt("shadowMap", 15);
+	mDirectionalLightDeferred = Shader::loadFromFile({ "shaders/deferred_rendering/directionalLightVS.glsl" },
+		std::vector<std::string>{},
+		{ "shaders/Light.glsl", "shaders/ShadowMappingCalculation.glsl", "shaders/deferred_rendering/directionalLightFS.glsl" });
+
+	mDirectionalLightDeferred.use();
+	mDirectionalLightDeferred.setInt("DiffuseData", 0);
+	mDirectionalLightDeferred.setInt("SpecularData", 1);
+	mDirectionalLightDeferred.setInt("PositionData", 2);
+	mDirectionalLightDeferred.setInt("NormalData", 3);
+	mDirectionalLightDeferred.setInt("shadowMap", 15);
+	mDirectionalLightDeferred.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
+	mDirectionalLightDeferred.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
+	mDirectionalLightDeferred.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
+	mDirectionalLightDeferred.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
+
+	mDirectionalLightDeferredLightIndexLocation = mDirectionalLightDeferred.getLocationOf("lightIndex");
 
 	MeshLoader loader;
 	float verts[]{ -1, -1, -1, 1, 1, 1, 1, -1 };
@@ -141,6 +143,30 @@ void RenderSystem::initDeferredRendering()
 	loader.loadData(texCoords, 8, 2);
 	loader.loadData(indices, 6, 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
 	mScreenMesh = loader.getMesh(0, 6);
+
+
+	mPointLightDeferred = Shader::loadFromFile({ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightVS.glsl" },
+		std::vector<std::string>{},
+		{ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightFS.glsl" });
+
+	mPointLightDeferred.use();
+	mPointLightDeferred.setInt("DiffuseData", 0);
+	mPointLightDeferred.setInt("SpecularData", 1);
+	mPointLightDeferred.setInt("PositionData", 2);
+	mPointLightDeferred.setInt("NormalData", 3);
+	mPointLightDeferred.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
+	mPointLightDeferred.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
+	mPointLightDeferredLightIndexLocation = mPointLightDeferred.getLocationOf("lightIndex");
+
+	mPointLightSphere = MeshCreator::sphere(1.0f, 10, 10, false, false);
+
+	mPointLightDeferredStencil = Shader::loadFromFile({ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightSphereStencilPassVS.glsl" },
+		std::vector<std::string>{},
+		{ "shaders/deferred_rendering/pointLightSphereStencilPassFS.glsl" });
+	mPointLightDeferredStencil.use();
+	mPointLightDeferredStencil.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
+	mPointLightStencilLightIndexLocation = mPointLightDeferredStencil.getLocationOf("lightIndex");
+	mPointLightStencilScaleLocation = mPointLightDeferredStencil.getLocationOf("scale");
 }
 
 void RenderSystem::initShadowFbo()
@@ -233,18 +259,28 @@ glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
 	return mInvertView * view;
 }
 
-void RenderSystem::prepareRendering()
+void RenderSystem::prepareDeferredRendering()
 {
 	if (shadowMappingSettings.getShadowStrength() != 0.0f)
 		renderShadows();
 
+	// view port might be changed during shadow rendering
 	glViewport(0, 0, getScreenWidth(), getScreenHeight());
-
 	glEnable(GL_DEPTH_TEST);
+
+	// bind the deferred rendering frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, mDeferredRenderingFBO.getFBO());
 
+	// set up the stencil test so that only the parts affected by deferred rendering
+	// are actually lit in the deferred rendering directional light pass pass
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilMask(0xFF);
+
+	// clear all the buffers
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     /* Camera calculations */
     glm::mat4 view = glm::mat4{ 1.0f };
@@ -252,6 +288,7 @@ void RenderSystem::prepareRendering()
 		view = getViewMatrix(camera->transform);
 
     /* Sets the camera matrix to a UBO so that it is shared */
+	// TODO move to a dedicated method
 	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(mProjection));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
@@ -263,7 +300,7 @@ void RenderSystem::prepareRendering()
 
 void RenderSystem::renderScene()
 {
-	prepareRendering();
+	prepareDeferredRendering();
 	render(RenderPhase::DEFERRED_RENDERING);
 	finalizeDeferredRendering();
 
@@ -279,26 +316,39 @@ void RenderSystem::render(RenderPhase phase)
 
 void RenderSystem::finalizeDeferredRendering()
 {
+	/* Binds the correct fbo. If effects are enabled we have to render
+	 * to the effect fbo so that we can access the rendered scene and
+	 * provide it to the effect shaders. If effects are not enabled, the
+	 * default fbo  (0) is bound */
 	std::uint32_t targetFbo = 0; // default frame buffer
 	if (effectManager.mEnabled)
 		targetFbo = mEffectFBO.getFbo();
 
+	/* Depth and stencil information is needed in the forward rendering pass (see renderScene).
+	 * Therefore, we need to copy the depth and stencil information created during the deferred
+	 * shader pass into the currently bound fbo. */
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, mDeferredRenderingFBO.getFBO());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFbo);
 	glBlitFramebuffer(
-		0, 0, getScreenWidth(), getScreenHeight(), 0, 0, getScreenWidth(), getScreenHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST
+		0, 0, getScreenWidth(), getScreenHeight(), 0, 0, getScreenWidth(), getScreenHeight(), GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
 	);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	glBindFramebuffer(GL_FRAMEBUFFER, targetFbo);
 
+	// clear the color buffer of the currently bound fbo (can be either effects fbo or default (0) fbo)
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	// we are rendering to a texture now (or screen)
+	// there is no need of using a depth buffer
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
-	mDeferredShader.use();
-	glBindVertexArray(mScreenMesh.mVao);
+
+	// stop writing into the stencil buffer
+	glStencilMask(0);
+	glDisable(GL_STENCIL_TEST);
+
+	// bind texture used by directional and point light passes
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getDiffuseBuffer().getId());
 	glActiveTexture(GL_TEXTURE1);
@@ -309,13 +359,21 @@ void RenderSystem::finalizeDeferredRendering()
 	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getNormalBuffer().getId());
 	glActiveTexture(GL_TEXTURE15);
 	glBindTexture(GL_TEXTURE_2D, mShadowMap.getId());
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 
+	// perform directional light pass (include shadows)
+	directionalLightPass();
+
+	// perform point light pass
+	pointLightPass();
+
+	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
 }
 
 void RenderSystem::finalizeRendering()
 {
+	/* If effects are available draw the scene in a rect
+	* and use the effect shader */
 	if (effectManager.mEnabled) {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
 
@@ -334,8 +392,88 @@ void RenderSystem::finalizeRendering()
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	glDepthMask(GL_TRUE);
 	SDL_GL_SwapWindow(mWindow);
+}
+
+void RenderSystem::stencilPass(int lightIndex, float radius)
+{
+	// different for every sphere
+	glClear(GL_STENCIL_BUFFER_BIT);
+
+	// both faces of the sphere must be rendered
+	glDisable(GL_CULL_FACE);
+	// depth test must be enabled
+	glEnable(GL_DEPTH_TEST);
+
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	// increment if back face of sphere is behind something
+	glStencilOpSeparate(GL_BACK, GL_REPLACE, GL_REPLACE, GL_KEEP);
+	// decrement if front face of sphere is before something
+	glStencilOpSeparate(GL_FRONT, GL_REPLACE, GL_REPLACE, GL_KEEP);
+
+	// do not write this sphere on the color buffer
+	glDrawBuffer(GL_NONE);
+	mPointLightDeferredStencil.use();
+	mPointLightDeferredStencil.setFloat(mPointLightStencilScaleLocation, radius);
+	mPointLightDeferredStencil.setInt(mPointLightStencilLightIndexLocation, lightIndex);
+
+	glBindVertexArray(mPointLightSphere.mVao);
+	glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
+
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+}
+
+void RenderSystem::pointLightPass()
+{
+	glStencilMask(0xFF);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_STENCIL_BUFFER_BIT);
+	glEnable(GL_STENCIL_TEST);
+
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+
+	for (int i = 0; i < mLights.size(); i++) {
+		if (mLights[i]->getComponent<Light>()->type != Light::Type::POINT)
+			continue;
+		float radius = computePointLightRadius(mLights[i]->getComponent<Light>());
+		
+		stencilPass(i, radius);
+
+		glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
+		mPointLightDeferred.use();
+		mPointLightDeferred.setInt(mPointLightDeferredLightIndexLocation, i);
+		glBindVertexArray(mScreenMesh.mVao);
+		glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
+	}
+
+	glDisable(GL_BLEND);
+	glDisable(GL_STENCIL_TEST);
+}
+
+void RenderSystem::directionalLightPass()
+{
+	glBindVertexArray(mScreenMesh.mVao);
+
+	// enable stencil test so that this operation is only carried
+	// out for those pixels actually drawn during deferred rendering
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+	mDirectionalLightDeferred.use();
+
+ 	for (int i = 0; i < mLights.size(); i++) {
+		if (mLights[i]->getComponent<Light>()->type != Light::Type::DIRECTIONAL)
+			continue;
+		mDirectionalLightDeferred.setInt(mDirectionalLightDeferredLightIndexLocation, i);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+	}
+
+	glDisable(GL_STENCIL_TEST);
 }
 
 void RenderSystem::renderShadows()
@@ -381,6 +519,20 @@ void RenderSystem::renderShadows()
 	// Bind texture so that it is available
 	glActiveTexture(GL_TEXTURE15);
 	glBindTexture(GL_TEXTURE_2D, mShadowMap.getId());
+}
+
+float RenderSystem::computePointLightRadius(const std::shared_ptr<Light>& light) const
+{
+	float linear = light->attenuationLinear;
+	float constant = light->attenuationConstant;
+	float quadratic = light->attenuationQuadratic;
+	float lightMax = std::max({ light->diffuseColor.r, light->diffuseColor.g , light->diffuseColor.b,
+		light->specularColor.r, light->specularColor.g, light->specularColor.b });
+	float radius =
+		(-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256.0 / 5.0) * lightMax)))
+		/ (2 * quadratic);
+
+	return radius;
 }
 
 void RenderSystem::addLight(const GameObjectEH& light)
@@ -436,7 +588,11 @@ void RenderSystem::cleanUp()
 	mShadowMapMaterial = nullptr;
 
 	effectManager.cleanUp();
-	mDeferredShader = Shader();
+
+	// cleans shaders
+	mPointLightDeferred = Shader();
+	mPointLightDeferredStencil = Shader();
+	mDirectionalLightDeferred = Shader();
 
     // Destroys the window and quit SDL
     SDL_DestroyWindow(mWindow);
