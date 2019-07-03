@@ -2,22 +2,20 @@
 #include <algorithm>
 #include <sstream>
 
-#include <iostream>
-
-void EffectManager::createShader()
+void EffectManager::createShader(std::vector<std::shared_ptr<Effect>> effects)
 {
 	std::vector<std::string> shaderPaths;
 	shaderPaths.push_back("effects/__postProcessingDeclFS.glsl");
-	std::transform(mEffects.begin(), mEffects.end(), std::back_inserter(shaderPaths), [](auto& elem) { return elem->getEffectPath(); });
+	std::transform(effects.begin(), effects.end(), std::back_inserter(shaderPaths), [](auto& elem) { return elem->getEffectPath(); });
 	shaderPaths.push_back("effects/__postProcessingMainFS.glsl");
 
 	std::vector<std::string> code;
 	std::transform(shaderPaths.begin(), shaderPaths.end(),
 		std::back_inserter(code), [](const auto& path) { return Shader::sourceFromFile(path) + "\n"; }); // add \n to avoid problems with #line
 
-	if (mEffects.size() != 0) {
+	if (effects.size() != 0) {
 		std::stringstream effectCalls;
-		for (const auto& effect : mEffects)
+		for (const auto& effect : effects)
 			effectCalls << "color = " << effect->getName() << "(color);\n";
 
 
@@ -35,27 +33,32 @@ void EffectManager::createShader()
 	mPostProcessingShader.setInt(mPostProcessingShader.getLocationOf("depthTexture", false), 1);
 
 	// call set up phase
-	for (auto& effect : mEffects)
+	for (auto& effect : effects)
 		effect->onSetup(mPostProcessingShader);
+}
+
+void EffectManager::init()
+{
+	createShader({ });
 }
 
 void EffectManager::addEffect(const std::shared_ptr<Effect>& effect)
 {
 	mEffects.push_back(effect);
-
-	createShader();
+	if (mEnabled)
+		createShader(mEffects);
 }
 
 void EffectManager::enableEffects()
 {
-	if (!mPostProcessingShader)
-		createShader();
+	createShader(mEffects);
 	mEnabled = true;
 }
 
 void EffectManager::disableEffects()
 {
 	mEnabled = false;
+	createShader({ });
 }
 
 void EffectManager::cleanUp()

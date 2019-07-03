@@ -88,8 +88,7 @@ int main(int argc, char* argv[]) {
 		bush->transform.scaleBy(glm::vec3{ 0.5f });
 	}
 
-
-	//Engine::renderSys.effectManager.enableEffects();
+	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 	Engine::renderSys.shadowMappingSettings.setShadowStrength(0.3f);
 	Engine::renderSys.shadowMappingSettings.useFastShader = false;

@@ -63,8 +63,6 @@ int main(int argc, char* argv[]) {
     light3->addComponent(std::make_shared<Light>(light3, Light::Type::POINT));
     light3->transform.setPosition(glm::vec3{0.0f, 0.0f, 5.0f});
     Engine::renderSys.addLight(light3);
-	light3->getComponent<Light>()->attenuationLinear = 0.0f;
-	light3->getComponent<Light>()->attenuationQuadratic = 0;
     light3->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light3->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light3->getComponent<Light>()->innerAngle = glm::radians(25.0f);
