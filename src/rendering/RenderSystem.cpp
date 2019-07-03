@@ -34,7 +34,6 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 //	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 //	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
@@ -58,9 +57,12 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     initGL(width, height, fovy, nearPlane, farPlane);
 	initDeferredRendering();
 	mEffectFBO.init(width, height);
+	effectManager.init();
 	initShadowFbo();
 	fogSettings.init();
 	shadowMappingSettings.init();
+
+	
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -316,24 +318,16 @@ void RenderSystem::render(RenderPhase phase)
 
 void RenderSystem::finalizeDeferredRendering()
 {
-	/* Binds the correct fbo. If effects are enabled we have to render
-	 * to the effect fbo so that we can access the rendered scene and
-	 * provide it to the effect shaders. If effects are not enabled, the
-	 * default fbo  (0) is bound */
-	std::uint32_t targetFbo = 0; // default frame buffer
-	if (effectManager.mEnabled)
-		targetFbo = mEffectFBO.getFbo();
-
 	/* Depth and stencil information is needed in the forward rendering pass (see renderScene).
 	 * Therefore, we need to copy the depth and stencil information created during the deferred
 	 * shader pass into the currently bound fbo. */
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, mDeferredRenderingFBO.getFBO());
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFbo);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mEffectFBO.getFbo());
 	glBlitFramebuffer(
 		0, 0, getScreenWidth(), getScreenHeight(), 0, 0, getScreenWidth(), getScreenHeight(), GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
 	);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, targetFbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, mEffectFBO.getFbo());
 
 	// clear the color buffer of the currently bound fbo (can be either effects fbo or default (0) fbo)
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -372,25 +366,21 @@ void RenderSystem::finalizeDeferredRendering()
 
 void RenderSystem::finalizeRendering()
 {
-	/* If effects are available draw the scene in a rect
-	* and use the effect shader */
-	if (effectManager.mEnabled) {
-		glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
 
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDisable(GL_DEPTH_TEST);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
 
-		effectManager.mPostProcessingShader.use();
-		glBindVertexArray(mScreenMesh.mVao);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mEffectFBO.getColorBuffer().getId());
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, mEffectFBO.getDepthBuffer().getId());
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+	effectManager.mPostProcessingShader.use();
+	glBindVertexArray(mScreenMesh.mVao);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mEffectFBO.getColorBuffer().getId());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mEffectFBO.getDepthBuffer().getId());
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 
-		glEnable(GL_DEPTH_TEST);
-	}
+	glEnable(GL_DEPTH_TEST);
 
 	SDL_GL_SwapWindow(mWindow);
 }
@@ -440,7 +430,7 @@ void RenderSystem::pointLightPass()
 		if (mLights[i]->getComponent<Light>()->type != Light::Type::POINT)
 			continue;
 		float radius = computePointLightRadius(mLights[i]->getComponent<Light>());
-		
+
 		stencilPass(i, radius);
 
 		glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
@@ -528,9 +518,7 @@ float RenderSystem::computePointLightRadius(const std::shared_ptr<Light>& light)
 	float quadratic = light->attenuationQuadratic;
 	float lightMax = std::max({ light->diffuseColor.r, light->diffuseColor.g , light->diffuseColor.b,
 		light->specularColor.r, light->specularColor.g, light->specularColor.b });
-	float radius =
-		(-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256.0 / 5.0) * lightMax)))
-		/ (2 * quadratic);
+	float radius = (-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256.0 / 5.0) * lightMax))) / (2 * quadratic);
 
 	return radius;
 }

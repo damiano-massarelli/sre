@@ -17,10 +17,12 @@ private:
 
 	std::vector<std::shared_ptr<Effect>> mEffects;
 
-	void createShader();
+	void createShader(std::vector<std::shared_ptr<Effect>> effects);
 
 public:
 	EffectManager() = default;
+
+	void init();
 
 	void addEffect(const std::shared_ptr<Effect>& effect);
 
