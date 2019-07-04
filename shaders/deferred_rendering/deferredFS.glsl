@@ -41,5 +41,5 @@ void main() {
 	// apply fog
 	color = fogger(color, distance(cameraPosition, position));
 
-    FragColor = vec4(color, 1.0) * diffuseSample.a;
+    FragColor = vec4(color, 1.0);
 }

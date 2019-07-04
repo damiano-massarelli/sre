@@ -24,7 +24,7 @@
 int main(int argc, char* argv[]) {
     Engine::init();
 
-    Engine::renderSys.createWindow(1280, 720);
+    Engine::renderSys.createWindow(1920, 1080);
 
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";

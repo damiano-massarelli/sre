@@ -30,6 +30,8 @@ public:
 
 	void disableEffects();
 
+	void update();
+
 	void cleanUp();
 };
 

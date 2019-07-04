@@ -15,6 +15,9 @@ private:
 	Texture mNormalBuffer;
 	Texture mDepthBuffer;
 
+	std::uint32_t mWidth = 0;
+	std::uint32_t mHeight = 0;
+
 public:
 	DeferredRenderingFBO() = default;
 
@@ -31,6 +34,10 @@ public:
 	const Texture& getNormalBuffer() const;
 
 	const Texture& getDepthBuffer() const;
+
+	std::uint32_t getWidth() const;
+
+	std::uint32_t getHeight() const;
 
 	~DeferredRenderingFBO();
 };

@@ -61,6 +61,16 @@ void EffectManager::disableEffects()
 	createShader({ });
 }
 
+void EffectManager::update()
+{
+	if (!mEnabled)
+		return;
+
+	mPostProcessingShader.use();
+	for (auto& effect : mEffects)
+		effect->update(mPostProcessingShader);
+}
+
 void EffectManager::cleanUp()
 {
 	mPostProcessingShader = Shader();

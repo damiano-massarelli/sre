@@ -53,8 +53,6 @@ private:
 	// used for rendering meshes for shadow mapping
 	MaterialPtr mShadowMapMaterial;
 
-	/** fbo used for deferred rendering */
-	DeferredRenderingFBO mDeferredRenderingFBO;
 	/** Shaders used to render with deferred rendering */
 	Shader mDirectionalLightDeferred; // shader used to do directional lighting
 	std::uint32_t mDirectionalLightDeferredLightIndexLocation = 0;
@@ -141,6 +139,9 @@ public:
 	static constexpr std::uint32_t FOG_UNIFORM_BLOCK_INDEX = 3;
 
 	static constexpr std::uint32_t SHADOWMAP_UNIFORM_BLOCK_INDEX = 4;
+
+	/** fbo used for deferred rendering */
+	DeferredRenderingFBO deferredRenderingFBO;
 
 	/** settings for shadow mapping */
 	ShadowMappingSettings shadowMappingSettings;

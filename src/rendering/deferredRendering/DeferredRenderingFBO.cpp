@@ -3,6 +3,9 @@
 
 void DeferredRenderingFBO::init(std::uint32_t width, std::uint32_t height)
 {
+	mWidth = width;
+	mHeight = height;
+
 	mDiffuseBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA);
 	mSpecularBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
 	mPositionBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGB, GL_FLOAT, GL_RGB16F);
@@ -54,6 +57,16 @@ const Texture& DeferredRenderingFBO::getNormalBuffer() const
 const Texture& DeferredRenderingFBO::getDepthBuffer() const
 {
 	return mDepthBuffer;
+}
+
+std::uint32_t DeferredRenderingFBO::getWidth() const
+{
+	return mWidth;
+}
+
+std::uint32_t DeferredRenderingFBO::getHeight() const
+{
+	return mHeight;
 }
 
 DeferredRenderingFBO::~DeferredRenderingFBO()
