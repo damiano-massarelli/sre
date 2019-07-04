@@ -61,8 +61,6 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 	initShadowFbo();
 	fogSettings.init();
 	shadowMappingSettings.init();
-
-	
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -118,7 +116,7 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
 
 void RenderSystem::initDeferredRendering()
 {
-	mDeferredRenderingFBO.init(getScreenWidth(), getScreenHeight());
+	deferredRenderingFBO.init(getScreenWidth(), getScreenHeight());
 
 	mDirectionalLightDeferred = Shader::loadFromFile({ "shaders/deferred_rendering/directionalLightVS.glsl" },
 		std::vector<std::string>{},
@@ -271,7 +269,7 @@ void RenderSystem::prepareDeferredRendering()
 	glEnable(GL_DEPTH_TEST);
 
 	// bind the deferred rendering frame buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, mDeferredRenderingFBO.getFBO());
+	glBindFramebuffer(GL_FRAMEBUFFER, deferredRenderingFBO.getFBO());
 
 	// set up the stencil test so that only the parts affected by deferred rendering
 	// are actually lit in the deferred rendering directional light pass pass
@@ -321,10 +319,11 @@ void RenderSystem::finalizeDeferredRendering()
 	/* Depth and stencil information is needed in the forward rendering pass (see renderScene).
 	 * Therefore, we need to copy the depth and stencil information created during the deferred
 	 * shader pass into the currently bound fbo. */
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, mDeferredRenderingFBO.getFBO());
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, deferredRenderingFBO.getFBO());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mEffectFBO.getFbo());
 	glBlitFramebuffer(
-		0, 0, getScreenWidth(), getScreenHeight(), 0, 0, getScreenWidth(), getScreenHeight(), GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
+		0, 0, deferredRenderingFBO.getWidth(), deferredRenderingFBO.getHeight(), 0, 0, getScreenWidth(), getScreenHeight(),
+		GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
 	);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, mEffectFBO.getFbo());
@@ -344,13 +343,13 @@ void RenderSystem::finalizeDeferredRendering()
 
 	// bind texture used by directional and point light passes
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getDiffuseBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getDiffuseBuffer().getId());
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getSpecularBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getSpecularBuffer().getId());
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getPositionBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getPositionBuffer().getId());
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, mDeferredRenderingFBO.getNormalBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getNormalBuffer().getId());
 	glActiveTexture(GL_TEXTURE15);
 	glBindTexture(GL_TEXTURE_2D, mShadowMap.getId());
 
@@ -373,6 +372,7 @@ void RenderSystem::finalizeRendering()
 	glDisable(GL_DEPTH_TEST);
 
 	effectManager.mPostProcessingShader.use();
+	effectManager.update();
 	glBindVertexArray(mScreenMesh.mVao);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mEffectFBO.getColorBuffer().getId());
