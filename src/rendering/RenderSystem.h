@@ -16,162 +16,162 @@
 #include <SDL.h>
 #include <glm/gtx/quaternion.hpp>
 
+#include "RenderTarget.h"
+
 /** The master renderer.
   * The master renderer manages all rendering settings
   * global for all renderers */
 class RenderSystem
 {
-    friend class Engine;
+friend class Engine;
 
-    private:
-        SDL_Window* mWindow = nullptr;
+private:
+    SDL_Window* mWindow = nullptr;
 
-        glm::mat4 mProjection{1.0f};
+    glm::mat4 mProjection{1.0f};
 
-		glm::mat4 mInvertView;
+	glm::mat4 mInvertView;
 
-        /** reference for the common matrix ubo */
-        std::uint32_t mUboCommonMat;
+    /** reference for the common matrix ubo */
+    std::uint32_t mUboCommonMat;
 
-        /** reference for the lights ubo */
-        std::uint32_t mUboLights;
+    /** reference for the lights ubo */
+    std::uint32_t mUboLights;
 
-        /** reference for camera ubo */
-        std::uint32_t mUboCamera;
+    /** reference for camera ubo */
+    std::uint32_t mUboCamera;
 
-		/** reference to screen frame buffer */
-		std::uint32_t mScreenFbo;
-		Texture mColorBuffer;
-		Texture mDepthBuffer;
-		Mesh mScreenMesh;
+	/** reference to screen frame buffer */
+	RenderTarget effectsTarget;
+	Mesh mScreenMesh;
 
-		/** reference to shadow map frame buffer */
-		std::uint32_t mShadowFbo;
-		Texture mShadowMap;
-		// used for rendering meshes for shadow mapping
-		MaterialPtr mShadowMapMaterial;
+	/** reference to shadow map frame buffer */
+	std::uint32_t mShadowFbo;
+	Texture mShadowMap;
+	// used for rendering meshes for shadow mapping
+	MaterialPtr mShadowMapMaterial;
 
-		/** near and far clipping planes */
-		float mNearPlane = 0.0f;
-		float mFarPlane = 0.0f;
-		float mVerticalFov = 0.0f;
+	/** near and far clipping planes */
+	float mNearPlane = 0.0f;
+	float mFarPlane = 0.0f;
+	float mVerticalFov = 0.0f;
 
-        std::vector<GameObjectEH> mLights;
+    std::vector<GameObjectEH> mLights;
 
-		/** Current rendering phase */
-		RenderPhase mRenderPhase;
+	/** Current rendering phase */
+	RenderPhase mRenderPhase;
 
-        void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
+    void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
 
-		void initScreenFbo();
+	void initScreenFbo();
 
-		void initShadowFbo();
+	void initShadowFbo();
 
-        /** Updates the lights ubo */
-        void updateLights();
+    /** Updates the lights ubo */
+    void updateLights();
 
-        /** Updates the camera ubo */
-        void updateCamera();
+    /** Updates the camera ubo */
+    void updateCamera();
 
-		
+    /** Performs all operations needed by rendering */
+    void prepareRendering(const RenderTarget* target);
 
-        /** Performs all operations needed by rendering */
-        void prepareRendering();
+	/** Calls rendering submodules to perform rendering */
+	void render(RenderPhase phase = RenderPhase::NORMAL);
 
-		/** Calls rendering submodules to perform rendering */
-		void render(RenderPhase phase = RenderPhase::NORMAL);
+    /** Performs all operations needed to finalize rendering: blitting to screen */
+    void finalizeRendering();
 
-        /** Performs all operations needed to finalize rendering: blitting to screen */
-        void finalizeRendering();
+	/** Performs shadow mapping */
+	void renderShadows();
 
-		/** Performs shadow mapping */
-		void renderShadows();
+    // private constructor, only the engine can create a render system
+    RenderSystem();
 
-        // private constructor, only the engine can create a render system
-        RenderSystem();
+	void cleanUp();
 
-		void cleanUp();
+public:
+    /** Creates a new window */
+    void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 400.0f);
 
-    public:
-        /** Creates a new window */
-        void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 400.0f);
+    /** Maximum number of lights */
+    static constexpr std::size_t MAX_LIGHT_NUMBER = 10;
 
-        /** Maximum number of lights */
-        static constexpr std::size_t MAX_LIGHT_NUMBER = 10;
+    /** The index of the common matrices uniform block */
+    static constexpr std::uint32_t COMMON_MAT_UNIFORM_BLOCK_INDEX = 0;
 
-        /** The index of the common matrices uniform block */
-        static constexpr std::uint32_t COMMON_MAT_UNIFORM_BLOCK_INDEX = 0;
+    /** The index of uniform block used for lights */
+    static constexpr std::uint32_t LIGHT_UNIFORM_BLOCK_INDEX = 1;
 
-        /** The index of uniform block used for lights */
-        static constexpr std::uint32_t LIGHT_UNIFORM_BLOCK_INDEX = 1;
+    /** The index of uniform block used for lights */
+    static constexpr std::uint32_t CAMERA_UNIFORM_BLOCK_INDEX = 2;
 
-        /** The index of uniform block used for lights */
-        static constexpr std::uint32_t CAMERA_UNIFORM_BLOCK_INDEX = 2;
+	static constexpr std::uint32_t FOG_UNIFORM_BLOCK_INDEX = 3;
 
-		static constexpr std::uint32_t FOG_UNIFORM_BLOCK_INDEX = 3;
+	static constexpr std::uint32_t SHADOWMAP_UNIFORM_BLOCK_INDEX = 4;
 
-		static constexpr std::uint32_t SHADOWMAP_UNIFORM_BLOCK_INDEX = 4;
+	/** settings for shadow mapping */
+	ShadowMappingSettings shadowMappingSettings;
 
-		/** settings for shadow mapping */
-		ShadowMappingSettings shadowMappingSettings;
+	/** settings for fog */
+	FogSettings fogSettings;
 
-		/** settings for fog */
-		FogSettings fogSettings;
+    /** The camera used for rendering */
+    GameObjectEH camera;
 
-        /** The camera used for rendering */
-        GameObjectEH camera;
+	/** The effect manager handles post processing effects */
+	EffectManager effectManager;
 
-		/** The effect manager handles post processing effects */
-		EffectManager effectManager;
+public:
+    // Cannot copy this system, only the engine has an instance
+    RenderSystem(const RenderSystem& rs) = delete;
+    RenderSystem& operator=(const RenderSystem& rs) = delete;
 
-    public:
-        // Cannot copy this system, only the engine has an instance
-        RenderSystem(const RenderSystem& rs) = delete;
-        RenderSystem& operator=(const RenderSystem& rs) = delete;
+	void renderScene(RenderPhase phase, const RenderTarget* target = nullptr);
 
-        /**
-          * Adds a light to the scene
-          * if the GameObject does not have a Light component it is silently
-          * discarded.
-          * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
-          */
-        void addLight(const GameObjectEH& light);
+    /**
+        * Adds a light to the scene
+        * if the GameObject does not have a Light component it is silently
+        * discarded.
+        * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
+        */
+    void addLight(const GameObjectEH& light);
 
-		/**
-		 * @return the width of the current window
-		 */
-		std::int32_t getScreenWidth() const;
+	/**
+		* @return the width of the current window
+		*/
+	std::int32_t getScreenWidth() const;
 
-		/**
-		 * @return the height of the current window
-		 */
-		std::int32_t getScreenHeight() const;
+	/**
+		* @return the height of the current window
+		*/
+	std::int32_t getScreenHeight() const;
 
-		/**
-		 * @return the near clipping plane distance
-		 */
-		float getNearPlane() const;
+	/**
+		* @return the near clipping plane distance
+		*/
+	float getNearPlane() const;
 
-		/**
-		 * @return the far clipping plane distance
-		 */
-		float getFarPlane() const;
+	/**
+		* @return the far clipping plane distance
+		*/
+	float getFarPlane() const;
 
-		float getVerticalFov() const;
+	float getVerticalFov() const;
 
-		/**
-		 * @return the current rendering pahse
-		 * @sa RenderPhase
-		 */
-		RenderPhase getRenderPhase() const;
+	/**
+		* @return the current rendering pahse
+		* @sa RenderPhase
+		*/
+	RenderPhase getRenderPhase() const;
 
-		/**
-		 * Returns the view matrix for a certain transform.
-		 * The actual matrix is multiplied by mInvertView
-		 */
-		glm::mat4 getViewMatrix(const Transform& transform);
+	/**
+		* Returns the view matrix for a certain transform.
+		* The actual matrix is multiplied by mInvertView
+		*/
+	glm::mat4 getViewMatrix(const Transform& transform);
 
-		virtual ~RenderSystem() = default;
+	virtual ~RenderSystem() = default;
 };
 
 #endif // RENDERSYSTEM_H

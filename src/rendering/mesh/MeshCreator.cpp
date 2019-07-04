@@ -96,7 +96,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
         float x = radius * std::cos(slice * i);
         float z = radius * std::sin(slice * i);
 
-        positions.insert(positions.end(), {x, -1.0f, z});
+        positions.insert(positions.end(), {x, -.5f, z});
 
         normals.insert(normals.end(), {0.0f, -1.0f, 0.0f});
 
@@ -110,7 +110,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 
     }
 
-    positions.insert(positions.end(), {0.0f, -1.0f, 0.0f});
+    positions.insert(positions.end(), {0.0f, -.5f, 0.0f});
     normals.insert(normals.end(), {0.0f, -1.0f, 0.0f});
     uvs.insert(uvs.end(), {0.5f, 0.5f});
 
@@ -121,7 +121,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
         float x = radius * std::cos(slice * i);
         float z = radius * std::sin(slice * i);
 
-        positions.insert(positions.end(), {x, 1.0f, z});
+        positions.insert(positions.end(), {x, .5f, z});
 
         normals.insert(normals.end(), {0.0f, 1.0f, 0.0f});
 
@@ -134,7 +134,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
                        });
     }
 
-    positions.insert(positions.end(), {0.0f, 1.0f, 0.0f});
+    positions.insert(positions.end(), {0.0f, .5f, 0.0f});
     normals.insert(normals.end(), {0.0f, 1.0f, 0.0f});
     uvs.insert(uvs.end(), {0.5f, 0.5f});
 
@@ -146,8 +146,8 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
         float x = radius * cos;
         float z = radius * sin;
 
-        positions.insert(positions.end(), {x, 1.0f, z});
-        positions.insert(positions.end(), {x, -1.0f, z});
+        positions.insert(positions.end(), {x, .5f, z});
+        positions.insert(positions.end(), {x, -.5f, z});
 
         normals.insert(normals.end(), {cos, 0.0f, sin});
         normals.insert(normals.end(), {cos, 0.0f, sin});
@@ -169,7 +169,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 
     }
 
-    positions.insert(positions.end(), {0.0f, -1.0f, 0.0f});
+    positions.insert(positions.end(), {0.0f, -.5f, 0.0f});
     normals.insert(normals.end(), {0.0f, 1.0f, 0.0f});
 
     MeshLoader loader;
@@ -194,7 +194,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
         float x = radius * std::cos(slice * i);
         float z = radius * std::sin(slice * i);
 
-        positions.insert(positions.end(), {x, -1.0f, z});
+        positions.insert(positions.end(), {x, -.5f, z});
 
         normals.insert(normals.end(), {0.0f, -1.0f, 0.0f});
 
@@ -208,7 +208,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
 
     }
 
-    positions.insert(positions.end(), {0.0f, -1.0f, 0.0f});
+    positions.insert(positions.end(), {0.0f, -.5f, 0.0f});
     normals.insert(normals.end(), {0.0f, -1.0f, 0.0f});
     uvs.insert(uvs.end(), {0.5f, 0.5f});
 
@@ -222,7 +222,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
         float x = radius * cos;
         float z = radius * sin;
 
-        positions.insert(positions.end(), {x, -1.0f, z});
+        positions.insert(positions.end(), {x, -.5f, z});
 
         glm::vec3 normal{cos, bodyNormalY, sin};
         normal = glm::normalize(normal);
@@ -240,7 +240,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
     }
 
     // top vertex
-    positions.insert(positions.end(), {0.0f, 1.0f, 0.0f});
+    positions.insert(positions.end(), {0.0f, .5f, 0.0f});
     normals.insert(normals.end(), {0.0f, 1.0f, 0.0f});
     uvs.insert(uvs.end(), {0.5f, 0.5f});
 
@@ -298,5 +298,42 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
     loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
 
     return loader.getMesh(0, indices.size());
+}
+
+Mesh MeshCreator::plane()
+{
+	std::vector<float> positions{
+		.5f,  0.0f,  .5f, 
+		.5f,  0.0f, -.5f, 
+		-.5f,  0.0f, -.5f,
+		-.5f,  0.0f,  .5f,
+	};
+
+	std::vector<float> uvs{
+		 1.0f,  0.0f,
+		 1.0f,  1.0f,
+		 0.0f,  1.0f,
+		 0.0f,  0.0f
+	};
+
+	std::vector <float> normals{
+		 0.0f,  1.0f,  0.0f,
+		 0.0f,  1.0f,  0.0f,
+		 0.0f,  1.0f,  0.0f,
+		 0.0f,  1.0f,  0.0f,
+	};
+
+	std::vector<std::uint32_t> indices{
+		0, 1, 2,
+		3, 0, 2
+	};
+
+	MeshLoader loader;
+	loader.loadData(positions.data(), positions.size(), 3);
+	loader.loadData(normals.data(), normals.size(), 3);
+	loader.loadData(uvs.data(), uvs.size(), 2);
+	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
+
+	return loader.getMesh(0, indices.size());
 }
 

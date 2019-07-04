@@ -33,7 +33,7 @@ layout (std140) uniform Camera {
 
 void main() {
 	vec4 sampledDiffuseColor = texture(material.diffuse, texCoord);
-	if (material.opacity == 0.0f || sampledDiffuseColor.a < 0.01) discard;
+	if (material.opacity == 0.0f || sampledDiffuseColor.a < 0.5) discard;
 
     vec3 diffuseColor = material.diffuseColor;
     if (material.useDiffuseMap)

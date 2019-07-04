@@ -14,13 +14,14 @@
 #include "FXAA.h"
 #include "MultiTextureBlinnPhongMaterial.h"
 #include "ShadowOnVisibleSceneComponent.h"
+#include "WaterMaterial.h"
 
 #include <runTest.h>
 
 #include <iostream>
 #include <stdlib.h>
 
-#ifdef multipleTextureBlinn 
+#ifdef waterTest
 int main(int argc, char* argv[]) {
     Engine::init();
 
@@ -34,6 +35,10 @@ int main(int argc, char* argv[]) {
     auto cam = std::make_shared<FreeCameraComponent>(camera);
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
+
+	auto water = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), std::make_shared<WaterMaterial>());
+	water->transform.moveBy(glm::vec3{ 25, -5, -15 });
+	water->transform.scaleBy(glm::vec3{ 60.0f });
 
     auto skyTexture = Texture::loadCubamapFromFile({
                     {"front", "test_data/skybox/front.tga"},

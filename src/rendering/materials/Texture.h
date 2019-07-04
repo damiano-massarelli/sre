@@ -66,7 +66,7 @@ class Texture {
 		 * @param type the type of data stored in the texture
 		 */
 		static Texture load(std::uint8_t* data, int width, int height,
-			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, bool mipmap = true, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE);
+			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, bool mipmap = true, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE, int internalFormat = GL_REPEAT);
 
         /**
           * Loads a cubmap from file.
@@ -82,7 +82,7 @@ class Texture {
         /**
           * Returns the texture id for this texture.
           * Needed for rendering */
-        std::uint32_t getId();
+        std::uint32_t getId() const;
 
         /**
           * Checks whether this is a valid (usable) texture

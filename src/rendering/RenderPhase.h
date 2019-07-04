@@ -12,5 +12,6 @@
 enum RenderPhase {
 	NORMAL				= 1 << 0,
 	SHADOW_MAPPING		= 1 << 1,
+	WATER				= 1 << 2,
 	ALL					= ~0
 };
