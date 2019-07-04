@@ -104,13 +104,15 @@ Texture Texture::loadCubamapFromFile(const std::map<std::string, std::string>& p
     return Texture{cubemap};
 }
 
-Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int wrapT, bool mipmap, int format, int type)
+Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int wrapT, bool mipmap, int format, int type, int internalFormat)
 {
     std::uint32_t texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, type, data);
+	if (internalFormat == GL_REPEAT) internalFormat = format;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	if (mipmap) {
@@ -141,7 +143,7 @@ Texture::Texture(std::uint32_t id) : mTextureId{id}
 
 }
 
-uint32_t Texture::getId()
+uint32_t Texture::getId() const
 {
     return mTextureId;
 }

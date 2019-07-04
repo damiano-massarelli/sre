@@ -46,9 +46,7 @@ void Engine::start()
         eventManager.pushEnterFrameEvent(&elapsedSec);
         eventManager.dispatchEvents();
 
-        renderSys.prepareRendering();
-		renderSys.render();
-        renderSys.finalizeRendering();
+		renderSys.renderScene(RenderPhase::NORMAL);
     }
 
 	renderSys.cleanUp();

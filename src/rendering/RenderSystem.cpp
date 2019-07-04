@@ -115,18 +115,7 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
 
 void RenderSystem::initScreenFbo()
 {
-	mColorBuffer = Texture::load(nullptr, getScreenWidth(), getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_RGB);
-	mDepthBuffer = Texture::load(nullptr, getScreenWidth(), getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_DEPTH_COMPONENT, GL_FLOAT);
-
-	glGenFramebuffers(1, &mScreenFbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, mScreenFbo);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mColorBuffer.getId(), 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthBuffer.getId(), 0);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "Render to texture frame buffer is incomplete\n";
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	effectsTarget.create(getScreenWidth(), getScreenHeight());
 
 	MeshLoader loader;
 	float verts[]{ -1, -1, -1, 1, 1, 1, 1, -1 };
@@ -228,33 +217,29 @@ glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
 	return mInvertView * view;
 }
 
-#include <SDL.h>
-void RenderSystem::prepareRendering()
+void RenderSystem::prepareRendering(const RenderTarget* target)
 {
 	if (shadowMappingSettings.getShadowStrength() != 0.0f)
 		renderShadows();
 
-	glViewport(0, 0, getScreenWidth(), getScreenHeight());
-
+	std::uint32_t width = getScreenWidth();
+	std::uint32_t height = getScreenHeight();
 	glEnable(GL_DEPTH_TEST);
-	if (effectManager.mEnabled)
-		glBindFramebuffer(GL_FRAMEBUFFER, mScreenFbo);
+	if (target) {
+		glBindFramebuffer(GL_FRAMEBUFFER, target->getFbo());
+		width = target->getWidth();
+		height = target->getHeight();
+	}
+
+	glViewport(0, 0, width, height);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	Transform fromUp;
-	fromUp.setRotation(glm::angleAxis(glm::radians(90.0f), glm::vec3{ 1, 0, 0 }));
-	fromUp.setPosition(glm::vec3{ 0, 100, 0 });
     /* Camera calculations */
-    glm::mat4 view = glm::mat4{1.0f};
-	if (camera) {
-		if (SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE])
-			view = getViewMatrix(fromUp);
-		else
-			view = getViewMatrix(camera->transform);
-
-	}
+    glm::mat4 view = glm::mat4{ 1.0f };
+	if (camera) 
+		view = getViewMatrix(camera->transform);
 
     /* Sets the camera matrix to a UBO so that it is shared */
 	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
@@ -278,15 +263,18 @@ void RenderSystem::finalizeRendering()
 		// unbind frame buffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		// restore viewport for the screen
+		glViewport(0, 0, getScreenWidth(), getScreenHeight());
+
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_DEPTH_TEST);
 		effectManager.mPostProcessingShader.use();
 		glBindVertexArray(mScreenMesh.mVao);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mColorBuffer.getId());
+		glBindTexture(GL_TEXTURE_2D, effectsTarget.getColorBuffer().getId());
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, mDepthBuffer.getId());
+		glBindTexture(GL_TEXTURE_2D, effectsTarget.getDepthBuffer().getId());
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 		glEnable(GL_DEPTH_TEST);
 	}
@@ -338,6 +326,21 @@ void RenderSystem::renderShadows()
 	glBindTexture(GL_TEXTURE_2D, mShadowMap.getId());
 }
 
+void RenderSystem::renderScene(RenderPhase phase, const RenderTarget* target /*= nullptr*/)
+{
+	/* If effects are enabled and no target is specified
+	 * use the effect target */
+	auto targetToUse = target;
+	if (target == nullptr && effectManager.mEnabled)
+		targetToUse = &effectsTarget;
+
+	prepareRendering(targetToUse);
+	render(phase);
+
+	if (target == nullptr)
+		finalizeRendering();
+}
+
 void RenderSystem::addLight(const GameObjectEH& light)
 {
     if (light->getComponent<Light>() == nullptr) {
@@ -387,7 +390,6 @@ void RenderSystem::cleanUp()
     // Delete uniform buffers
     glDeleteBuffers(1, &mUboCommonMat);
     glDeleteBuffers(1, &mUboLights);
-	glDeleteFramebuffers(1, &mScreenFbo);
 	glDeleteFramebuffers(1, &mShadowFbo);
 	mShadowMapMaterial = nullptr;
 
