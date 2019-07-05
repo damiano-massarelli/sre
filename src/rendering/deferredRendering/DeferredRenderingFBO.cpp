@@ -34,6 +34,12 @@ std::uint32_t DeferredRenderingFBO::getFBO() const
 	return mFbo;
 }
 
+void DeferredRenderingFBO::resize(std::uint32_t width, std::uint32_t height)
+{
+	glDeleteFramebuffers(1, &mFbo);
+	init(width, height);
+}
+
 const Texture& DeferredRenderingFBO::getDiffuseBuffer() const
 {
 	return mDiffuseBuffer;

@@ -1,4 +1,4 @@
-layout (location = 0) out vec3 FragColor;
+layout (location = 0) out vec4 FragColor;
 
 uniform samplerCube cubemap;
 
@@ -14,5 +14,5 @@ void main() {
 	fogFactor = clamp(fogFactor, 0.0, 1.0);
 
 	
-	FragColor = mix(_fogColor, color, fogFactor);
+	FragColor = vec4(mix(_fogColor, color, fogFactor), 1.0);
 }

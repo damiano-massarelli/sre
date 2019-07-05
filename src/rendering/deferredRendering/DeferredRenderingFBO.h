@@ -25,6 +25,8 @@ public:
 
 	std::uint32_t getFBO() const;
 
+	void resize(std::uint32_t width, std::uint32_t height);
+
 	const Texture& getDiffuseBuffer() const;
 
 	const Texture& getSpecularBuffer() const;

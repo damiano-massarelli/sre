@@ -13,6 +13,7 @@
 #include "DeferredRenderingFBO.h"
 #include "EffectsFBO.h"
 #include "Light.h"
+#include "RenderTarget.h"
 #include <cstdint>
 #include <vector>
 #include <glad/glad.h>
@@ -64,9 +65,8 @@ private:
 	Shader mPointLightDeferred; // shader used to do point light
 	std::uint32_t mPointLightDeferredLightIndexLocation = 0;
 
-
 	/** fbo used to render effects */
-	EffectsFBO mEffectFBO;
+	RenderTarget mEffectTarget;
 
 	/** near and far clipping planes */
 	float mNearPlane = 0.0f;
@@ -76,7 +76,7 @@ private:
     std::vector<GameObjectEH> mLights;
 
 	/** Current rendering phase */
-	RenderPhase mRenderPhase;
+	int mRenderPhase;
 
     void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
 
@@ -91,16 +91,13 @@ private:
     void updateCamera();
 
     /** Performs all operations needed by rendering */
-    void prepareDeferredRendering();
-
-	/** Performs deferred and forward rendering */
-	void renderScene();
+    void prepareDeferredRendering(const RenderTarget* target);
 
 	/** Calls rendering submodules to perform rendering */
-	void render(RenderPhase phase);
+	void render(int phase);
 
     /** Performs all operations needed to finalize deferred rendering: combine g-buffer data */
-    void finalizeDeferredRendering();
+    void finalizeDeferredRendering(const RenderTarget* target);
 
 	void finalizeRendering();
 
@@ -191,16 +188,29 @@ public:
 	float getVerticalFov() const;
 
 	/**
-		* @return the current rendering phase
-		* @see RenderPhase
-		*/
-	RenderPhase getRenderPhase() const;
+	  * @return the current rendering phase
+	  * @see RenderPhase
+	  */
+	int getRenderPhase() const;
+
+	/** 
+	 * Render the current scene.
+	 * @param renderTarget the target onto which the scene is rendered. if nullptr the screen is used.
+	 * @param phase specifies which render phase to use
+	 */
+	void renderScene(const RenderTarget* target = nullptr, RenderPhase phase = RenderPhase::NONE);
 
 	/**
-		* Returns the view matrix for a certain transform.
-		* The actual matrix is multiplied by mInvertView
-		*/
+	  * Returns the view matrix for a certain transform.
+	  * The actual matrix is multiplied by mInvertView
+	  */
 	glm::mat4 getViewMatrix(const Transform& transform);
+
+	void enableClipPlane() const;
+
+	void disableClipPlane() const;
+
+	void setClipPlane(const glm::vec4& clipPlane) const;
 
 	virtual ~RenderSystem() = default;
 };

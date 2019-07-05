@@ -14,4 +14,5 @@
 //#define skeletralAnimation
 //#define bumpMapping 
 //#define parallaxMapping 
-#define multipleTextureBlinn 
+//#define multipleTextureBlinn 
+#define waterTest 
