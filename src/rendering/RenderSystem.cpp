@@ -56,7 +56,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 
     initGL(width, height, fovy, nearPlane, farPlane);
 	initDeferredRendering();
-	mEffectFBO.init(width, height);
+	mEffectTarget.create(1280, 720);
 	effectManager.init();
 	initShadowFbo();
 	fogSettings.init();
@@ -79,8 +79,8 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     /* Uniform buffer object set up for common matrices */
     glGenBuffers(1, &mUboCommonMat);
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-	// 3 matrices, view projection and shadow mapping projection
-    glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
+	// 3 matrices, view projection and shadow mapping projection and a vec4 for the clipping plane
+    glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4) + sizeof(glm::vec4), nullptr, GL_STATIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, COMMON_MAT_UNIFORM_BLOCK_INDEX, mUboCommonMat);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -259,13 +259,13 @@ glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
 	return mInvertView * view;
 }
 
-void RenderSystem::prepareDeferredRendering()
+void RenderSystem::prepareDeferredRendering(const RenderTarget* target)
 {
 	if (shadowMappingSettings.getShadowStrength() != 0.0f)
 		renderShadows();
 
 	// view port might be changed during shadow rendering
-	glViewport(0, 0, getScreenWidth(), getScreenHeight());
+	glViewport(0, 0, target->getWidth(), target->getHeight());
 	glEnable(GL_DEPTH_TEST);
 
 	// bind the deferred rendering frame buffer
@@ -298,35 +298,45 @@ void RenderSystem::prepareDeferredRendering()
     updateCamera();
 }
 
-void RenderSystem::renderScene()
+void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
 {
-	prepareDeferredRendering();
-	render(RenderPhase::DEFERRED_RENDERING);
-	finalizeDeferredRendering();
+	auto targetToUse = target;
+	if (target == nullptr) // target null means render to screen
+		targetToUse = &mEffectTarget;
 
-	render(RenderPhase::FORWARD_RENDERING);
-	finalizeRendering();
+	prepareDeferredRendering(targetToUse);
+	glDisable(GL_BLEND);
+	render(RenderPhase::DEFERRED_RENDERING | phase);
+	finalizeDeferredRendering(targetToUse);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	render(RenderPhase::FORWARD_RENDERING | phase);
+
+	// render to screen only if no target specified
+	if (target == nullptr)
+		finalizeRendering();
 }
 
-void RenderSystem::render(RenderPhase phase)
+void RenderSystem::render(int phase)
 {
 	mRenderPhase = phase;
 	Engine::gameObjectRenderer.render(Engine::gameObjectManager.getGameObjects());
 }
 
-void RenderSystem::finalizeDeferredRendering()
+void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 {
 	/* Depth and stencil information is needed in the forward rendering pass (see renderScene).
 	 * Therefore, we need to copy the depth and stencil information created during the deferred
 	 * shader pass into the currently bound fbo. */
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, deferredRenderingFBO.getFBO());
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mEffectFBO.getFbo());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->getFbo());
 	glBlitFramebuffer(
 		0, 0, deferredRenderingFBO.getWidth(), deferredRenderingFBO.getHeight(), 0, 0, getScreenWidth(), getScreenHeight(),
 		GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
 	);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, mEffectFBO.getFbo());
+	glBindFramebuffer(GL_FRAMEBUFFER, target->getFbo());
 
 	// clear the color buffer of the currently bound fbo (can be either effects fbo or default (0) fbo)
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -367,6 +377,8 @@ void RenderSystem::finalizeRendering()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
 
+	glViewport(0, 0, getScreenWidth(), getScreenHeight());
+
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
@@ -375,9 +387,9 @@ void RenderSystem::finalizeRendering()
 	effectManager.update();
 	glBindVertexArray(mScreenMesh.mVao);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mEffectFBO.getColorBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, mEffectTarget.getColorBuffer().getId());
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mEffectFBO.getDepthBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, mEffectTarget.getDepthBuffer().getId());
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 
 	glEnable(GL_DEPTH_TEST);
@@ -562,9 +574,26 @@ float RenderSystem::getVerticalFov() const
 	return mVerticalFov;
 }
 
-RenderPhase RenderSystem::getRenderPhase() const
+int RenderSystem::getRenderPhase() const
 {
 	return mRenderPhase;
+}
+
+void RenderSystem::enableClipPlane() const
+{
+	glEnable(GL_CLIP_DISTANCE0);
+}
+
+void RenderSystem::disableClipPlane() const
+{
+	glDisable(GL_CLIP_DISTANCE0);
+}
+
+void RenderSystem::setClipPlane(const glm::vec4& clipPlane) const
+{
+	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
+	glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), sizeof(glm::vec4), glm::value_ptr(clipPlane));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void RenderSystem::cleanUp()

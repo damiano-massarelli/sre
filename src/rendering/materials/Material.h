@@ -21,10 +21,10 @@ public:
     /** if true back face culling is disabled */
     bool isTwoSided = false;
 
-	/** The render phases supported by this material.
+	/** The render phases not supported by this material.
 	  * if a render phase is not supported the mesh having this material
 	  * wont be rendered during that phase */
-	int supportedRenderPhases = RenderPhase::ALL;
+	int unSupportedRenderPhases = RenderPhase::NONE;
 
     /** the shader program used to render the mesh using this material */
     Shader shader;

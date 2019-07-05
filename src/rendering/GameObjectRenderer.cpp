@@ -27,7 +27,7 @@ void GameObjectRenderer::render(const std::vector<GameObject>& gameObjects)
 			const MaterialPtr& meshMaterial = go.mMaterials[meshIndex];
 
 			// do not render this mesh if its material does not support the current render phase
-			if ((meshMaterial->supportedRenderPhases & Engine::renderSys.getRenderPhase()) == 0)
+			if ((meshMaterial->unSupportedRenderPhases & Engine::renderSys.getRenderPhase()))
 				continue;
 
 			// if mForcedMaterial != nullptr then use it

@@ -7,6 +7,7 @@ layout (std140) uniform CommonMat {
     mat4 projection;
     mat4 view;
 	mat4 shadowLightSpace;
+	vec4 clipPlane;
 };
 
 out vec2 texCoord;
@@ -19,6 +20,8 @@ void main() {
 
     position = (model * vec4(vPos, 1.0f)).xyz;
     normal = normalize(inverse(transpose(mat3(model))) * vNorm);
+
+	gl_ClipDistance[0] = dot(vec4(position, 1.0), clipPlane);
 
 	lightSpacePosition = shadowLightSpace * vec4(position, 1.0f);
 

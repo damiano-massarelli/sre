@@ -5,7 +5,7 @@ MultiTextureBlinnPhongMaterial::MultiTextureBlinnPhongMaterial() :
 	Material{"shaders/bumpedPhongVS.glsl",
 		     "shaders/multiTexturePhongFS.glsl" }
 {
-	supportedRenderPhases &= ~RenderPhase::FORWARD_RENDERING;
+	unSupportedRenderPhases |= RenderPhase::FORWARD_RENDERING;
 
 	shader.use();
 	

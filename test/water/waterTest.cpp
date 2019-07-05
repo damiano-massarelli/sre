@@ -14,13 +14,14 @@
 #include "FXAA.h"
 #include "MultiTextureBlinnPhongMaterial.h"
 #include "ShadowOnVisibleSceneComponent.h"
+#include "WaterMaterial.h"
 
 #include <runTest.h>
 
 #include <iostream>
 #include <stdlib.h>
 
-#ifdef multipleTextureBlinn 
+#ifdef waterTest
 int main(int argc, char* argv[]) {
     Engine::init();
 
@@ -34,6 +35,10 @@ int main(int argc, char* argv[]) {
     auto cam = std::make_shared<FreeCameraComponent>(camera);
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
+
+	auto water = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), std::make_shared<WaterMaterial>(-5.0f));
+	water->transform.moveBy(glm::vec3{ 25, -5, -15 });
+	water->transform.scaleBy(glm::vec3{ 60.0f });
 
     auto skyTexture = Texture::loadCubamapFromFile({
                     {"front", "test_data/skybox/front.tga"},
@@ -58,7 +63,7 @@ int main(int argc, char* argv[]) {
 	multiTextured->blendTexture = Texture::loadFromFile("test_data/multiple_textures_blinn/blend.png");
 	multiTextured->greenShininess = 8.0f;
 
-	HeightMapTerrainHeightProvider hProvider{ "test_data/multiple_textures_blinn/height.jpg", -5, 5 };
+	HeightMapTerrainHeightProvider hProvider{ "test_data/multiple_textures_blinn/height.jpg", -10, 10 };
 	TerrainGenerator generator{ 128, 128, 500, 500 };
 	generator.includeTangentSpace(true);
 	auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
@@ -68,7 +73,7 @@ int main(int argc, char* argv[]) {
 		int x = (rand() % 500) - 250;
 		int z = (rand() % 500) - 250;
 		float y = hProvider.get((x + 250) / 500.0f, (z + 250) / 500.0f);
-		tree->transform.setPosition(glm::vec3{ x, y - .5f, z });
+		tree->transform.setPosition(glm::vec3{ x, y, z });
 	}
 
 	for (int i = 0; i < 50; i++) {
@@ -76,17 +81,17 @@ int main(int argc, char* argv[]) {
 		int x = (rand() % 500) - 250;
 		int z = (rand() % 500) - 250;
 		float y = hProvider.get((x + 250) / 500.0f, (z + 250) / 500.0f);
-		tree->transform.setPosition(glm::vec3{ x, y - .5f, z });
+		tree->transform.setPosition(glm::vec3{ x, y, z });
 	}
 
-	for (int i = 0; i < 150; i++) {
+	for (int i = 0; i < 50; i++) {
 		auto bush = GameObjectLoader().fromFile("test_data/multiple_textures_blinn/bush.fbx");
 		int x = (rand() % 500) - 250;
 		int z = (rand() % 500) - 250;
 		float y = hProvider.get((x + 250) / 500.0f, (z + 250) / 500.0f);
-		bush->transform.setPosition(glm::vec3{ x, y - .5f, z });
-		bush->transform.scaleBy(glm::vec3{ 0.5f });
+		bush->transform.setPosition(glm::vec3{ x, y, z });
 	}
+
 
 	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
@@ -119,8 +124,7 @@ int main(int argc, char* argv[]) {
     light2->name = "light2";
     light2->addComponent(std::make_shared<Light>(light2));
     Engine::renderSys.addLight(light2);
-	light2->transform.setPosition(glm::vec3{ 3.0f, 3.0f, 0.0f });
-    light2->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 0.0f, 0.0f};
+    light2->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light2->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
 
     light2->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
