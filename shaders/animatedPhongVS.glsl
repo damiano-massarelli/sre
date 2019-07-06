@@ -9,6 +9,7 @@ layout (std140) uniform CommonMat {
     mat4 projection;
     mat4 view;
 	mat4 shadowLightSpace;
+	vec4 clipPlane;
 };
 
 uniform mat4 bones[40];
@@ -19,6 +20,8 @@ out vec3 normal;
 out vec4 lightSpacePosition;
 
 void main() {
+	gl_ClipDistance[0] = dot(vec4(position, 1.0), clipPlane);
+
     texCoord = vTexCoord;
 	mat4 boneTransform = bones[vBones[0]] * vWeights[0] +
 						 bones[vBones[1]] * vWeights[1]	+

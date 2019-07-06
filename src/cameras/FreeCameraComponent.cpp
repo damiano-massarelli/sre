@@ -16,6 +16,7 @@ FreeCameraComponent::FreeCameraComponent(const GameObjectEH& go) : Component(go)
 
 void FreeCameraComponent::syncWithTransform()
 {
+	// FIXME sometimes this does not work
 	auto angles = glm::eulerAngles(gameObject->transform.getRotation());
 	float pi = glm::pi<float>();
 	if (angles.z == pi) {

@@ -332,7 +332,8 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, deferredRenderingFBO.getFBO());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->getFbo());
 	glBlitFramebuffer(
-		0, 0, deferredRenderingFBO.getWidth(), deferredRenderingFBO.getHeight(), 0, 0, getScreenWidth(), getScreenHeight(),
+		0, 0, deferredRenderingFBO.getWidth(), deferredRenderingFBO.getHeight(),
+		0, 0, deferredRenderingFBO.getWidth(), deferredRenderingFBO.getHeight(),
 		GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
 	);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
