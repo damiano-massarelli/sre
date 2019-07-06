@@ -8,11 +8,11 @@ layout (std140) uniform CommonMat {
     mat4 projection;
     mat4 view;
 	mat4 shadowLightSpace;
+	vec4 clipPlane;
 };
 
 out vec2 texCoord;
 out vec3 position;
-out vec4 lightSpacePosition;
 
 // bump mapping specific outs
 out mat3 tangentToWorldSpace;
@@ -32,7 +32,7 @@ void main() {
 
     tangentToWorldSpace = mat3(tangent, bitangent, normal);
 
-	lightSpacePosition = shadowLightSpace * vec4(position, 1.0f);
+	gl_ClipDistance[0] = dot(vec4(position, 1.0), clipPlane);
 
     gl_Position = projection * view * vec4(position, 1.0f);
 }

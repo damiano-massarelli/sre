@@ -1,5 +1,6 @@
 #pragma once
 #include "Texture.h"
+#include "RefCount.h"
 #include <cstdint>
 /**
  * Manages the deferred rendering FBO and the Texture%s used
@@ -17,6 +18,8 @@ private:
 
 	std::uint32_t mWidth = 0;
 	std::uint32_t mHeight = 0;
+
+	RefCount mRefCount;
 
 public:
 	DeferredRenderingFBO() = default;

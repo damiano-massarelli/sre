@@ -158,39 +158,40 @@ public:
     RenderSystem& operator=(const RenderSystem& rs) = delete;
 
     /**
-        * Adds a light to the scene
-        * if the GameObject does not have a Light component it is silently
-        * discarded.
-        * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
-        */
+     * Adds a light to the scene
+     * if the GameObject does not have a Light component it is silently
+     * discarded.
+     * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
+     */
+
     void addLight(const GameObjectEH& light);
 
 	/**
-	* @return the width of the current window
-	*/
+	 * @return the width of the current window
+	 */
 	std::int32_t getScreenWidth() const;
 
 	/**
-		* @return the height of the current window
-		*/
+	 * @return the height of the current window
+	 */
 	std::int32_t getScreenHeight() const;
 
 	/**
-		* @return the near clipping plane distance
-		*/
+	 * @return the near clipping plane distance
+	 */
 	float getNearPlane() const;
 
 	/**
-		* @return the far clipping plane distance
-		*/
+	 * @return the far clipping plane distance
+	 */
 	float getFarPlane() const;
 
 	float getVerticalFov() const;
 
 	/**
-	  * @return the current rendering phase
-	  * @see RenderPhase
-	  */
+	 * @return the current rendering phase
+	 * @see RenderPhase
+	 */
 	int getRenderPhase() const;
 
 	/** 
@@ -201,9 +202,9 @@ public:
 	void renderScene(const RenderTarget* target = nullptr, RenderPhase phase = RenderPhase::NONE);
 
 	/**
-	  * Returns the view matrix for a certain transform.
-	  * The actual matrix is multiplied by mInvertView
-	  */
+	 * Returns the view matrix for a certain transform.
+	 * The actual matrix is multiplied by mInvertView
+	 */
 	glm::mat4 getViewMatrix(const Transform& transform);
 
 	void enableClipPlane() const;

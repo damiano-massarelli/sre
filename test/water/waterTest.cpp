@@ -36,8 +36,10 @@ int main(int argc, char* argv[]) {
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
-	auto water = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), std::make_shared<WaterMaterial>(-5.0f));
-	water->transform.moveBy(glm::vec3{ 25, -5, -15 });
+	auto water = Engine::gameObjectManager.createGameObject(MeshCreator::plane(),
+		std::make_shared<WaterMaterial>(-5.0f, Texture::loadFromFile("test_data/water/dudv.png")));
+
+	water->transform.moveBy(glm::vec3{ 35, -5, 0 });
 	water->transform.scaleBy(glm::vec3{ 60.0f });
 
     auto skyTexture = Texture::loadCubamapFromFile({
