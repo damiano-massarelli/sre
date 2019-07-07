@@ -3,12 +3,13 @@
 #include "Engine.h"
 #include "RenderPhase.h"
 #include <glm/glm.hpp>
+#include <cmath>
 
 WaterMaterial::WaterMaterial(float waterY, const Texture& dudv)
 	: Material{"shaders/waterVS.glsl", "shaders/waterFS.glsl"}, mWaterY{ waterY }, mDuDvMap{ dudv }
 {
-	mReflectionTarget.create(640, 360);
-	mReflectionFbo.init(640, 360);
+	mReflectionTarget.create(320, 180);
+	mReflectionFbo.init(320, 180);
 
 	mRefractionTarget.create(1280, 720);
 	mRefractionFbo.init(1280, 720);
@@ -18,29 +19,39 @@ WaterMaterial::WaterMaterial(float waterY, const Texture& dudv)
 	// don't render when rendering for water or shadows
 	unSupportedRenderPhases |= RenderPhase::ALL & ~RenderPhase::FORWARD_RENDERING;
 
-	mEventCrumb = Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this, true);
+	mEventCrumb = Engine::eventManager.addListenerFor(EventManager::PRE_RENDER_EVENT, this, true);
 	shader.use();
 	shader.setInt("reflection", 0);
 	shader.setInt("refraction", 1);
 	shader.setInt("dudv", 2);
 	shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
+	shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
 
 	mMoveDuDvLocation = shader.getLocationOf("moveDuDv");
 }
 
 void WaterMaterial::onEvent(SDL_Event e)
 {
+	float delta = (*(static_cast<float*>(e.user.data1)));
+	mMoveDuDv += waveSpeed * delta / 1000.0f;
+	mMoveDuDv = std::fmod(mMoveDuDv, 1.0f);
 
+	auto& renderSys = Engine::renderSys;
 
-	auto oldDeferredFbo = Engine::renderSys.deferredRenderingFBO;
-	Engine::renderSys.enableClipPlane();
+	float oldShadowStrength = renderSys.shadowMappingSettings.getShadowStrength();
+	renderSys.shadowMappingSettings.setShadowStrength(0.0f);
+
+	auto oldDeferredFbo = renderSys.deferredRenderingFBO;
+	renderSys.enableClipPlane();
 
 	renderRefraction();
 
 	renderReflection();
 
-	Engine::renderSys.disableClipPlane();
-	Engine::renderSys.deferredRenderingFBO = oldDeferredFbo;
+	renderSys.shadowMappingSettings.setShadowStrength(oldShadowStrength);
+
+	renderSys.disableClipPlane();
+	renderSys.deferredRenderingFBO = oldDeferredFbo;
 }
 
 void WaterMaterial::renderReflection()
@@ -73,11 +84,10 @@ void WaterMaterial::renderReflection()
 	Engine::renderSys.camera = oldCamera;
 }
 
-
 void WaterMaterial::renderRefraction()
 {
 	Engine::renderSys.deferredRenderingFBO = mRefractionFbo;
-	Engine::renderSys.setClipPlane(glm::vec4{ 0, -1, 0, mWaterY });
+	Engine::renderSys.setClipPlane(glm::vec4{ 0, -1, 0, mWaterY + 1 });
 	Engine::renderSys.renderScene(&mRefractionTarget, RenderPhase::WATER);
 }
 

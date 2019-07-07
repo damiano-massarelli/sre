@@ -37,7 +37,7 @@ void FreeCameraComponent::onEvent(SDL_Event e)
 
     if (e.type == EventManager::ENTER_FRAME_EVENT) {
         if (!tracking) return;
-        float delta = (*(static_cast<float*>(e.user.data1)));
+        float delta = (*(static_cast<float*>(e.user.data1))) / 1000.0f;
         const Uint8* keys = SDL_GetKeyboardState(nullptr);
 
         glm::vec3 camLookDirection = transform.forward();

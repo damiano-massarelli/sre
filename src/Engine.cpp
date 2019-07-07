@@ -36,17 +36,19 @@ void Engine::start()
     }
     Timer actualTime;
     actualTime.start();
-    float elapsedSec;
+    float elapsedMillis;
 
     while (!shouldQuit) {
-        elapsedSec = actualTime.getSeconds();
+        elapsedMillis = actualTime.getMillis();
         actualTime.stop();
         actualTime.start();
 
-        eventManager.pushEnterFrameEvent(&elapsedSec);
+        eventManager.pushEnterFrameEvent(&elapsedMillis);
         eventManager.dispatchEvents();
 
+		eventManager.pushPreRenderEvent(&elapsedMillis);
 		renderSys.renderScene();
+		eventManager.pushExitFrameEvent(&elapsedMillis);
     }
 
 	renderSys.cleanUp();

@@ -3,7 +3,8 @@
 
 // Static variable definition
 const SDL_EventType EventManager::ENTER_FRAME_EVENT = static_cast<SDL_EventType>(SDL_RegisterEvents(1));
-
+const SDL_EventType EventManager::EXIT_FRAME_EVENT = static_cast<SDL_EventType>(SDL_RegisterEvents(1));
+const SDL_EventType EventManager::PRE_RENDER_EVENT = static_cast<SDL_EventType>(SDL_RegisterEvents(1));
 
 EventManager::EventManager()
 {
@@ -81,15 +82,30 @@ void EventManager::dispatchToListeners(SDL_Event& event)
 }
 
 
-void EventManager::pushEnterFrameEvent(float* deltaMillis) const
+void EventManager::pushEnterFrameEvent(float* deltaMillis)
 {
-    SDL_Event event;
-    SDL_memset(&event, 0, sizeof(event));
-    event.type = ENTER_FRAME_EVENT;
-    event.user.code = 0;
-    event.user.data1 = static_cast<float*>(deltaMillis);
-    event.user.data2 = 0;
-    SDL_PushEvent(&event);
+	pushEvent(ENTER_FRAME_EVENT, deltaMillis);
+}
+
+void EventManager::pushExitFrameEvent(float* deltaMillis)
+{
+	pushEvent(EXIT_FRAME_EVENT, deltaMillis);
+}
+
+void EventManager::pushPreRenderEvent(float* deltaMillis)
+{
+	pushEvent(PRE_RENDER_EVENT, deltaMillis);
+}
+
+void EventManager::pushEvent(SDL_EventType type, void* data1 /*= nullptr*/, void* data2 /*= nullptr*/)
+{
+	SDL_Event event;
+	SDL_memset(&event, 0, sizeof(event));
+	event.type = type;
+	event.user.code = 0;
+	event.user.data1 = data1;
+	event.user.data2 = data2;
+	dispatchToListeners(event);
 }
 
 EventManager::~EventManager()
