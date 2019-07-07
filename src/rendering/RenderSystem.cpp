@@ -233,6 +233,8 @@ void RenderSystem::updateLights()
     }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
+
+
 void RenderSystem::updateCamera()
 {
     glm::vec3 cameraPosition{0.0f};

@@ -91,7 +91,8 @@ int main(int argc, char* argv[]) {
 		int x = (rand() % 500) - 250;
 		int z = (rand() % 500) - 250;
 		float y = hProvider.get((x + 250) / 500.0f, (z + 250) / 500.0f);
-		bush->transform.setPosition(glm::vec3{ x, y, z });
+		bush->transform.setPosition(glm::vec3{ x, y -.5f, z });
+		bush->transform.scaleBy(glm::vec3{ 0.3f });
 	}
 
 

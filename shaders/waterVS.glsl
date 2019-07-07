@@ -9,10 +9,13 @@ layout (std140) uniform CommonMat {
 
 out vec4 clipSpaceCoord;
 out vec2 texCoord;
+out vec3 position;
 
 void main() {
 	texCoord = vTexCoord;
-    gl_Position = projection * view * model * vec4(vPos, 1.0f);
+	vec4 pos = model * vec4(vPos, 1.0f);
+	position = pos.xyz;
+    gl_Position = projection * view * pos;
 
 	clipSpaceCoord = gl_Position;
 }

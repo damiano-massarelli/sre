@@ -11,8 +11,6 @@ class WaterMaterial :
 	public Material, public EventListener
 {
 private:
-	static constexpr float WAVE_SPEED = 0.3f;  
-
 	RenderTarget mReflectionTarget;
 	DeferredRenderingFBO mReflectionFbo;
 
@@ -34,6 +32,8 @@ private:
 	void renderRefraction();
 
 public:
+	float waveSpeed = 0.05f;
+
 	WaterMaterial(float waterY, const Texture& dudvMap);
 
 	virtual void use() override;
