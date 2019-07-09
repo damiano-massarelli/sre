@@ -20,7 +20,6 @@ struct PhongMaterial {
 in vec2 texCoord;
 in vec3 position;
 in vec3 normal;
-in vec4 lightSpacePosition;
 
 uniform PhongMaterial material;
 

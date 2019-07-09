@@ -6,14 +6,29 @@
 
 glm::mat4 Transform::modelToWorld() const
 {
+	if (mModelWorldCacheValid)
+		return mCacheModelToWorld;
     glm::mat4 m2w = glm::translate(glm::mat4{1.0f}, mPosition);
     m2w *= glm::toMat4(mRotation);
     m2w = glm::scale(m2w, mScale);
     return m2w;
 }
 
+glm::mat4 Transform::modelToWorld()
+{
+	if (!mModelWorldCacheValid) {
+		mCacheModelToWorld = glm::translate(glm::mat4{ 1.0f }, mPosition);
+		mCacheModelToWorld *= glm::toMat4(mRotation);
+		mCacheModelToWorld = glm::scale(mCacheModelToWorld, mScale);
+		mModelWorldCacheValid = true;
+	}
+	return mCacheModelToWorld;
+}
+
 void Transform::setPosition(const glm::vec3& position)
 {
+	mModelWorldCacheValid = false;
+	mModelWorldNormalCacheValid = false;
     glm::vec3 diff = position - mPosition;
     mPosition = position;
     for (auto& child : mChildren)
@@ -32,6 +47,9 @@ void Transform::setRotation(const glm::quat& rotation)
 
 void Transform::setRotation(const glm::quat& rotation, const glm::vec3& pivot)
 {
+	mModelWorldCacheValid = false;
+	mModelWorldNormalCacheValid = false;
+
     glm::quat diff = glm::normalize(rotation * glm::conjugate(mRotation));
 
     mRotation = rotation;
@@ -60,6 +78,9 @@ void Transform::setScale(const glm::vec3& scale)
 
 void Transform::setScale(const glm::vec3& scale, const glm::vec3& pivot)
 {
+	mModelWorldCacheValid = false;
+	mModelWorldNormalCacheValid = false;
+
     glm::vec3 diff{scale.x / mScale.x, scale.y / mScale.y, scale.z / mScale.z};
     auto pos = mPosition - pivot;
     pos = glm::mat3{glm::scale(glm::mat4{1.0f}, diff)} * pos;
@@ -161,6 +182,22 @@ glm::vec3 Transform::getLocalScale() const
         parentScale = mParent->transform.getScale();
     auto scale = getScale();
     return glm::vec3{scale.x / parentScale.x, scale.y / parentScale.y, scale.z / parentScale.z};
+}
+
+glm::mat3 Transform::modelToWorldForNormals() const
+{
+	if (mModelWorldNormalCacheValid)
+		return mCacheModelToWorldNormal;
+	return glm::inverse(glm::transpose(glm::mat3(modelToWorld())));
+}
+
+glm::mat3 Transform::modelToWorldForNormals()
+{
+	if (!mModelWorldNormalCacheValid) {
+		mCacheModelToWorldNormal = glm::inverse(glm::transpose(glm::mat3(modelToWorld())));
+		mModelWorldNormalCacheValid = true;
+	}
+	return mCacheModelToWorldNormal;
 }
 
 glm::mat3 Transform::modelToUpright() const

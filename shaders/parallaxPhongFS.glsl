@@ -32,7 +32,6 @@ struct PhongMaterial {
 
 in vec2 texCoord;
 in vec3 position;
-in vec4 lightSpacePosition;
 
 // bump mapping specific ins
 in mat3 tangentToWorldSpace;

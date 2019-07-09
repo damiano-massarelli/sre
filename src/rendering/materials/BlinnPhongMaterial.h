@@ -87,6 +87,12 @@ public:
     virtual float renderOrder(const glm::vec3& position) override;
 
     virtual ~BlinnPhongMaterial();
+
+	virtual std::size_t hash() const override;
+
+
+	virtual bool equalsTo(const Material* rhs) const override;
+
 };
 
 using BlinnPhongMaterialPtr = std::shared_ptr<BlinnPhongMaterial>;

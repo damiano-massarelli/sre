@@ -8,6 +8,7 @@ uniform mat4 model;
 layout (std140) uniform CommonMat {
     mat4 projection;
     mat4 view;
+	mat4 projectionView;
 };
 
 out vec3 normal;
@@ -16,5 +17,5 @@ void main() {
     mat3 normalMatrix = mat3(transpose(inverse(view * model)));
     normal = normalize(vec3(projection * vec4(normalMatrix * vNorm, 0.0)));
 
-    gl_Position = projection * view * model * vec4(vPos, 1.0f);
+    gl_Position = projectionView * model * vec4(vPos, 1.0f);
 }

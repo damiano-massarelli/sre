@@ -5,6 +5,7 @@ layout (location = 0) in vec3 vPos;
 layout (std140) uniform CommonMat {
     mat4 projection;
     mat4 view;
+	mat4 projectionView;
 };
 
 layout (std140) uniform Lights {
@@ -16,5 +17,5 @@ uniform float scale;
 uniform int lightIndex;
 
 void main() {
-    gl_Position = projection * view * vec4(lights[lightIndex].position + scale * vPos, 1.0);
+    gl_Position = projectionView * vec4(lights[lightIndex].position + scale * vPos, 1.0);
 }

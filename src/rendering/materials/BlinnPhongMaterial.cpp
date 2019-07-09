@@ -2,6 +2,8 @@
 #include "Engine.h"
 #include <iostream>
 #include <vector>
+#include <functional>
+#include <glm/gtx/hash.hpp>
 
 std::vector<std::string> getVertexShaders(bool hasBumps, bool isAnimated, bool hasParallax) {
 	std::vector<std::string> shaders;
@@ -171,4 +173,39 @@ float BlinnPhongMaterial::renderOrder(const glm::vec3& position)
 BlinnPhongMaterial::~BlinnPhongMaterial()
 {
 
+}
+
+std::size_t BlinnPhongMaterial::hash() const
+{
+	auto vec3Hash = std::hash<glm::vec3>{};
+	auto floatHash = std::hash<float>{};
+
+	return Material::hash()
+		+ diffuseMap.getId()
+		+ specularMap.getId()
+		+ bumpMap.getId()
+		+ parallaxMap.getId()
+		+ floatHash(shininess)
+		+ vec3Hash(diffuseColor)
+		+ vec3Hash(specularColor)
+		+ floatHash(opacity);
+}
+
+bool BlinnPhongMaterial::equalsTo(const Material* rhs) const
+{
+	// avoid dynamic cast. Same materials will have the same shader id
+	// FIXME add type to Material
+	if (shader.getId() != rhs->shader.getId()) return false;
+
+	auto other = static_cast<const BlinnPhongMaterial*>(rhs);
+
+	return Material::equalsTo(rhs)
+		&& diffuseMap.getId() == other->diffuseMap.getId()
+		&& specularMap.getId() == other->specularMap.getId()
+		&& bumpMap.getId() == other->bumpMap.getId()
+		&& parallaxMap.getId() == other->parallaxMap.getId()
+		&& shininess == other->shininess
+		&& diffuseColor == other->diffuseColor
+		&& specularColor == other->specularColor
+		&& opacity == other->opacity;
 }

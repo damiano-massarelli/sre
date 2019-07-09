@@ -236,6 +236,18 @@ void Shader::setInt(std::int32_t location, int value) const
 	glUniform1i(location, value);
 }
 
+void Shader::setMat3(const std::string& name, const glm::mat3& value) const
+{
+	std::int32_t location = getLocationOf(name);
+	if (location != -1)
+		glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void Shader::setMat3(std::int32_t location, const glm::mat3& value) const
+{
+	glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
 void Shader::setMat4(const std::string& name, const glm::mat4& value) const
 {
     std::int32_t location = getLocationOf(name);
@@ -288,6 +300,11 @@ void Shader::use() const
 bool Shader::isValid() const
 {
 	return mProgramId != 0;
+}
+
+std::uint32_t Shader::getId() const
+{
+	return mProgramId;
 }
 
 Shader::operator bool() const {
