@@ -5,8 +5,9 @@
 #include <glm/glm.hpp>
 #include <cmath>
 
-WaterMaterial::WaterMaterial(float waterY, const Texture& dudv)
-	: Material{"shaders/waterVS.glsl", "shaders/waterFS.glsl"}, mWaterY{ waterY }, mDuDvMap{ dudv }
+WaterMaterial::WaterMaterial(float waterY, const Texture& dudv, const Texture& normalMap)
+	: Material{"shaders/waterVS.glsl", "shaders/waterFS.glsl"}, mWaterY{ waterY }, mDuDvMap{ dudv },
+	mNormalMap { normalMap }
 {
 	mReflectionTarget.create(320, 180);
 	mReflectionFbo.init(320, 180);
@@ -17,13 +18,22 @@ WaterMaterial::WaterMaterial(float waterY, const Texture& dudv)
 	mReflectionCamera = Engine::gameObjectManager.createGameObject();
 
 	// don't render when rendering for water or shadows
-	unSupportedRenderPhases |= RenderPhase::ALL & ~RenderPhase::FORWARD_RENDERING;
+	unSupportedRenderPhases |= RenderPhase::ALL & ~RenderPhase::DEFERRED_RENDERING;
 
 	mEventCrumb = Engine::eventManager.addListenerFor(EventManager::PRE_RENDER_EVENT, this, true);
 	shader.use();
 	shader.setInt("reflection", 0);
 	shader.setInt("refraction", 1);
-	shader.setInt("dudv", 2);
+	shader.setInt("dudvMap", 2);
+	shader.setInt("normalMap", 3);
+	shader.setInt("depthMap", 4);
+	shader.setInt("groundDiffuseMap", 5);
+	shader.setInt("groundSpecularMap", 6);
+	shader.setInt("groundNormalMap", 7);
+
+	shader.setFloat("near", Engine::renderSys.getNearPlane());
+	shader.setFloat("far", Engine::renderSys.getFarPlane());
+
 	shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
 	shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
 
@@ -101,11 +111,30 @@ void WaterMaterial::use()
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, mDuDvMap.getId());
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, mNormalMap.getId());
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, mRefractionTarget.getDepthBuffer().getId());
+
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getDiffuseBuffer().getId());
+
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getSpecularBuffer().getId());
+
+	glActiveTexture(GL_TEXTURE7);
+	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getNormalBuffer().getId());
+
 	shader.use();
 	shader.setFloat(mMoveDuDvLocation, mMoveDuDv);
 }
 
 void WaterMaterial::after()
 {
-	
+	for (int i = 0; i <= 7; i++) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 }
