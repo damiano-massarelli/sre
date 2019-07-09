@@ -10,10 +10,10 @@ layout (std140) uniform Camera {
     vec3 cameraDirection;
 };
 
-uniform mat4 model;
 layout (std140) uniform CommonMat {
     mat4 projection;
     mat4 view;
+	mat4 projectionView;
 	mat4 toShadowLightSpace;
 };
 

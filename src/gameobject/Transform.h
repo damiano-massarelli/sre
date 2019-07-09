@@ -6,175 +6,203 @@
 #include<glm/gtc/quaternion.hpp>
 
 class Transform {
-    friend struct GameObjectEH;
+friend struct GameObjectEH;
 
-    private:
-        glm::vec3 mPosition{0.0f, 0.0f, 0.0f};
-        glm::quat mRotation{1.0f, 0.0f, 0.0f, 0.0f};
-        glm::vec3 mScale{1.0f, 1.0f, 1.0f};
+private:
+    glm::vec3 mPosition{0.0f, 0.0f, 0.0f};
+    glm::quat mRotation{1.0f, 0.0f, 0.0f, 0.0f};
+    glm::vec3 mScale{1.0f, 1.0f, 1.0f};
 
-        GameObjectEH gameObject;
-        GameObjectEH mParent;
-        std::vector<GameObjectEH> mChildren;
+	bool mModelWorldCacheValid = false;
+	glm::mat4 mCacheModelToWorld;
 
-    public:
-        /**
-          * Sets the world position of this transform
-          * @param position the world position */
-        void setPosition(const glm::vec3& position);
+	bool mModelWorldNormalCacheValid = false;
+	glm::mat4 mCacheModelToWorldNormal;
 
-        /**
-          * Moves the transform by a certain amount
-          * @param amount how much is the transform moved */
-        void moveBy(const glm::vec3& amount);
+    GameObjectEH gameObject;
+    GameObjectEH mParent;
+    std::vector<GameObjectEH> mChildren;
 
-        /**
-          * Sets the rotation in world space
-          * @param rotation rotation in world space */
-        void setRotation(const glm::quat& rotation);
+public:
+    /**
+        * Sets the world position of this transform
+        * @param position the world position */
+    void setPosition(const glm::vec3& position);
 
-        /**
-          * Sets the rotation in world space
-          * @param rotation rotation in world space
-          * @param pivot the center of rotation */
-        void setRotation(const glm::quat& rotation, const glm::vec3& pivot);
+    /**
+        * Moves the transform by a certain amount
+        * @param amount how much is the transform moved */
+    void moveBy(const glm::vec3& amount);
 
-        /**
-          * Rotates the transform by a certain amount
-          * @param amount how much is the transform rotated */
-        void rotateBy(const glm::quat& amount);
+    /**
+        * Sets the rotation in world space
+        * @param rotation rotation in world space */
+    void setRotation(const glm::quat& rotation);
 
-        /**
-          * Rotates the transform by a certain amount around a pivot point.
-          * @param amount how much is the transform rotated
-          * @param pivot the center of rotation */
-        void rotateBy(const glm::quat& amount, const glm::vec3& pivot);
+    /**
+        * Sets the rotation in world space
+        * @param rotation rotation in world space
+        * @param pivot the center of rotation */
+    void setRotation(const glm::quat& rotation, const glm::vec3& pivot);
 
-        /**
-          * Sets the scale in world space.
-          * @param scale the scale in world space */
-        void setScale(const glm::vec3& scale);
+    /**
+        * Rotates the transform by a certain amount
+        * @param amount how much is the transform rotated */
+    void rotateBy(const glm::quat& amount);
 
-        /**
-          * Sets the scale in world space.
-          * @param scale the scale in world space
-          * @param pivot the center of scaling */
-        void setScale(const glm::vec3& scale, const glm::vec3& pivot);
+    /**
+        * Rotates the transform by a certain amount around a pivot point.
+        * @param amount how much is the transform rotated
+        * @param pivot the center of rotation */
+    void rotateBy(const glm::quat& amount, const glm::vec3& pivot);
 
-        /**
-          * Scales the transform by a certain amount.
-          * @param amount how much is the transform scaled */
-        void scaleBy(const glm::vec3& amount);
+    /**
+        * Sets the scale in world space.
+        * @param scale the scale in world space */
+    void setScale(const glm::vec3& scale);
 
-        /**
-          * Scales the transform by a certain amount.
-          * @param amount how much is the transform scaled
-          * @param pivot the center of scaling */
-        void scaleBy(const glm::vec3& amount, const glm::vec3& pivot);
+    /**
+        * Sets the scale in world space.
+        * @param scale the scale in world space
+        * @param pivot the center of scaling */
+    void setScale(const glm::vec3& scale, const glm::vec3& pivot);
 
-		/**
-		 * Rotates this transform by a certain amount.
-		 * @param position the position this transform will be looking at 
-		 */
-		void lookAt(const glm::vec3& position);
+    /**
+        * Scales the transform by a certain amount.
+        * @param amount how much is the transform scaled */
+    void scaleBy(const glm::vec3& amount);
 
-        /**
-          * @return world space position */
-        const glm::vec3& getPosition() const;
+    /**
+        * Scales the transform by a certain amount.
+        * @param amount how much is the transform scaled
+        * @param pivot the center of scaling */
+    void scaleBy(const glm::vec3& amount, const glm::vec3& pivot);
 
-        /**
-          * @return world space rotation */
-        const glm::quat& getRotation() const;
+	/**
+		* Rotates this transform by a certain amount.
+		* @param position the position this transform will be looking at 
+		*/
+	void lookAt(const glm::vec3& position);
 
-        /**
-          * @return world space scale */
-        const glm::vec3& getScale() const;
+    /**
+        * @return world space position */
+    const glm::vec3& getPosition() const;
 
-        /**
-          * Sets the position of this Transform relative to its parent.
-          * If this Transform does not have a parent this is equivalent to setPosition()
-          * @param localPosition the position relative to the parent
-          * @sa setParent() */
-        void setLocalPosition(const glm::vec3& localPosition);
+    /**
+        * @return world space rotation */
+    const glm::quat& getRotation() const;
 
-        /**
-          * Sets the rotation of this Transform relative to its parent.
-          * If this Transform does not have a parent this is equivalent to setRotation()
-          * @param localRotation the rotation relative to the parent
-          * @sa setParent() */
-        void setLocalRotation(const glm::quat& localRotation);
+    /**
+        * @return world space scale */
+    const glm::vec3& getScale() const;
 
-        /**
-          * Sets the scale of this Transform relative to its parent.
-          * If this Transform does not have a parent this is equivalent to setScale()
-          * @param localScale the scale relative to the parent
-          * @sa setParent() */
-        void setLocalScale(const glm::vec3 localScale);
+    /**
+        * Sets the position of this Transform relative to its parent.
+        * If this Transform does not have a parent this is equivalent to setPosition()
+        * @param localPosition the position relative to the parent
+        * @sa setParent() */
+    void setLocalPosition(const glm::vec3& localPosition);
 
-        /** @return position relative to parent */
-        glm::vec3 getLocalPosition() const;
+    /**
+        * Sets the rotation of this Transform relative to its parent.
+        * If this Transform does not have a parent this is equivalent to setRotation()
+        * @param localRotation the rotation relative to the parent
+        * @sa setParent() */
+    void setLocalRotation(const glm::quat& localRotation);
 
-        /** @return rotation relative to parent */
-        glm::quat getLocalRotation() const;
+    /**
+        * Sets the scale of this Transform relative to its parent.
+        * If this Transform does not have a parent this is equivalent to setScale()
+        * @param localScale the scale relative to the parent
+        * @sa setParent() */
+    void setLocalScale(const glm::vec3 localScale);
 
-        /** @return scale relative to parent */
-        glm::vec3 getLocalScale() const;
+    /** @return position relative to parent */
+    glm::vec3 getLocalPosition() const;
 
-        /**
-          * Computes and returns the model to world matrix.
-          * Use this matrix to transform vectors from model space to world space
-          * @return the model to world matrix */
-        glm::mat4 modelToWorld() const;
+    /** @return rotation relative to parent */
+    glm::quat getLocalRotation() const;
 
-        /**
-          * Computes and return the model to world matrix only taking into.
-          * account the rotation of this object
-          * @return the rotation model to world matrix */
-        glm::mat3 modelToUpright() const;
+    /** @return scale relative to parent */
+    glm::vec3 getLocalScale() const;
 
-        /**
-          * Y-axis direction of this model.
-          * Returns the direction of the Y-axis of this model in world space
-          * @see modelToWorld
-          * @return Y-axis direction of this model in world space */
-        glm::vec3 up() const;
+    /**
+        * Computes and returns the model to world matrix.
+        * Use this matrix to transform vectors from model space to world space.
+		* The non const version of this method caches the result.
+        * @return the model to world matrix */
+    glm::mat4 modelToWorld() const;
 
-        /**
-          * X-axis direction of this model.
-          * Returns the direction of the X-axis of this model in world space
-          * @see modelToWorld
-          * @return X-axis direction of this model in world space */
-        glm::vec3 right() const;
+	/**
+	  * Computes and returns the model to world matrix.
+	  * Use this matrix to transform vectors from model space to world space.
+	  * The non const version of this method caches the result.
+	  * @return the model to world matrix */
+	glm::mat4 modelToWorld();
 
-        /**
-          * Z-axis direction of this model.
-          * Returns the direction of the Z-axis of this model in world space
-          * @see modelToWorld
-          * @return Z-axis direction of this model in world space */
-        glm::vec3 forward() const;
+	/**
+	 * Computes and return the model to world matrix used for normals.
+	 * The non const version of this method caches the result.
+	 * @return the model to world matrix used for normals.
+	 */
+	glm::mat3 modelToWorldForNormals() const;
 
-        /**
-          * Adds a child to this Transform%'s GameObject.
-          * @param child the child to add */
-        void addChild(const GameObjectEH& child);
+	/**
+     * Computes and return the model to world matrix used for normals.
+     * The non const version of this method caches the result.
+     * @return the model to world matrix used for normals.
+     */
+	glm::mat3 modelToWorldForNormals();
 
-        /**
-          * Removes a child.
-          * @param child the child to remove */
-        void removeChild(const GameObjectEH& child);
+    /**
+		* Computes and return the model to world matrix only taking into.
+        * account the rotation of this object
+        * @return the rotation model to world matrix */
+    glm::mat3 modelToUpright() const;
 
-        /**
-          * Sets the parent of this Transform%'s GameObject.
-          * @param parent the parent to set */
-        void setParent(const GameObjectEH& parent);
+    /**
+        * Y-axis direction of this model.
+        * Returns the direction of the Y-axis of this model in world space
+        * @see modelToWorld
+        * @return Y-axis direction of this model in world space */
+    glm::vec3 up() const;
 
-        /**
-          * Removes the parent. */
-        void removeParent();
+    /**
+        * X-axis direction of this model.
+        * Returns the direction of the X-axis of this model in world space
+        * @see modelToWorld
+        * @return X-axis direction of this model in world space */
+    glm::vec3 right() const;
 
-        /**
-          * @return this Transform%'s children */
-        const std::vector<GameObjectEH>& getChildren();
+    /**
+        * Z-axis direction of this model.
+        * Returns the direction of the Z-axis of this model in world space
+        * @see modelToWorld
+        * @return Z-axis direction of this model in world space */
+    glm::vec3 forward() const;
+
+    /**
+        * Adds a child to this Transform%'s GameObject.
+        * @param child the child to add */
+    void addChild(const GameObjectEH& child);
+
+    /**
+        * Removes a child.
+        * @param child the child to remove */
+    void removeChild(const GameObjectEH& child);
+
+    /**
+        * Sets the parent of this Transform%'s GameObject.
+        * @param parent the parent to set */
+    void setParent(const GameObjectEH& parent);
+
+    /**
+        * Removes the parent. */
+    void removeParent();
+
+    /**
+        * @return this Transform%'s children */
+    const std::vector<GameObjectEH>& getChildren();
 };
 
 #endif // TRANSFORM_H

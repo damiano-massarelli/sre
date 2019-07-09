@@ -17,7 +17,6 @@ uniform sampler2D blendTexture;
 uniform float horizontalTiles;
 uniform float verticalTiles;
 
-
 void main() {
     vec4 channels = texture2D(blendTexture, texCoord / vec2(horizontalTiles, verticalTiles));
     float baseFactor = 1.0f - (channels.r + channels.g + channels.b);

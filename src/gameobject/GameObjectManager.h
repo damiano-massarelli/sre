@@ -7,6 +7,7 @@
 class GameObjectManager
 {
     friend class Engine;
+	friend class GameObjectRenderer;
 
     private:
         GameObjectManager();
@@ -14,8 +15,6 @@ class GameObjectManager
         std::vector<GameObject> mGameObjects;
 
         HandleList<GameObject> mGameObjectsHL;
-
-        void update();
 
 		void cleanUp();
 

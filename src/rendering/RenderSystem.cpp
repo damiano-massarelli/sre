@@ -79,14 +79,11 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     /* Uniform buffer object set up for common matrices */
     glGenBuffers(1, &mUboCommonMat);
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-	// 3 matrices, view projection and shadow mapping projection and a vec4 for the clipping plane
-    glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4) + sizeof(glm::vec4), nullptr, GL_STATIC_DRAW);
+	// 4 matrices, view, projection, projection * view and shadow mapping projection and a vec4 for the clipping plane
+    glBufferData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::mat4) + sizeof(glm::vec4), nullptr, GL_STATIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, COMMON_MAT_UNIFORM_BLOCK_INDEX, mUboCommonMat);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(mProjection));
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     /* Uniform buffer object set up for lights */
     glGenBuffers(1, &mUboLights);
@@ -250,6 +247,19 @@ void RenderSystem::updateCamera()
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
+void RenderSystem::updateMatrices(const glm::mat4* projection, const glm::mat4* view, const glm::mat4* toLightSpace)
+{
+	glm::mat4 projectionView = (*projection) * (*view);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(*projection));
+	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(*view));
+	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projectionView));
+
+	if (toLightSpace)
+		glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(*toLightSpace));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
 glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
 {
 	glm::mat4 view = glm::mat4{ 1.0f };
@@ -290,11 +300,7 @@ void RenderSystem::prepareDeferredRendering(const RenderTarget* target)
 		view = getViewMatrix(camera->transform);
 
     /* Sets the camera matrix to a UBO so that it is shared */
-	// TODO move to a dedicated method
-	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(mProjection));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	updateMatrices(&mProjection, &view, nullptr);
 
     updateLights();
     updateCamera();
@@ -323,7 +329,7 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
 void RenderSystem::render(int phase)
 {
 	mRenderPhase = phase;
-	Engine::gameObjectRenderer.render(Engine::gameObjectManager.getGameObjects());
+	Engine::gameObjectRenderer.render();
 }
 
 void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
@@ -502,11 +508,7 @@ void RenderSystem::renderShadows()
 
 	glm::mat4 lightSpace = lightProjection * lightView;
 
-	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(lightProjection));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightView));
-	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightSpace));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	updateMatrices(&lightProjection, &lightView, &lightSpace);
 
 	glViewport(0, 0, shadowMappingSettings.mapWidth, shadowMappingSettings.mapHeight);
 	glBindFramebuffer(GL_FRAMEBUFFER, mShadowFbo);
@@ -595,7 +597,8 @@ void RenderSystem::disableClipPlane() const
 void RenderSystem::setClipPlane(const glm::vec4& clipPlane) const
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-	glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), sizeof(glm::vec4), glm::value_ptr(clipPlane));
+	// it is after 4 matrices (projection, view, projectionView and toLightSpace)
+	glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::mat4), sizeof(glm::vec4), glm::value_ptr(clipPlane));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 

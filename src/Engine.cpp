@@ -28,6 +28,9 @@ void Engine::init()
         instance = std::make_unique<Engine>();
 }
 
+unsigned int frames = 0;
+float totDeltas;
+
 void Engine::start()
 {
     if (instance == nullptr) {
@@ -40,6 +43,10 @@ void Engine::start()
 
     while (!shouldQuit) {
         elapsedMillis = actualTime.getMillis();
+
+		totDeltas += elapsedMillis;
+		frames++;
+
         actualTime.stop();
         actualTime.start();
 
@@ -53,6 +60,8 @@ void Engine::start()
 
 	renderSys.cleanUp();
 	gameObjectManager.cleanUp();
+
+	std::cout << totDeltas / frames << "\n";
 }
 
 Engine::~Engine()

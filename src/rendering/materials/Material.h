@@ -12,10 +12,11 @@
 class Material
 {
 private:
-	/**
-	 * Location of the model transformation matrix in the shader
-	 */
-	std::uint32_t mModelLocation = 0;
+	/* Location of the model transformation matrix in the shader */
+	std::int32_t mModelLocation = 0;
+
+	/** Location of the matrix used to transform the normals */
+	std::int32_t mNormalModelLocation = 0;
 
 public:
     /** if true back face culling is disabled */
@@ -73,18 +74,35 @@ public:
         * their materials should return true. The order in which Mesh%es are rendered
         * is determined by the value of renderOrder()
         * @return true if the corresponding mesh needs to be drawn in a certain order, false otherwise */
-    virtual bool needsOrderedRendering() { return false; };
+    virtual bool needsOrderedRendering()  { return false; };
 
     /**
         * Provides a value to order Mesh%es.
         * @param position the position of the GameObject to which this material belongs
         * @return the render order (smaller value => rendered first) */
-    virtual float renderOrder(const glm::vec3& position) { return 0.0f; };
+    virtual float renderOrder(const glm::vec3& position)  { return 0.0f; };
 
 	/**
 	 * @return the model matrix location in the shader.
 	 */
-	std::uint32_t getModelLocation() const;
+	std::int32_t getModelLocation() const;
+
+	/**
+	 * @return the location of the matrix needed to transform normals
+	 */
+	std::int32_t getNormalModelLocation() const;
+
+	/**
+	 * Computes and return the hash code of this material.
+	 * @return the hash code of this material.
+	 */
+	virtual std::size_t hash() const;
+
+	/**
+	 * Checks whether two materials are the same.
+	 * @return true if they are the same material, false otherwise.
+	 */
+	virtual bool equalsTo(const Material* rhs) const;
 
     virtual ~Material();
 };

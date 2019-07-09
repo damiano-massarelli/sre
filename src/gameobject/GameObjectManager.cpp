@@ -50,11 +50,6 @@ const std::vector<GameObject>& GameObjectManager::getGameObjects() const
 	return mGameObjects;
 }
 
-void GameObjectManager::update()
-{
-    Engine::gameObjectRenderer.render(mGameObjects);
-}
-
 void GameObjectManager::cleanUp()
 {
     // no need to remove them, just clean up what they
