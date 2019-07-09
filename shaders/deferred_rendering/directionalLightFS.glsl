@@ -31,7 +31,6 @@ vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float
      * light.direction must be inverted */
     vec3 rayToLight = -light.direction;
     
-
 	// shadow mapping
 	float inShadow = 0.0;
 	if (calcShadow)

@@ -37,10 +37,11 @@ int main(int argc, char* argv[]) {
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
 	auto water = Engine::gameObjectManager.createGameObject(MeshCreator::plane(),
-		std::make_shared<WaterMaterial>(-5.0f, Texture::loadFromFile("test_data/water/dudv.png")));
+		std::make_shared<WaterMaterial>(-5.0f, Texture::loadFromFile("test_data/water/dudv.png"),
+			Texture::loadFromFile("test_data/water/normal.png")));
 
-	water->transform.moveBy(glm::vec3{ 35, -5, 0 });
-	water->transform.scaleBy(glm::vec3{ 60.0f });
+	water->transform.moveBy(glm::vec3{ 35, -5, -5 });
+	water->transform.scaleBy(glm::vec3{ 90.0f });
 
     auto skyTexture = Texture::loadCubamapFromFile({
                     {"front", "test_data/skybox/front.tga"},
@@ -66,7 +67,7 @@ int main(int argc, char* argv[]) {
 	multiTextured->greenShininess = 8.0f;
 
 	HeightMapTerrainHeightProvider hProvider{ "test_data/multiple_textures_blinn/height.jpg", -10, 10 };
-	TerrainGenerator generator{ 128, 128, 500, 500 };
+	TerrainGenerator generator{ 500, 500, 500, 500 };
 	generator.includeTangentSpace(true);
 	auto terrain = Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), multiTextured);
 
@@ -106,9 +107,9 @@ int main(int argc, char* argv[]) {
 	light3->addComponent(std::make_shared<Light>(light3, Light::Type::DIRECTIONAL));
 	light3->transform.setPosition(glm::vec3{ 0.0f, 0.0f, 15.0f });
 	Engine::renderSys.addLight(light3);
-	light3->getComponent<Light>()->diffuseColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
+	light3->getComponent<Light>()->diffuseColor = glm::vec3{ 230, 230, 230 } / 255.0f;
 	light3->getComponent<Light>()->castShadow = true;
-	light3->getComponent<Light>()->specularColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
+	light3->getComponent<Light>()->specularColor = glm::vec3{ 230, 230, 230 } / 255.0f;
 	light3->getComponent<Light>()->innerAngle = glm::radians(25.0f);
 	light3->getComponent<Light>()->outerAngle = glm::radians(28.0f);
 	light3->addComponent(std::make_shared<ShadowOnVisibleSceneComponent>(light3));
