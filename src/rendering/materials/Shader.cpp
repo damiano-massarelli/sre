@@ -22,16 +22,19 @@ std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec)
 
 Shader Shader::loadFromFile(const std::vector<std::string>& vertexPaths,
 	const std::vector<std::string>& geometryPaths,
-	const std::vector<std::string>& fragmentPaths) {
+	const std::vector<std::string>& fragmentPaths,
+	bool cache) {
 
 	std::stringstream cacheName;
 	cacheName << vertexPaths << fragmentPaths << geometryPaths;
 	std::string cacheKey = cacheName.str();
 	
 	// cache checks
-	auto cachedShader = mShaderCache.find(cacheKey);
-	if (cachedShader != mShaderCache.end()) {
-		return cachedShader->second;
+	if (cache) {
+		auto cachedShader = mShaderCache.find(cacheKey);
+		if (cachedShader != mShaderCache.end()) {
+			return cachedShader->second;
+		}
 	}
 
 	GLint success = 1;
@@ -46,10 +49,13 @@ Shader Shader::loadFromFile(const std::vector<std::string>& vertexPaths,
 	}
 
 	Shader shader{ program };
-	shader.refCount.onRemove = [cacheKey]() { Shader::mShaderCache.erase(cacheKey); };
 
-	mShaderCache[cacheKey] = shader;
-	mShaderCache[cacheKey].refCount.setWeak();
+	if (cache) {
+		shader.refCount.onRemove = [cacheKey]() { Shader::mShaderCache.erase(cacheKey); };
+
+		mShaderCache[cacheKey] = shader;
+		mShaderCache[cacheKey].refCount.setWeak();
+	}
 
 	return shader;
 }

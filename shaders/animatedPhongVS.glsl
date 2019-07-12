@@ -32,7 +32,7 @@ void main() {
 
 
     position = (model * boneTransform * vec4(vPos, 1.0f)).xyz;
-    normal = normalModel * vNorm;
+    normal = normalize(normalModel * vNorm);
 
     gl_Position = projectionView * vec4(position, 1.0f);
 }

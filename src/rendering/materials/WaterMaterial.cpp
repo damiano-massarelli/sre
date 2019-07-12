@@ -64,6 +64,29 @@ void WaterMaterial::onEvent(SDL_Event e)
 	renderSys.deferredRenderingFBO = oldDeferredFbo;
 }
 
+
+std::size_t WaterMaterial::hash() const
+{
+	return Material::hash()
+		+ mDuDvMap.getId()
+		+ mNormalMap.getId();
+}
+
+
+bool WaterMaterial::equalsTo(const Material* rhs) const
+{
+	if (shader.getId() != rhs->shader.getId())
+		return false;
+
+	auto other = static_cast<const WaterMaterial*>(rhs);
+
+	return Material::equalsTo(rhs)
+		&& mDuDvMap.getId() == other->mDuDvMap.getId()
+		&& mNormalMap.getId() == other->mNormalMap.getId()
+		&& waveSpeed == other->waveSpeed
+		&& mWaterY == other->mWaterY;
+}
+
 void WaterMaterial::renderReflection()
 {
 	GameObjectEH oldCamera = Engine::renderSys.camera;

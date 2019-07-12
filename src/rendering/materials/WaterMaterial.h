@@ -63,5 +63,9 @@ public:
 
 	virtual void onEvent(SDL_Event e) override;
 
+	virtual std::size_t hash() const override;
+
+	virtual bool equalsTo(const Material* rhs) const override;
+
 	~WaterMaterial() = default;
 };

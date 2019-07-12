@@ -21,10 +21,13 @@ void GameObjectRenderer::draw(const Mesh* mesh)
 
 void GameObjectRenderer::drawMeshes(const std::unordered_map<Material*, std::vector<DrawData>>& material2mesh)
 {
-
+	std::map<float, std::pair<Material*, DrawData>> orderedRender;
 	for (const auto&[material, drawData] : material2mesh) {
 		if (material->needsOrderedRendering()) {
-
+			for (const auto& data : drawData) {
+				float order = material->renderOrder(data.position);
+				orderedRender[order] = std::make_pair(material, data);
+			}
 		}
 		else {
 			material->use();
@@ -38,34 +41,15 @@ void GameObjectRenderer::drawMeshes(const std::unordered_map<Material*, std::vec
 		}
 	}
 
-		/*
-		const auto& modelToWorld = go.transform.modelToWorld();
-		auto normalModel = glm::inverse(glm::transpose(glm::mat3(modelToWorld)));
-
-		if (material->needsOrderedRendering()) {
-			float order = material->renderOrder(go.transform.getPosition());
-			orderedRender[order] = std::make_tuple(mesh, material, modelToWorld, normalModel);
-			continue;
-		}
-		else {
-			material->use();
-			material->shader.setMat4(mat->getModelLocation(), go.transform.modelToWorld());
-			material->shader.setMat3(mat->getNormalModelLocation(), normalModel);
-			draw(mesh);
-			material->after();
-		}
-	}
-
 	// render meshed that need to be rendered in a specific order
 	for (auto ord = orderedRender.rbegin(); ord != orderedRender.rend(); ++ord) {
-		auto&[mesh, mat, model, normalModel] = ord->second;
-		mat->use();
-		mat->shader.setMat4(mat->getModelLocation(), model);
-		mat->shader.setMat3(mat->getNormalModelLocation(), normalModel);
-		draw(mesh);
-		mat->after();
+		auto& [material, drawData] = ord->second;
+		material->use();
+		material->shader.setMat4(material->getModelLocation(), drawData.toWorld);
+		material->shader.setMat3(material->getNormalModelLocation(), drawData.toWorldForNormals);
+		draw(drawData.mesh);
+		material->after();
 	}
-	*/
 }
 
 void GameObjectRenderer::render()
@@ -88,11 +72,14 @@ void GameObjectRenderer::render()
 
 			auto it = material2mesh.find(meshMaterial);
 			if (it == material2mesh.end()) {
-				material2mesh[meshMaterial] = { {mesh, go.transform.modelToWorld(), go.transform.modelToWorldForNormals()} };
+				material2mesh[meshMaterial] = { {mesh, go.transform.modelToWorld(),
+					go.transform.modelToWorldForNormals(), go.transform.getPosition()} };
 				material2mesh[meshMaterial].reserve(50);
 			}
-			else
-				it->second.push_back({ mesh, go.transform.modelToWorld(), go.transform.modelToWorldForNormals() });
+			else {
+				it->second.push_back({ mesh, go.transform.modelToWorld(),
+					go.transform.modelToWorldForNormals(), go.transform.getPosition() });
+			}
 		}
 	}
 

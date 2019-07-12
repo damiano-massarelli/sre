@@ -24,6 +24,8 @@ public:
 
 	void create(std::uint32_t width, std::uint32_t height);
 
+	void createWith(const Texture& colorBuffer, const Texture& depthBuffer);
+
 	std::uint32_t getFbo() const;
 
 	std::uint32_t getWidth() const;

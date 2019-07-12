@@ -65,9 +65,6 @@ private:
 	Shader mPointLightDeferred; // shader used to do point light
 	std::uint32_t mPointLightDeferredLightIndexLocation = 0;
 
-	/** fbo used to render effects */
-	RenderTarget mEffectTarget;
-
 	/** near and far clipping planes */
 	float mNearPlane = 0.0f;
 	float mFarPlane = 0.0f;
@@ -143,6 +140,9 @@ public:
 	/** fbo used for deferred rendering */
 	DeferredRenderingFBO deferredRenderingFBO;
 
+	/** fbo used to render effects */
+	RenderTarget effectTarget;
+
 	/** settings for shadow mapping */
 	ShadowMappingSettings shadowMappingSettings;
 
@@ -215,6 +215,15 @@ public:
 	void disableClipPlane() const;
 
 	void setClipPlane(const glm::vec4& clipPlane) const;
+
+	/**
+	 * Copies a texture into another applying a shader.
+	 * @param src the source texture
+	 * @param dst a render target whose color buffer contains the destination texture.
+	 * @param shader the shader used to copy the texture
+	 * @param clear clear the dst texture before copying. Set it to false if src and destination texture are the same
+	 */
+	void copyTexture(const Texture& src, RenderTarget& dst, const Shader& shader, bool clear = true);
 
 	virtual ~RenderSystem() = default;
 };

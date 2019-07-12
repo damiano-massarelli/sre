@@ -20,6 +20,9 @@ class Texture {
 
         Texture(std::uint32_t id);
 
+		int mWidth = 0;
+		int mHeight = 0;
+
     public:
         /**
           * Creates an invalid texture.
@@ -84,6 +87,16 @@ class Texture {
           * Returns the texture id for this texture.
           * Needed for rendering */
         std::uint32_t getId() const;
+
+		/**
+		 * @return the width of the texure
+		 */
+		int getWidth() const;
+
+		/**
+		 * @return the height of the texture
+		 */
+		int getHeight() const;
 
         /**
           * Checks whether this is a valid (usable) texture
