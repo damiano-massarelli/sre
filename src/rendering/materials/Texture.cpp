@@ -134,7 +134,11 @@ Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int 
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    return Texture{texture};
+    auto tex = Texture{texture};
+	tex.mWidth = width;
+	tex.mHeight = height;
+
+	return tex;
 }
 
 Texture::Texture(std::uint32_t id) : mTextureId{id}
@@ -145,6 +149,16 @@ Texture::Texture(std::uint32_t id) : mTextureId{id}
 uint32_t Texture::getId() const
 {
     return mTextureId;
+}
+
+int Texture::getWidth() const
+{
+	return mWidth;
+}
+
+int Texture::getHeight() const
+{
+	return mHeight;
 }
 
 bool Texture::isValid() const

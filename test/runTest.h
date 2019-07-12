@@ -15,4 +15,5 @@
 //#define bumpMapping 
 //#define parallaxMapping 
 //#define multipleTextureBlinn 
-#define waterTest 
+//#define waterTest 
+#define bloomTest 

@@ -35,7 +35,7 @@ public:
 	 * @param blue texture corresponding to blue channel in blend
 	 * @param blend the blending texture
 	 * @param horizontalTiles the number of texture tiles used by the textured mesh.
-	 * @param verticalTiles the number of texture tiles used by the textured mesh (@sa TerrainGenerator.setTextureTilesNumber).
+	 * @param verticalTiles the number of texture tiles used by the textured mesh (@see TerrainGenerator.setTextureTilesNumber).
 	 */
 	MultiTextureLambertMaterial(Texture base, Texture red, Texture green, Texture blue, Texture blend, float horizontalTiles = 1.0f, float verticalTiles = 1.0f);
 
@@ -43,5 +43,8 @@ public:
 
 	virtual void after() override;
 
+	virtual std::size_t hash() const override;
+
+	virtual bool equalsTo(const Material* rhs) const override;
 };
 

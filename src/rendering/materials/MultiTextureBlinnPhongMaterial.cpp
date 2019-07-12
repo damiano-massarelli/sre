@@ -87,3 +87,37 @@ void MultiTextureBlinnPhongMaterial::after()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+std::size_t MultiTextureBlinnPhongMaterial::hash() const
+{
+	return Material::hash()
+		+ baseTexture.getId()
+		+ baseTextureBump.getId()
+		+ redTexture.getId()
+		+ redTextureSpecular.getId()
+		+ redTextureBump.getId()
+		+ greenTexture.getId()
+		+ greenTextureSpecular.getId()
+		+ greenTextureBump.getId()
+		+ blendTexture.getId();
+}
+
+bool MultiTextureBlinnPhongMaterial::equalsTo(const Material* rhs) const
+{
+	if (shader.getId() != rhs->shader.getId())
+		return false;
+
+	auto other = static_cast<const MultiTextureBlinnPhongMaterial*>(rhs);
+	return Material::equalsTo(rhs)
+		&& baseTexture.getId() == other->baseTexture.getId()
+		&& baseTextureBump.getId() == other->baseTextureBump.getId()
+		&& redTexture.getId() == other->redTexture.getId()
+		&& redTextureSpecular.getId() == other->redTextureSpecular.getId()
+		&& redTextureBump.getId() == other->redTextureBump.getId()
+		&& greenTexture.getId() == other->greenTexture.getId()
+		&& greenTextureSpecular.getId() == other->greenTextureSpecular.getId()
+		&& greenTextureBump.getId() == other->greenTextureBump.getId()
+		&& blendTexture.getId() == other->blendTexture.getId()
+		&& redShininess == other->redShininess
+		&& greenShininess == other->greenShininess;
+}

@@ -177,18 +177,14 @@ BlinnPhongMaterial::~BlinnPhongMaterial()
 
 std::size_t BlinnPhongMaterial::hash() const
 {
-	auto vec3Hash = std::hash<glm::vec3>{};
-	auto floatHash = std::hash<float>{};
-
+	// this hash is far from being perfect but it is fast
+	// since it has to be computed every frame. Some collisions are
+	// allowed
 	return Material::hash()
 		+ diffuseMap.getId()
 		+ specularMap.getId()
 		+ bumpMap.getId()
-		+ parallaxMap.getId()
-		+ floatHash(shininess)
-		+ vec3Hash(diffuseColor)
-		+ vec3Hash(specularColor)
-		+ floatHash(opacity);
+		+ parallaxMap.getId();
 }
 
 bool BlinnPhongMaterial::equalsTo(const Material* rhs) const

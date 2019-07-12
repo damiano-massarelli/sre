@@ -21,7 +21,8 @@ void main() {
     texCoord = vTexCoord;
 
     position = (model * vec4(vPos, 1.0f)).xyz;
-    normal = normalModel * vNorm;
+    normal = normalize(normalModel * vNorm);
+
 
 	gl_ClipDistance[0] = dot(vec4(position, 1.0), clipPlane);
 

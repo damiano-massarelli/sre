@@ -56,7 +56,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 
     initGL(width, height, fovy, nearPlane, farPlane);
 	initDeferredRendering();
-	mEffectTarget.create(1280, 720);
+	effectTarget.create(1280, 720);
 	effectManager.init();
 	initShadowFbo();
 	fogSettings.init();
@@ -310,7 +310,7 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
 {
 	auto targetToUse = target;
 	if (target == nullptr) // target null means render to screen
-		targetToUse = &mEffectTarget;
+		targetToUse = &effectTarget;
 
 	prepareDeferredRendering(targetToUse);
 	glDisable(GL_BLEND);
@@ -384,6 +384,9 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 
 void RenderSystem::finalizeRendering()
 {
+	effectManager.update();
+	effectManager.mPostProcessingShader.use();
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
 
 	glViewport(0, 0, getScreenWidth(), getScreenHeight());
@@ -392,13 +395,11 @@ void RenderSystem::finalizeRendering()
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
 
-	effectManager.mPostProcessingShader.use();
-	effectManager.update();
 	glBindVertexArray(mScreenMesh.mVao);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mEffectTarget.getColorBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, effectTarget.getColorBuffer().getId());
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mEffectTarget.getDepthBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, effectTarget.getDepthBuffer().getId());
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 
 	glEnable(GL_DEPTH_TEST);
@@ -600,6 +601,29 @@ void RenderSystem::setClipPlane(const glm::vec4& clipPlane) const
 	// it is after 4 matrices (projection, view, projectionView and toLightSpace)
 	glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::mat4), sizeof(glm::vec4), glm::value_ptr(clipPlane));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, const Shader& shader, bool clear)
+{
+	shader.use();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, dst.getFbo());
+
+	glViewport(0, 0, dst.getWidth(), dst.getHeight());
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	if (clear) glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+
+	glBindVertexArray(mScreenMesh.mVao);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, src.getId());
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+
+	glBindBuffer(GL_FRAMEBUFFER, 0);
+
+	glEnable(GL_DEPTH_TEST);
 }
 
 void RenderSystem::cleanUp()

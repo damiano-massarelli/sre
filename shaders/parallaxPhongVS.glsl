@@ -33,7 +33,7 @@ void main() {
 
     position = (model * vec4(vPos, 1.0f)).xyz;
 
-    vec3 normal = normalModel * vNorm;
+    vec3 normal = normalize(normalModel * vNorm);
 
     vec3 tangent = normalize(normalModel * vTangent);
     tangent = normalize(tangent - (dot(tangent, normal) * normal)); // ortogonalize it

@@ -33,7 +33,8 @@ private:
 public:
 	static Shader loadFromFile(const std::vector<std::string>& vertexPaths,
 		const std::vector<std::string>& geometryPaths,
-		const std::vector<std::string>& fragmentPaths);
+		const std::vector<std::string>& fragmentPaths,
+		bool cache = true);
 
 	static Shader loadFromFile(const std::string& vertexPath, const std::string& geometryPath, const std::string& fragmentPath);
 

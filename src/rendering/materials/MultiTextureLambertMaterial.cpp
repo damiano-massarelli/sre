@@ -58,3 +58,26 @@ void MultiTextureLambertMaterial::after()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+std::size_t MultiTextureLambertMaterial::hash() const
+{
+	return Material::hash()
+		+ baseTexture.getId()
+		+ redTexture.getId()
+		+ greenTexture.getId()
+		+ blueTexture.getId();
+}
+
+bool MultiTextureLambertMaterial::equalsTo(const Material* rhs) const
+{
+	if (shader.getId() != rhs->shader.getId())
+		return false;
+
+	auto other = static_cast<const MultiTextureLambertMaterial*>(rhs);
+	
+	return Material::equalsTo(rhs)
+		&& baseTexture.getId() == other->baseTexture.getId()
+		&& redTexture.getId() == other->redTexture.getId()
+		&& greenTexture.getId() == other->greenTexture.getId()
+		&& blueTexture.getId() == other->blueTexture.getId();
+}

@@ -34,6 +34,7 @@ private:
 		const Mesh* mesh;
 		glm::mat4 toWorld;
 		glm::mat4 toWorldForNormals;
+		glm::vec3 position;
 	};
 
 	/**

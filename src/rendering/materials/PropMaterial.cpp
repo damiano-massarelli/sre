@@ -1,5 +1,6 @@
 #include "PropMaterial.h"
 #include "Engine.h"
+#include <glm/gtx/hash.hpp>
 
 PropMaterial::PropMaterial(bool showNormals)
     : Material{{"shaders/propVS.glsl"},
@@ -17,4 +18,20 @@ void PropMaterial::use()
 {
     shader.use();
     shader.setVec3(mColorLocation, color);
+}
+
+std::size_t PropMaterial::hash() const
+{
+	return std::hash<glm::vec3>{}(color);
+}
+
+bool PropMaterial::equalsTo(const Material* rhs) const
+{
+	if (shader.getId() != rhs->shader.getId())
+		return false;
+
+	auto other = static_cast<const PropMaterial*>(rhs);
+	
+	return Material::equalsTo(rhs)
+		&& color == other->color;
 }
