@@ -30,5 +30,4 @@ void Bloom::update(Shader& postProcessingShader)
 Bloom::~Bloom()
 {
 	mBloomExtractor = Shader{};
-	mBloom = Texture{};
 }

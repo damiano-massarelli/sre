@@ -74,5 +74,6 @@ void EffectManager::update()
 void EffectManager::cleanUp()
 {
 	mPostProcessingShader = Shader();
+	mEffects = {};
 }
 

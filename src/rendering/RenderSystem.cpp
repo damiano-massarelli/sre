@@ -61,6 +61,8 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 	initShadowFbo();
 	fogSettings.init();
 	shadowMappingSettings.init();
+
+	Engine::particleRenderer.init();
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -98,7 +100,7 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
 
     // size for position and direction
-    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec3), nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), nullptr, GL_STATIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA_UNIFORM_BLOCK_INDEX, mUboCamera);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -321,8 +323,11 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	render(RenderPhase::FORWARD_RENDERING | phase);
 
+	// render particles
+	Engine::particleRenderer.render();
+
 	// render to screen only if no target specified
-	if (target == nullptr)
+	if (target == nullptr) 
 		finalizeRendering();
 }
 

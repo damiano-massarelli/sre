@@ -9,18 +9,19 @@
 #include "GameObjectLoader.h"
 #include "FXAA.h"
 #include "Bloom.h"
-#include <runTest.h>
+#include "runTest.h"
+#include "ParticleEmitter.h"
 
 #include <iostream>
 
 
-#ifdef bloomTest
+#ifdef particleTest
 int main(int argc, char* argv[]) {
     Engine::init();
 
     Engine::renderSys.createWindow(1280, 720);
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
-	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
+ 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
 
 
 	Engine::renderSys.effectManager.enableEffects();
@@ -59,6 +60,17 @@ int main(int argc, char* argv[]) {
     light->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
     light->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
+
+	light->addComponent(std::make_shared<ParticleEmitter>(light, 500));
+	
+	light->getComponent<ParticleEmitter>()->setTextureAtlas(Texture::loadFromFile("test_data/particle/fire.png"), 64, 8, 8);
+	Particle p;
+	p.durationMillis = 50000.0f;
+	p.gravityScale = 0.0f;
+	p.position.y = 5.0f;
+	p.velocity = .5f * glm::vec3{ 0, ((float)rand() / (RAND_MAX)) + 0.5f, 0 };
+	light->getComponent<ParticleEmitter>()->emit(p);
+	
 
     auto light2 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light2->name = "light2";

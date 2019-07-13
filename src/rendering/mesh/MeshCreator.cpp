@@ -1,6 +1,7 @@
 #include "MeshCreator.h"
 #include "MeshLoader.h"
 #include "LineMaterial.h"
+#include "Engine.h"
 #include <memory>
 #include <cstdint>
 #include <cmath>
@@ -302,13 +303,13 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
 	return loader.getMesh(0, indices.size());
 }
 
-Mesh MeshCreator::plane()
+Mesh MeshCreator::plane(bool includeTextureCoordinates, bool includeNormals)
 {
 	std::vector<float> positions{
-		.5f,  0.0f,  .5f,
-		.5f,  0.0f, -.5f,
-		-.5f,  0.0f, -.5f,
-		-.5f,  0.0f,  .5f,
+		.5f, .5f, 0.0f,
+		.5f, -.5f, 0.0f,
+		-.5f, -.5f, 0.0f,
+		-.5f, .5f, 0.0f
 	};
 
 	std::vector<float> uvs{
@@ -326,14 +327,18 @@ Mesh MeshCreator::plane()
 	};
 
 	std::vector<std::uint32_t> indices{
-		0, 1, 2,
-		3, 0, 2
+		2, 1, 0,
+		2, 0, 3
 	};
 
 	MeshLoader loader;
 	loader.loadData(positions.data(), positions.size(), 3);
-	loader.loadData(normals.data(), normals.size(), 3);
-	loader.loadData(uvs.data(), uvs.size(), 2);
+	if (includeNormals)
+		loader.loadData(normals.data(), normals.size(), 3);
+
+	if (includeTextureCoordinates)
+		loader.loadData(uvs.data(), uvs.size(), 2);
+
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
 
 	return loader.getMesh(0, indices.size());
