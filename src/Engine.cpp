@@ -10,6 +10,7 @@ EventManager Engine::eventManager;
 GameObjectManager Engine::gameObjectManager;
 RenderSystem Engine::renderSys;
 GameObjectRenderer Engine::gameObjectRenderer;
+ParticleRenderer Engine::particleRenderer;
 
 Engine::Engine()
 {
@@ -60,6 +61,7 @@ void Engine::start()
 
 	renderSys.cleanUp();
 	gameObjectManager.cleanUp();
+	particleRenderer.cleanUp();
 
 	std::cout << totDeltas / frames << "\n";
 }

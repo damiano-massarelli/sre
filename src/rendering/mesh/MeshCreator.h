@@ -1,7 +1,7 @@
 #ifndef MESHCREATOR_H
 #define MESHCREATOR_H
-#include "Engine.h"
 #include "Mesh.h"
+#include "GameObjectEH.h"
 #include <cstdint>
 
 class MeshCreator
@@ -37,7 +37,7 @@ class MeshCreator
 		  * Creates a plane.
           * @return a plane Mesh
           */
-		static Mesh plane();
+		static Mesh plane(bool includeTextureCoordinates = true, bool includeNormals = true);
 };
 
 #endif // MESHCREATOR_H

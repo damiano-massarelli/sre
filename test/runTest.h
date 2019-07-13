@@ -16,4 +16,5 @@
 //#define parallaxMapping 
 //#define multipleTextureBlinn 
 //#define waterTest 
-#define bloomTest 
+//#define bloomTest 
+#define particleTest 

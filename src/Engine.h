@@ -5,6 +5,7 @@
 #include "EventListener.h"
 #include "GameObjectManager.h"
 #include "GameObjectRenderer.h"
+#include "ParticleRenderer.h"
 #include "SDL.h"
 #include <cstdint>
 #include <memory>
@@ -33,6 +34,9 @@ class Engine : public EventListener
 
         /** Renderer for GameObject%s */
         static GameObjectRenderer gameObjectRenderer;
+
+		/** Renderer for Particle%s */
+		static ParticleRenderer particleRenderer;
 
         /**
           * Initializes the engine.
