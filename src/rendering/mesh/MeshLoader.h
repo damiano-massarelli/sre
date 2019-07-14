@@ -34,45 +34,69 @@ class MeshLoader
           * @param size the length of the data array
           * @param dataPerVertex how many elements of the array are describe a single vertex
           * @param bufferType the type of buffer to create (GL_ARRAY_BUFFER, GL_ELEMENT_ARAY_BUFFER, etc)
-          * @param dataType the type of the data to load (GL_FLOAT, GL_UNSIGNED_INT, etc). */
+          * @param dataType the type of the data to load (GL_FLOAT, GL_UNSIGNED_INT, etc).
+		  * @param addToAttribPointer if true an attrib pointer is created for the data provided 
+		  * @param usage the usage (static, stream, etc) */
         template <typename T>
-        void loadData(const T* data, std::uint32_t size, int dataPerVertex, int bufferType = GL_ARRAY_BUFFER, int dataType = GL_FLOAT) {
+        std::uint32_t loadData(const T* data, std::uint32_t size, int dataPerVertex,
+			GLenum bufferType = GL_ARRAY_BUFFER, GLenum dataType = GL_FLOAT, bool addToAttribPointer = true, GLenum usage = GL_STATIC_DRAW) {
+
             std::uint32_t bo;
             glGenBuffers(1, &bo);
             glBindBuffer(bufferType, bo);
 
-            glBufferData(bufferType, size * sizeof(T), data, GL_STATIC_DRAW);
+            glBufferData(bufferType, size * sizeof(T), data, usage);
 
-            if (bufferType != GL_ELEMENT_ARRAY_BUFFER) {
+            if (addToAttribPointer) {
                 glEnableVertexAttribArray(mCurrentAttribPointer);
                 glVertexAttribPointer(mCurrentAttribPointer, dataPerVertex, dataType, GL_FALSE, dataPerVertex * sizeof(T), (void *) 0);
                 mCurrentAttribPointer++;
 			}
-			else
+			
+			if (bufferType == GL_ELEMENT_ARRAY_BUFFER)
 				mMesh.mEbo = bo;
 
             mMesh.mBuffers.push_back(bo);
+
+			return bo;
         }
 
 		// template specialization for ints. They should use glVertexAttrib * I * Pointer
 		template <>
-		void loadData<std::int32_t>(const std::int32_t* data, std::uint32_t size, int dataPerVertex, int bufferType, int dataType) {
+		std::uint32_t loadData<std::int32_t>(const std::int32_t* data, std::uint32_t size, int dataPerVertex,
+			GLenum bufferType, GLenum dataType, bool addToAttribPointer, GLenum usage) {
 
 			std::uint32_t bo;
 			glGenBuffers(1, &bo);
 			glBindBuffer(bufferType, bo);
 
-			glBufferData(bufferType, size * sizeof(std::int32_t), data, GL_STATIC_DRAW);
+			glBufferData(bufferType, size * sizeof(std::int32_t), data, usage);
 
-			if (bufferType != GL_ELEMENT_ARRAY_BUFFER) {
+			if (addToAttribPointer) {
 				glEnableVertexAttribArray(mCurrentAttribPointer);
 				glVertexAttribIPointer(mCurrentAttribPointer, dataPerVertex, dataType, dataPerVertex * sizeof(std::int32_t), (void *)0);
 				mCurrentAttribPointer++;
 			}
-			else
+			
+			if (bufferType == GL_ELEMENT_ARRAY_BUFFER)
 				mMesh.mEbo = bo;
 
 			mMesh.mBuffers.push_back(bo);
+
+			return bo;
+		}
+
+		int addAttribPointer(GLenum bufferType, std::uint32_t vbo, int stride, int dataPerVertex, GLenum dataType, int offset) {
+			glBindBuffer(bufferType, vbo);
+
+			glEnableVertexAttribArray(mCurrentAttribPointer);
+			glVertexAttribPointer(mCurrentAttribPointer, dataPerVertex, dataType, GL_FALSE, stride, (void *)offset);
+			glVertexAttribDivisor(mCurrentAttribPointer, 1);
+
+			auto attrib = mCurrentAttribPointer;
+			mCurrentAttribPointer++;
+
+			return attrib;
 		}
 
         /** Creates the Mesh

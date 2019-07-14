@@ -7,6 +7,7 @@ MeshLoader::MeshLoader(int drawMode) : mDrawMode{drawMode}
     glBindVertexArray(mMesh.mVao);
 }
 
+
 Mesh MeshLoader::getMesh(std::uint32_t vertexNumber, std::uint32_t indexNumber)
 {
     glBindVertexArray(0);

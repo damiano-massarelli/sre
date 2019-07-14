@@ -176,7 +176,7 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 		loader.loadData(influencingBones.data(), influencingBones.size(), 4, GL_ARRAY_BUFFER, GL_INT);
 		loader.loadData(boneWeights.data(), boneWeights.size(), 4);
 	}
-    loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
+    loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
     Mesh loadedMesh = loader.getMesh(vertices.size(), indices.size());
 
