@@ -38,8 +38,8 @@ int main(int argc, char* argv[]) {
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
-	auto sponza = GameObjectLoader().fromFile("test_data/bloom/sponza.fbx");
-	sponza->transform.setScale(glm::vec3{ 0.1f });
+// 	auto sponza = GameObjectLoader().fromFile("test_data/bloom/sponza.fbx");
+// 	sponza->transform.setScale(glm::vec3{ 0.1f });
 
 	auto light3 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
 	light3->name = "light3";
@@ -69,6 +69,10 @@ int main(int argc, char* argv[]) {
 	p.gravityScale = 0.0f;
 	p.position.y = 5.0f;
 	p.velocity = .5f * glm::vec3{ 0, ((float)rand() / (RAND_MAX)) + 0.5f, 0 };
+	light->getComponent<ParticleEmitter>()->emit(p);
+	light->getComponent<ParticleEmitter>()->emit(p);
+	light->getComponent<ParticleEmitter>()->emit(p);
+	light->getComponent<ParticleEmitter>()->emit(p);
 	light->getComponent<ParticleEmitter>()->emit(p);
 	
 

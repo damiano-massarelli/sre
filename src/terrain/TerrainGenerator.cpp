@@ -61,7 +61,7 @@ Mesh TerrainGenerator::createTerrain(const TerrainHeightProvider& heightProvider
     loader.loadData(uvs.data(), uvs.size(), 2);
 	if (mIncludeTangentSpace)
 		loader.loadData(tangents.data(), tangents.size(), 3);
-    loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
+    loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
     return loader.getMesh(0, indices.size());
 }

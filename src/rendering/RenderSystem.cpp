@@ -140,7 +140,7 @@ void RenderSystem::initDeferredRendering()
 	std::uint32_t indices[]{ 0, 2, 1, 0, 3, 2 };
 	loader.loadData(verts, 8, 2);
 	loader.loadData(texCoords, 8, 2);
-	loader.loadData(indices, 6, 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
+	loader.loadData(indices, 6, 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 	mScreenMesh = loader.getMesh(0, 6);
 
 
