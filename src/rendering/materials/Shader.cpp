@@ -285,6 +285,11 @@ void Shader::setVec2(const std::string & name, const glm::vec2 & value) const
 		glUniform2fv(location, 1, glm::value_ptr(value));
 }
 
+void Shader::setVec2(std::int32_t location, const glm::vec2& value) const
+{
+	glUniform2fv(location, 1, glm::value_ptr(value));
+}
+
 void Shader::setMat4Array(const std::string& name, const std::vector<glm::mat4>& array) const
 {
 	std::int32_t location = getLocationOf(name);

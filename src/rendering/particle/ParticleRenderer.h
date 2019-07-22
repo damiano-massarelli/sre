@@ -17,16 +17,16 @@ private:
 	static constexpr int MAX_PARTICLES = 10000;
 	static constexpr int FLOATS_PER_PARTICLE = 16 + 4 + 1;
 
-	std::vector<const ParticleEmitter*> mEmitters;
+	std::vector<ParticleEmitter*> mEmitters;
 
 	Shader mParticleShader;
-	std::int32_t mModelLocation;
+	std::int32_t mFrameSizeLocation;
 
 	Mesh mParticleMesh;
 	
 	std::uint32_t mParticleDataVBO = 0;
 
-	void renderParticles(const ParticleEmitter* emitter);
+	void renderParticles(ParticleEmitter* emitter);
 
 	void storeModelMatrix(const Particle& p, std::vector<float>& data);
 
@@ -52,7 +52,7 @@ public:
 	 * ParticleEmitter%s call this method automatically when they are created.
 	 * @param emitter the ParticleEmitter to add.
 	 */
-	void addEmitter(const ParticleEmitter* emitter);
+	void addEmitter(ParticleEmitter* emitter);
 
 	/**
 	 * Remove a ParticleEmitter.

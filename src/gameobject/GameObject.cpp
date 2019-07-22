@@ -28,10 +28,6 @@ void GameObject::addComponent(const std::shared_ptr<Component>& component)
     mComponents.push_back(component);
 }
 
-void GameObject::cleanUp()
-{
-
-}
 
 GameObject::~GameObject()
 {

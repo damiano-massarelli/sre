@@ -4,6 +4,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include<glm/gtc/quaternion.hpp>
+#include <filesystem>
 
 class Transform {
 friend struct GameObjectEH;
@@ -197,12 +198,18 @@ public:
     void setParent(const GameObjectEH& parent);
 
     /**
-        * Removes the parent. */
+      * Removes the parent. */
     void removeParent();
 
     /**
-        * @return this Transform%'s children */
+      * @return this Transform%'s children */
     const std::vector<GameObjectEH>& getChildren();
+
+	std::vector<GameObjectEH> findAll(const std::string& name);
+
+	GameObjectEH find(const std::filesystem::path& path);
+
+	GameObjectEH find(const std::filesystem::path::iterator it);
 };
 
 #endif // TRANSFORM_H

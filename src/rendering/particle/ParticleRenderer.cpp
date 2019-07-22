@@ -6,12 +6,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "MeshCreator.h"
 
-template <typename Iterator>
-void insertionSort(Iterator begin, Iterator end) {
+template <class Iterator, class Compare>
+void insertionSort(Iterator begin, Iterator end, Compare cmp) {
 	auto current = begin;
 	while (current != end) {
 		auto swapper = current;
-		while (swapper != begin && *swapper > *(swapper - 1)) {
+		while (swapper != begin && cmp(*(swapper - 1), *swapper)) {
 			std::swap(*swapper, *(swapper - 1));
 			swapper--;
 		}
@@ -35,14 +35,12 @@ void ParticleRenderer::init()
 {
 	prepareParticleQuad();
 
-
 	mParticleShader = Shader::loadFromFile(std::vector<std::string>{ "shaders/particleVS.glsl" }, {}, { "shaders/particleFS.glsl" });
 	mParticleShader.use();
-	mModelLocation = mParticleShader.getLocationOf("model");
+	mFrameSizeLocation = mParticleShader.getLocationOf("frameSize");
 }
 
-#include <iostream>
-#include <iterator>
+
 void ParticleRenderer::prepareParticleQuad()
 {
 	MeshLoader loader;
@@ -50,7 +48,7 @@ void ParticleRenderer::prepareParticleQuad()
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
 	mParticleDataVBO = loader.loadData<float>(nullptr, MAX_PARTICLES * FLOATS_PER_PARTICLE, 0, GL_ARRAY_BUFFER, GL_FLOAT, false, GL_STREAM_DRAW);
-	std::cout << mParticleDataVBO << "\n";
+
 	int stride = FLOATS_PER_PARTICLE * sizeof(float);
 	loader.addAttribPointer(GL_ARRAY_BUFFER, mParticleDataVBO, stride, 4, GL_FLOAT, 0);
 	loader.addAttribPointer(GL_ARRAY_BUFFER, mParticleDataVBO, stride, 4, GL_FLOAT, 4 * sizeof(float));
@@ -62,8 +60,6 @@ void ParticleRenderer::prepareParticleQuad()
 	loader.addAttribPointer(GL_ARRAY_BUFFER, mParticleDataVBO, stride, 1, GL_FLOAT, 20 * sizeof(float));
 
 	mParticleMesh = loader.getMesh(0, indices.size());
-
-	
 }
 
 void ParticleRenderer::updateParticleVBO(const std::vector<float>& data)
@@ -81,13 +77,19 @@ void ParticleRenderer::storeModelMatrix(const Particle& p, std::vector<float>& d
 
 	glm::mat3 counterRotation = glm::transpose(glm::mat3{ viewMatrix });
 
-	glm::mat4 rotation = glm::mat4(counterRotation);
-	rotation[3][3] = 1.0f;
+	glm::mat4 counterRotation4 = glm::mat4(counterRotation);
+	counterRotation4[3][3] = 1.0f;
 
-	glm::mat4 translate = glm::translate(glm::mat4{ 1.0f }, p.position);
-	glm::mat4 scale = glm::scale(translate, glm::vec3{ p.scale });
+	float lifePercent = p.elapsedTime / p.durationMillis;
+	glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, p.position);
+
+	float rotation = glm::mix(p.initialRotation, p.finalRotation, lifePercent);
+	transform = glm::rotate(transform, rotation, glm::vec3{ 0.0f, 0.0f, 1.0f });
+
+	float scale = glm::mix(p.initialScale, p.finalScale, lifePercent);
+	transform = glm::scale(transform, glm::vec3{ scale });
 	
-	glm::mat4 transform = scale * rotation;
+	transform = transform * counterRotation4;
 
 	data.insert(data.end(), glm::value_ptr(transform), glm::value_ptr(transform) + 16);
 }
@@ -122,7 +124,7 @@ void ParticleRenderer::storeOffsetsAndBlendFactor(const Particle& p, const Parti
 	data.push_back(blend);
 }
 
-void ParticleRenderer::addEmitter(const ParticleEmitter* emitter)
+void ParticleRenderer::addEmitter(ParticleEmitter* emitter)
 {
 	mEmitters.push_back(emitter);
 }
@@ -136,15 +138,22 @@ void ParticleRenderer::render()
 {
 	glBindVertexArray(mParticleMesh.getVao());
 	mParticleShader.use();
-// 	glEnable(GL_BLEND);
-// 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+	glDepthMask(GL_FALSE);
 
 	for (const auto emitter : mEmitters) {
+		if (emitter->settings.useAlphaBlending) {
+			glEnable(GL_BLEND);
+			glBlendFunc(emitter->settings.sfactor, emitter->settings.dfactor);
+		}
 		setUpTextureAtlas(emitter);
 
-		// bind texture for this emitter
 		renderParticles(emitter);
+
+		glDisable(GL_BLEND);
 	}
+
+	glDepthMask(GL_TRUE);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -153,12 +162,18 @@ void ParticleRenderer::render()
 	glDisable(GL_BLEND);
 }
 
-void ParticleRenderer::renderParticles(const ParticleEmitter* emitter)
+void ParticleRenderer::renderParticles(ParticleEmitter* emitter)
 {
-	// TODO sort particles and enable alpha blending
+	std::vector<Particle>& particles = emitter->getParticles();
+
+	const glm::vec3& camPosition = Engine::renderSys.camera->transform.getPosition();
+
+	insertionSort(particles.begin(), particles.end(), [&camPosition](const auto& p, const auto& p2) {
+		return glm::distance2(p.position, camPosition) < glm::distance2(p2.position, camPosition);
+	});
 
 	std::vector<float> data;
-	data.reserve(emitter->getParticles().size() * FLOATS_PER_PARTICLE);
+	data.reserve(particles.size() * FLOATS_PER_PARTICLE);
 
 	for (const auto& p : emitter->getParticles()) {
 		storeModelMatrix(p, data);
@@ -167,7 +182,7 @@ void ParticleRenderer::renderParticles(const ParticleEmitter* emitter)
 
 	updateParticleVBO(data);
 
-	glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, emitter->getParticles().size());
+	glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, particles.size());
 }
 
 void ParticleRenderer::setUpTextureAtlas(const ParticleEmitter* emitter)
@@ -177,9 +192,7 @@ void ParticleRenderer::setUpTextureAtlas(const ParticleEmitter* emitter)
 
 	const Texture& atlas = emitter->mParticleAtlas;
 
-	// TODO use numeric location
-
-	mParticleShader.setVec2("frameSize", glm::vec2{ emitter->mColSize, emitter->mRowSize });
+	mParticleShader.setVec2(mFrameSizeLocation, glm::vec2{ emitter->mColSize, emitter->mRowSize });
 }
 
 

@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "EventManager.h"
 #include "Engine.h"
+#include <glm/common.hpp>
 
 ParticleEmitter::ParticleEmitter(const GameObjectEH& go, std::uint32_t maxParticles) : Component{ go }, mMaxParticles{ maxParticles }
 {
@@ -39,14 +40,12 @@ void ParticleEmitter::start(float rate)
 	mElapsedFromLastEmission = 0.0f;
 }
 
-#include <cstdlib>
-#include <glm/glm.hpp>
-#include <iostream>
 void ParticleEmitter::onEvent(SDL_Event e)
 {
 	float delta = *(static_cast<float*>(e.user.data1));
 	float deltaSec = delta / 1000.0f;
 
+	/* generate new particles */
 	if (mStarted) {
 		int particlesToEmit = static_cast<int>(mElapsedFromLastEmission / mSecondsPerParticle);
 
@@ -54,32 +53,37 @@ void ParticleEmitter::onEvent(SDL_Event e)
 		for (int i = 0; i < particlesToEmit; i++) {
 			
 			Particle p;
-			p.durationMillis = 50000.0f;
-			p.gravityScale = 0.0f;
-			p.velocity = .5f * glm::vec3{ 0, ((float)rand() / (RAND_MAX)) + 0.5f, 0 };
+			settings.setUp(gameObject, p);
 			emit(p);
 		}
 
 		mElapsedFromLastEmission += deltaSec;
 	}
 
+	/* update existing particles */
 	auto it = mParticles.begin();
 	while (it != mParticles.end()) {
 		it->elapsedTime += delta;
 
 		Particle& p = *it;
 		p.position += p.velocity * deltaSec;
-		
-		p.velocity.y -= gravity * deltaSec * p.gravityScale;
 
-		if (it->elapsedTime > it->durationMillis) 
+		float lifePercent = p.elapsedTime / p.durationMillis;
+		p.velocity.y -= gravity * deltaSec * glm::mix(p.initialGravityScale, p.finalGravityScale, lifePercent);
+
+		if (it->elapsedTime > it->durationMillis)
 			it = mParticles.erase(it);
-		 else
+		else
 			++it;
 	}
 }
 
 const std::vector<Particle>& ParticleEmitter::getParticles() const
+{
+	return mParticles;
+}
+
+std::vector<Particle>& ParticleEmitter::getParticles()
 {
 	return mParticles;
 }
