@@ -541,7 +541,7 @@ float RenderSystem::computePointLightRadius(const std::shared_ptr<Light>& light)
 	float quadratic = light->attenuationQuadratic;
 	float lightMax = std::max({ light->diffuseColor.r, light->diffuseColor.g , light->diffuseColor.b,
 		light->specularColor.r, light->specularColor.g, light->specularColor.b });
-	float radius = (-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256.0 / 5.0) * lightMax))) / (2 * quadratic);
+	float radius = (-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256.0 / 2.5) * lightMax))) / (2 * quadratic);
 
 	return radius;
 }
