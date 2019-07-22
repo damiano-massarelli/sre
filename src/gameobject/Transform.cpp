@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <algorithm>
+#include <queue>
 
 glm::mat4 Transform::modelToWorld() const
 {
@@ -256,5 +257,47 @@ void Transform::removeParent()
 const std::vector<GameObjectEH>& Transform::getChildren()
 {
     return mChildren;
+}
+
+std::vector<GameObjectEH> Transform::findAll(const std::string& name)
+{
+	std::vector<GameObjectEH> found;
+
+	std::queue<GameObjectEH> searching;
+	searching.push(gameObject);
+
+	while (!searching.empty()) {
+		auto eh = searching.front();
+		searching.pop();
+
+		if (eh->name == name)
+			found.push_back(eh);
+
+		for (auto child : eh->transform.getChildren())
+			searching.push(child);
+	}
+
+	return found;
+}
+
+GameObjectEH Transform::find(const std::filesystem::path& path)
+{
+	return find(path.begin(), path.end());
+}
+
+GameObjectEH Transform::find(std::filesystem::path::iterator it, std::filesystem::path::iterator end)
+{
+	if (it == end)
+		return gameObject;
+	else if (*it == "..")
+		return mParent->transform.find(++it, end);
+	else if (*it == ".")
+		return find(++it, end);
+
+	for (const auto& child : getChildren())
+		if (child->name == *it)
+			return child->transform.find(++it, end);
+
+	return GameObjectEH{};
 }
 

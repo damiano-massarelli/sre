@@ -205,11 +205,29 @@ public:
       * @return this Transform%'s children */
     const std::vector<GameObjectEH>& getChildren();
 
+	/**
+	 * Finds all the children of this GameObject with the specified name.
+	 * @param name the name to find
+	 * @return all children GameObject%s with that name
+	 */
 	std::vector<GameObjectEH> findAll(const std::string& name);
 
+	/**
+	 * Finds a GameObject given its path starting from the current GameObject.
+	 * The returned GameObjectEH is not valid if no GameObject can be found using that path.
+	 * @param a relative path starting from the current node
+	 * @return a GameObjectEH to the found GameObject (invalid if no GameObject is found)
+	 */
 	GameObjectEH find(const std::filesystem::path& path);
 
-	GameObjectEH find(const std::filesystem::path::iterator it);
+	/**
+	* Finds a GameObject given its path starting from the current GameObject.
+	* The returned GameObjectEH is not valid if no GameObject can be found using that path.
+	* @param a path iterator
+	* @param the past last iterator for the path
+	* @return a GameObjectEH to the found GameObject (invalid if no GameObject is found)
+	*/
+	GameObjectEH find(std::filesystem::path::iterator it, std::filesystem::path::iterator end);
 };
 
 #endif // TRANSFORM_H
