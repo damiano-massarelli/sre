@@ -20,5 +20,5 @@ void main() {
     blend = iBlendFactor;
     offsets = iOffsets;
 
-    gl_Position = projectionView * iTransform * vec4(vPos + gl_InstanceID, 1.0f);
+    gl_Position = projectionView * iTransform * vec4(vPos, 1.0f);
 }

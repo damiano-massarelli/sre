@@ -21,8 +21,10 @@ class GameObject
         std::vector<MaterialPtr> mMaterials;
 
     public:
+		/** position, scale and orientation of this GameObject */
         Transform transform;
 
+		/** the name of this GameObject */
         std::string name = "gameobject";
 
         GameObject(const Mesh& mesh, MaterialPtr material);
@@ -60,12 +62,6 @@ class GameObject
             return nullptr;
         }
 
-        /**
-          * Cleans up this GameObject's resources (e.g Mesh).
-          * This method is automatically called by the GameObjectManager
-          * when a GameObject is removed. Attempting to use a cleaned up
-          * GameObject may result in undefined behavior */
-        void cleanUp();
 
         virtual ~GameObject();
 };

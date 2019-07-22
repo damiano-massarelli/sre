@@ -68,6 +68,8 @@ public:
 
 	void setVec2(const std::string& name, const glm::vec2& value) const;
 
+	void setVec2(std::int32_t location, const glm::vec2& value) const;
+
 	void setMat4Array(const std::string& name, const std::vector<glm::mat4>& array) const;
 
 	void setMat4Array(std::int32_t location, const std::vector<glm::mat4>& array) const;
