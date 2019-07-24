@@ -5,10 +5,12 @@
 
 #include "FreeCameraComponent.h"
 #include "Light.h"
+#include "PointLight.h"
+#include "DirectionalLight.h"
 #include "MeshCreator.h"
 #include "GameObjectLoader.h"
 
-#include <runTest.h>
+#include "runTest.h"
 
 #include <iostream>
 
@@ -60,7 +62,7 @@ int main(int argc, char* argv[]) {
 
     auto light3 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light3->name = "light3";
-    light3->addComponent(std::make_shared<Light>(light3, Light::Type::POINT));
+    light3->addComponent(std::make_shared<PointLight>(light3));
     light3->transform.setPosition(glm::vec3{0.0f, 0.0f, 5.0f});
     Engine::renderSys.addLight(light3);
     light3->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};

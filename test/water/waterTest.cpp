@@ -15,8 +15,8 @@
 #include "MultiTextureBlinnPhongMaterial.h"
 #include "ShadowOnVisibleSceneComponent.h"
 #include "WaterMaterial.h"
-
-#include <runTest.h>
+#include "PointLight.h"
+#include "runTest.h"
 
 #include <iostream>
 #include <stdlib.h>
@@ -42,8 +42,9 @@ int main(int argc, char* argv[]) {
 
 	water->transform.moveBy(glm::vec3{ 35, -5, -5 });
 	water->transform.scaleBy(glm::vec3{ 90.0f });
+	water->transform.rotateBy(glm::angleAxis(glm::radians(-90.0f), water->transform.right()));
 
-    auto skyTexture = Texture::loadCubamapFromFile({
+    auto skyTexture = Texture::loadCubemapFromFile({
                     {"front", "test_data/skybox/front.tga"},
                     {"back", "test_data/skybox/back.tga"},
                     {"top", "test_data/skybox/top.tga"},
@@ -104,35 +105,16 @@ int main(int argc, char* argv[]) {
 
 	auto light3 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
 	light3->name = "light3";
-	light3->addComponent(std::make_shared<Light>(light3, Light::Type::DIRECTIONAL));
+	light3->addComponent(std::make_shared<DirectionalLight>(light3));
 	light3->transform.setPosition(glm::vec3{ 0.0f, 0.0f, 15.0f });
 	Engine::renderSys.addLight(light3);
 	light3->getComponent<Light>()->diffuseColor = glm::vec3{ 230, 230, 230 } / 255.0f;
-	light3->getComponent<Light>()->castShadow = true;
+	light3->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::DYNAMIC);
 	light3->getComponent<Light>()->specularColor = glm::vec3{ 230, 230, 230 } / 255.0f;
 	light3->getComponent<Light>()->innerAngle = glm::radians(25.0f);
 	light3->getComponent<Light>()->outerAngle = glm::radians(28.0f);
 	light3->addComponent(std::make_shared<ShadowOnVisibleSceneComponent>(light3));
 	light3->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
-
-    auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
-    light->name = "light";
-    light->addComponent(std::make_shared<Light>(light));
-    light->transform.setPosition(glm::vec3{0.0f, 3.0f, 0.0f});
-    Engine::renderSys.addLight(light);
-    light->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
-    light->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
-    light->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
-
-    auto light2 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
-    light2->name = "light2";
-    light2->addComponent(std::make_shared<Light>(light2));
-    Engine::renderSys.addLight(light2);
-    light2->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
-    light2->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
-
-    light2->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
-
 
     auto gizmo = MeshCreator::axisGizmo();
     gizmo->transform.setParent(light3);

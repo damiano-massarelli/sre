@@ -2,13 +2,19 @@
 #include <glad/glad.h>
 #include <iostream>
 
-void RenderTarget::create(std::uint32_t width, std::uint32_t height)
+void RenderTarget::create(std::uint32_t width, std::uint32_t height, bool wantColorBuffer, bool wantDepthBuffer)
 {
-	mColorBuffer = Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA);
-	mDepthBuffer = Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, GL_DEPTH24_STENCIL8);
+	Texture colorBuffer;
+	Texture depthBuffer;
+
+	if (wantColorBuffer)
+		colorBuffer = Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA);
+
+	if (wantDepthBuffer)
+		depthBuffer = Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, GL_DEPTH24_STENCIL8);
 
 
-	createWith(mColorBuffer, mDepthBuffer);
+	createWith(colorBuffer, depthBuffer);
 }
 
 void RenderTarget::createWith(const Texture& colorBuffer, const Texture& depthBuffer)
@@ -22,13 +28,20 @@ void RenderTarget::createWith(const Texture& colorBuffer, const Texture& depthBu
 	glGenFramebuffers(1, &mFbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, mFbo);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer.getId(), 0);
+	if (colorBuffer)
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer.getId(), 0);
+	else
+		glDrawBuffer(GL_NONE);
 
 	if (depthBuffer)
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthBuffer.getId(), 0);
 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		GLenum error;
+		while ((error = glGetError()) != GL_NO_ERROR)
+			std::cout << error << "\n";
 		std::cout << "RenderTarget frame buffer is incomplete\n";
+	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

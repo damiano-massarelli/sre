@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 	tb2->transform.setPosition(glm::vec3{ 0, 0, -10 });
 	tb2->addComponent(std::make_shared<Remover>(tb2, SDLK_2));
 
-    auto skyTexture = Texture::loadCubamapFromFile({
+    auto skyTexture = Texture::loadCubemapFromFile({
                     {"front", "test_data/skybox/front.tga"},
                     {"back", "test_data/skybox/back.tga"},
                     {"top", "test_data/skybox/top.tga"},

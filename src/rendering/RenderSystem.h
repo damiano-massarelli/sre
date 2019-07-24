@@ -13,6 +13,8 @@
 #include "DeferredRenderingFBO.h"
 #include "EffectsFBO.h"
 #include "Light.h"
+#include "DirectionalLight.h"
+#include "PointLight.h"
 #include "RenderTarget.h"
 #include <cstdint>
 #include <vector>
@@ -48,9 +50,6 @@ private:
 	/** Simple unit sphere used to render point lights in deferred rendering */
 	Mesh mPointLightSphere;
 
-	/** reference to shadow map frame buffer */
-	std::uint32_t mShadowFbo;
-	Texture mShadowMap;
 	// used for rendering meshes for shadow mapping
 	MaterialPtr mShadowMapMaterial;
 
@@ -78,8 +77,6 @@ private:
     void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
 
 	void initDeferredRendering();
-
-	void initShadowFbo();
 
     /** Updates the lights ubo */
     void updateLights();
@@ -110,7 +107,7 @@ private:
 	/** Performs shadow mapping */
 	void renderShadows();
 
-	float computePointLightRadius(const std::shared_ptr<Light>& light) const;
+	void renderDirectionalLightShadows(const DirectionalLight* light, const Transform& lightTransform);
 
     // private constructor, only the engine can create a render system
     RenderSystem();

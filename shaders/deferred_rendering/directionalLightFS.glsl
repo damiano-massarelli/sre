@@ -18,7 +18,7 @@ layout (std140) uniform CommonMat {
 };
 
 
-vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float shininess, vec3 fragPosition, vec3 fragNormal, vec3 cameraPosition, vec4 lightSpacePos, bool calcShadow) {
+vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float shininess, vec3 fragPosition, vec3 fragNormal, vec3 cameraPosition) {
     vec3 outcolor = vec3(0.0f);
 
     fragNormal = normalize(fragNormal);
@@ -33,8 +33,10 @@ vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float
     
 	// shadow mapping
 	float inShadow = 0.0;
-	if (calcShadow)
+	if (light.castShadow) {
+		vec4 lightSpacePos = light.toLightSpace * vec4(fragPosition, 1.0);
 		inShadow = shadowMapIsInShadow(lightSpacePos, -rayToLight, fragNormal, distance(fragPosition, cameraPosition));
+	}
 
     float diffuseIntensity = max(dot(fragNormal, rayToLight), 0.0f);
     outcolor += light.diffuseColor * diffuseColor * diffuseIntensity * (1.0 - inShadow);
@@ -73,6 +75,6 @@ void main() {
     if (lightIndex == 0)
         lightSpacePos = toShadowLightSpace * vec4(position, 1.0);
 
-    vec3 color = phongComputeColor(lights[lightIndex], diffuseColor, specularColor, shininess, position, normal, cameraPosition, lightSpacePos, lightIndex == 0);
+    vec3 color = phongComputeColor(lights[lightIndex], diffuseColor, specularColor, shininess, position, normal, cameraPosition);
     FragColor = vec4(color, 1.0);
 }
