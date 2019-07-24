@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
-    auto skyTexture = Texture::loadCubamapFromFile({
+    auto skyTexture = Texture::loadCubemapFromFile({
                     {"front", "test_data/skybox/front.tga"},
                     {"back", "test_data/skybox/back.tga"},
                     {"top", "test_data/skybox/top.tga"},

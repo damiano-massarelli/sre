@@ -59,7 +59,7 @@ Texture Texture::loadFromMemoryCached(const std::string& cacheKey, std::uint8_t*
 	return texture;
 }
 
-Texture Texture::loadCubamapFromFile(const std::map<std::string, std::string>& paths)
+Texture Texture::loadCubemapFromFile(const std::map<std::string, std::string>& paths)
 {
     std::map<std::string, int> side2glSide{
         {"front", GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},

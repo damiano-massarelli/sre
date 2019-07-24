@@ -4,13 +4,14 @@
 #include "PropMaterial.h"
 
 #include "FreeCameraComponent.h"
-#include "Light.h"
+#include "DirectionalLight.h"
 #include "MeshCreator.h"
 #include "GameObjectLoader.h"
 #include "FXAA.h"
 #include "Bloom.h"
 #include "runTest.h"
 #include "ParticleEmitter.h"
+#include "SkyboxMaterial.h"
 
 #include <iostream>
 
@@ -53,8 +54,9 @@ int main(int argc, char* argv[]) {
 
 	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.shadowMappingSettings.useFastShader = true;
-	Engine::renderSys.shadowMappingSettings.width = 300;
-	Engine::renderSys.shadowMappingSettings.height = 300;
+	Engine::renderSys.shadowMappingSettings.width = 500;
+	Engine::renderSys.shadowMappingSettings.height = 500;
+	Engine::renderSys.shadowMappingSettings.depth = 500;
 
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
@@ -71,34 +73,45 @@ int main(int argc, char* argv[]) {
 	for (const auto& eh : sponza->transform.findAll("firePos"))
 		addParticles(eh);
 
+	auto skyTexture = Texture::loadCubemapFromFile({
+					{"front", "test_data/skybox/front.tga"},
+					{"back", "test_data/skybox/back.tga"},
+					{"top", "test_data/skybox/top.tga"},
+					{"bottom", "test_data/skybox/bottom.tga"},
+					{"left", "test_data/skybox/left.tga"},
+					{"right", "test_data/skybox/right.tga"},
+		});
+	auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
+	auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
+
+	auto human = GameObjectLoader().fromFile("C:/Users/damia/Desktop/warrior_idle.dae");
+	auto animationController = human->getComponent<SkeletralAnimationControllerComponent>();
+	animationController->playAnimation("default");
+	animationController->getAnimation("default").loopDirection = SkeletalAnimation::LoopDirection::REPEAT;
+
+	human->transform.scaleBy(glm::vec3{ 10.0f });
+
 	auto light3 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
 	light3->name = "light3";
-	light3->addComponent(std::make_shared<Light>(light3, Light::Type::DIRECTIONAL));
-	light3->transform.setPosition(glm::vec3{ 0.0f, 100.0f, 0.0f });
+	light3->addComponent(std::make_shared<DirectionalLight>(light3));
+	light3->transform.setPosition(glm::vec3{ 50.0f, 150.0f, -30.0f });
 	Engine::renderSys.addLight(light3);
-	light3->getComponent<Light>()->castShadow = true;
-	light3->getComponent<Light>()->diffuseColor = glm::vec3{ .5f, .3f, .2f };
-	light3->getComponent<Light>()->specularColor = glm::vec3{ .5f, .3f, .2f };
+	light3->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
+	light3->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f };
+	light3->getComponent<Light>()->specularColor = glm::vec3{ .9f, .9f, .9f };
 	light3->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
-	light3->transform.rotateBy(glm::angleAxis(glm::radians(90.0f), light3->transform.right()));
+	light3->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), light3->transform.right()));
+	light3->transform.rotateBy(glm::angleAxis(glm::radians(-15.0f), light3->transform.up()));
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
-    light->name = "light";
-    light->addComponent(std::make_shared<Light>(light));
+	light->name = "light";
+    light->addComponent(std::make_shared<PointLight>(light));
     light->transform.setPosition(glm::vec3{0.0f, 3.0f, 0.0f});
     Engine::renderSys.addLight(light);
-    light->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
-    light->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
-    light->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});	
-	
+    light->getComponent<Light>()->diffuseColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
+    light->getComponent<Light>()->specularColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
+    light->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
 
-    auto light2 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
-    light2->name = "light2";
-    light2->addComponent(std::make_shared<Light>(light2));
-    Engine::renderSys.addLight(light2);
-    light2->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
-    light2->getComponent<Light>()->specularColor = glm::vec3{1.0f, 1.0f, 1.0f};
-    light2->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
 
     auto gizmo = MeshCreator::axisGizmo();
     gizmo->transform.setParent(light3);

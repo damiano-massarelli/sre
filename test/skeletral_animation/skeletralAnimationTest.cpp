@@ -6,6 +6,8 @@
 
 #include "FreeCameraComponent.h"
 #include "Light.h"
+#include "PointLight.h"
+#include "DirectionalLight.h"
 #include "MeshCreator.h"
 #include "GameObjectLoader.h"
 #include "TerrainGenerator.h"
@@ -39,7 +41,7 @@ int main(int argc, char* argv[]) {
 	auto cam = std::make_shared<FreeCameraComponent>(camera);
 	camera->addComponent(cam);
 	
-	auto skyTexture = Texture::loadCubamapFromFile({
+	auto skyTexture = Texture::loadCubemapFromFile({
 					{"front", "test_data/skybox/front.tga"},
 					{"back", "test_data/skybox/back.tga"},
 					{"top", "test_data/skybox/top.tga"},
@@ -85,7 +87,7 @@ int main(int argc, char* argv[]) {
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
-    light->addComponent(std::make_shared<Light>(light, Light::Type::DIRECTIONAL));
+    light->addComponent(std::make_shared<DirectionalLight>(light));
     light->transform.setPosition(glm::vec3{-2.0f, 30.0f, -25.0f});
     Engine::renderSys.addLight(light);
     light->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
@@ -99,7 +101,7 @@ int main(int argc, char* argv[]) {
 	light->transform.rotateBy(glm::angleAxis(glm::radians(15.0f), glm::vec3{ 0.0f, 1.0f, 0.0f }));
 	
 
-	light->getComponent<Light>()->castShadow = true;
+	light->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::DYNAMIC);
 	light->addComponent(std::make_shared<ShadowOnVisibleSceneComponent>(light));
 
 

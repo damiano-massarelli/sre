@@ -15,7 +15,7 @@ layout (std140) uniform CommonMat {
 	vec4 clipPlane;
 };
 
-uniform mat4 bones[40];
+uniform mat4 bones[100];
 
 out vec2 texCoord;
 out vec3 position;

@@ -73,13 +73,13 @@ class Texture {
 			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, bool mipmap = true, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE, int internalFormat = GL_REPEAT);
 
         /**
-          * Loads a cubmap from file.
+          * Loads a cubemap from file.
           * The paths parameter is a map in which the key is the side of the cube
           * (front, bottom, top, back, left, right) and the values are the corresponding paths
           * of the images for those sides.
           * @param paths the paths of the images composing the cubemap.
           * @return a new cubemap */
-        static Texture loadCubamapFromFile(const std::map<std::string, std::string>& paths);
+        static Texture loadCubemapFromFile(const std::map<std::string, std::string>& paths);
 
         std::string nameInShader;
 
