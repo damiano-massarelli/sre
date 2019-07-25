@@ -20,9 +20,10 @@ float PointLight::getRadius() const
 	return radius;
 }
 
-#include <iostream>
 void PointLight::setCastShadowMode(ShadowCasterMode mode)
 {
+	Light::setCastShadowMode(mode);
+
 	mPointShadowTarget = RenderTarget{};
 	
 	if (mode == ShadowCasterMode::NO_SHADOWS) return;

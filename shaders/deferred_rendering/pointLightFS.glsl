@@ -44,8 +44,7 @@ vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float
     attenuation = 1.0 / (light.attenuations.x + lightDist * light.attenuations.y + lightDist * lightDist * light.attenuations.z);
 
     // be careful when alpha is used
-    //return outcolor * attenuation;
-    return vec3(inShadow);
+    return outcolor * attenuation;
 }
 
 uniform sampler2D DiffuseData;
@@ -66,10 +65,5 @@ void main() {
     vec3 position = texture(PositionData, texCoord).xyz;
     vec3 color = phongComputeColor(lights[lightIndex], diffuseColor, specularColor, shininess, position, normal, cameraPosition);
 
-    vec3 sampleRay = position - lights[lightIndex].position; 
-    float closestDepth = texture(shadowCube, sampleRay).r;
-
-	float currentDepth = length(sampleRay);
-
-    FragColor = vec4(vec3(texture(shadowCube, sampleRay)), 1.0);
+    FragColor = vec4(color, 1.0);
 }

@@ -537,14 +537,15 @@ void RenderSystem::pointLightPass()
 void RenderSystem::renderShadows()
 {
 	for (const auto& lightGO : mLights) {
-
 		const auto& light = lightGO->getComponent<Light>();
+
 		if (light->getShadowCasterMode() == Light::ShadowCasterMode::NO_SHADOWS || !light->needsShadowUpdate())  continue;
+
+		std::cout << lightGO->name << "\n";
 
 		if (light->getType() == Light::Type::DIRECTIONAL)
 			renderDirectionalLightShadows(static_cast<const DirectionalLight*>(light.get()), lightGO->transform);
-
-		if (light->getType() == Light::Type::POINT)
+		else if (light->getType() == Light::Type::POINT)
 			renderPointLightShadows(static_cast<const PointLight*>(light.get()), lightGO->transform);
 	}
 }
