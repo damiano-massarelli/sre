@@ -33,8 +33,12 @@ void RenderTarget::createWith(const Texture& colorBuffer, const Texture& depthBu
 	else
 		glDrawBuffer(GL_NONE);
 
-	if (depthBuffer)
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthBuffer.getId(), 0);
+	if (depthBuffer) {
+		if (depthBuffer.isCubeMap())
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, depthBuffer.getId(), 0);
+		else
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthBuffer.getId(), 0);
+	}
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		GLenum error;

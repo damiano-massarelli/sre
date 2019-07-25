@@ -23,6 +23,8 @@ class Texture {
 		int mWidth = 0;
 		int mHeight = 0;
 
+		bool mIsCubeMap = false;
+
     public:
         /**
           * Creates an invalid texture.
@@ -81,6 +83,22 @@ class Texture {
           * @return a new cubemap */
         static Texture loadCubemapFromFile(const std::map<std::string, std::string>& paths);
 
+		/**
+		 * Creates a new CubeMap.
+		 * @param data a map with the correspondence between cube side and the data for that side
+		 * @param width width of the texture (per single face)
+		 * @param height height of the texture (per single face)
+		 * @param wrapS repeat mode on x axis
+		 * @param wrapT repeat mode on y axis
+		 * @param wrapR repeat mode on z axis
+		 * @param mipmap should use mipmap?
+		 * @param format pixel data format format (GL_RGB, GL_RGBA, etc)
+		 * @param type the type of data stored in the texture
+		 * @param internalFormat the format of the data stored in the texture (if GL_REPEAT then it will be the same as format)
+		 */
+		static Texture loadCubemap(const std::map<std::string, void*>& data, int width, int height,
+			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, int wrapR = GL_REPEAT, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE, int internalFormat = GL_REPEAT);
+
         std::string nameInShader;
 
         /**
@@ -97,6 +115,8 @@ class Texture {
 		 * @return the height of the texture
 		 */
 		int getHeight() const;
+
+		bool isCubeMap() const;
 
         /**
           * Checks whether this is a valid (usable) texture

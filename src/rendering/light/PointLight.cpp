@@ -1,4 +1,5 @@
 #include "PointLight.h"
+#include "Texture.h"
 #include <algorithm>
 
 PointLight::PointLight(const GameObjectEH& go)
@@ -19,7 +20,25 @@ float PointLight::getRadius() const
 	return radius;
 }
 
+#include <iostream>
 void PointLight::setCastShadowMode(ShadowCasterMode mode)
 {
-	throw std::logic_error("The method or operation is not implemented.");
+	mPointShadowTarget = RenderTarget{};
+	
+	if (mode == ShadowCasterMode::NO_SHADOWS) return;
+
+	Texture cube = Texture::loadCubemap({ {"front", nullptr }, {"back", nullptr}, {"top", nullptr}, {"bottom", nullptr}, {"left", nullptr}, {"right", nullptr} },
+		1024, 1024,
+		GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE,
+		GL_DEPTH_STENCIL,
+		GL_UNSIGNED_INT_24_8,
+		GL_DEPTH24_STENCIL8
+	);
+
+	mPointShadowTarget.createWith(Texture{}, cube);
+}
+
+const RenderTarget& PointLight::getPointShadowTarget() const
+{
+	return mPointShadowTarget;
 }

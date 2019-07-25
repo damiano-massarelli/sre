@@ -8,7 +8,7 @@ Material::Material(const std::string& vertexShader, const std::string& fragmentS
 }
 
 Material::Material(const std::string& vertexShader, const std::string& geometryShader, const std::string& fragmentShader)
-	: Material{std::vector<std::string>{vertexShader}, {geometryShader}, {}}
+	: Material{std::vector<std::string>{vertexShader}, {geometryShader}, {fragmentShader}}
 {
 
 }
