@@ -15,7 +15,6 @@
 
 #include <iostream>
 
-bool added = false;
 
 void addParticles(const GameObjectEH& eh) {
 	EmitterSettings settings;
@@ -43,12 +42,13 @@ void addParticles(const GameObjectEH& eh) {
 	eh->getComponent<ParticleEmitter>()->start(300.0f);
 	eh->getComponent<ParticleEmitter>()->settings = settings;
 
-	if (!added) {
-		eh->addComponent(std::make_shared<PointLight>(eh));
-		eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::DYNAMIC);
-		Engine::renderSys.addLight(eh);
-		added = true;
-	}
+	eh->transform.moveBy(glm::vec3{ 0, 1.0f, 0 });
+	eh->addComponent(std::make_shared<PointLight>(eh));
+	eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
+	eh->getComponent<PointLight>()->ambientColor = glm::vec3{ 0.89f, 0.75f, 0.276f } / 5.0f;
+	eh->getComponent<PointLight>()->diffuseColor = glm::vec3{ 0.89f, 0.75f, 0.276f };
+	eh->getComponent<PointLight>()->specularColor = glm::vec3{ 0.89f, 0.75f, 0.276f };
+	Engine::renderSys.addLight(eh);
 }
 
 #ifdef particleTest
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 	Engine::renderSys.shadowMappingSettings.useFastShader = true;
 	Engine::renderSys.shadowMappingSettings.width = 500;
 	Engine::renderSys.shadowMappingSettings.height = 500;
-	Engine::renderSys.shadowMappingSettings.depth = 500;
+	Engine::renderSys.shadowMappingSettings.setShadowDistance(500);
 
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
@@ -101,11 +101,12 @@ int main(int argc, char* argv[]) {
 	human->transform.scaleBy(glm::vec3{ 10.0f });
 
 	auto sun = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
-	sun->name = "light3";
+	sun->name = "sun";
 	sun->addComponent(std::make_shared<DirectionalLight>(sun));
 	sun->transform.setPosition(glm::vec3{ 50.0f, 150.0f, -30.0f });
-	//Engine::renderSys.addLight(sun);
+	Engine::renderSys.addLight(sun);
 	sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
+	sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 50.0f;
 	sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f };
 	sun->getComponent<Light>()->specularColor = glm::vec3{ .9f, .9f, .9f };
 	sun->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });

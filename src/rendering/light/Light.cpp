@@ -58,6 +58,8 @@ bool Light::needsShadowUpdate()
 
 		return shouldUpdate;
 	}
+
+	return false;
 }
 
 Light::~Light()
