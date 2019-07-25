@@ -24,8 +24,12 @@ vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float
     lightDist = length(rayToLight);
     rayToLight = normalize(rayToLight);
 
+    float inShadow = 0.0;
+    if (light.castShadow)
+        inShadow = pointMapIsInShadow(fragPosition, light.position);
+
     float diffuseIntensity = max(dot(fragNormal, rayToLight), 0.0f);
-    outcolor += light.diffuseColor * diffuseColor * diffuseIntensity;
+    outcolor += (light.diffuseColor * diffuseColor * diffuseIntensity) * (1.0 - inShadow);
 
     if (shininess != 0) { // Phong or Lambert material? if shininess == 0 it is Lambert
         // specular component
@@ -33,14 +37,15 @@ vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float
         vec3 halfWay = normalize(rayToCamera + rayToLight);
 
         float specularIntensity = pow(max(dot(halfWay, fragNormal), 0.0f), shininess);
-        outcolor += light.specularColor * specularColor * specularIntensity * float(diffuseIntensity > 0);
+        outcolor += (light.specularColor * specularColor * specularIntensity * float(diffuseIntensity > 0)) * (1.0 - inShadow);
     }
 
     float attenuation = 1.0f;
     attenuation = 1.0 / (light.attenuations.x + lightDist * light.attenuations.y + lightDist * lightDist * light.attenuations.z);
 
     // be careful when alpha is used
-    return outcolor * attenuation;
+    //return outcolor * attenuation;
+    return vec3(inShadow);
 }
 
 uniform sampler2D DiffuseData;
@@ -60,5 +65,11 @@ void main() {
     vec3 normal = texture(NormalData, texCoord).xyz;
     vec3 position = texture(PositionData, texCoord).xyz;
     vec3 color = phongComputeColor(lights[lightIndex], diffuseColor, specularColor, shininess, position, normal, cameraPosition);
-    FragColor = vec4(color, 1.0);
+
+    vec3 sampleRay = position - lights[lightIndex].position; 
+    float closestDepth = texture(shadowCube, sampleRay).r;
+
+	float currentDepth = length(sampleRay);
+
+    FragColor = vec4(vec3(texture(shadowCube, sampleRay)), 1.0);
 }

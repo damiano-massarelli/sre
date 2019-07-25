@@ -16,6 +16,7 @@
 #include "DirectionalLight.h"
 #include "PointLight.h"
 #include "RenderTarget.h"
+#include "PointShadowMaterial.h"
 #include <cstdint>
 #include <vector>
 #include <glad/glad.h>
@@ -53,6 +54,9 @@ private:
 	// used for rendering meshes for shadow mapping
 	MaterialPtr mShadowMapMaterial;
 
+	// used for rendering meshes with point lights
+	std::shared_ptr<PointShadowMaterial> mPointShadowMaterial;
+
 	/** Shaders used to render with deferred rendering */
 	Shader mDirectionalLightDeferred; // shader used to do directional lighting
 	std::uint32_t mDirectionalLightDeferredLightIndexLocation = 0;
@@ -60,6 +64,7 @@ private:
 	Shader mPointLightDeferredStencil; // shader used for stencil pass of point lights
 	std::uint32_t mPointLightStencilLightIndexLocation = 0;
 	std::uint32_t mPointLightStencilScaleLocation = 0;
+	std::uint32_t mPointLightDeferredLightRadiusLocation = 0;
 
 	Shader mPointLightDeferred; // shader used to do point light
 	std::uint32_t mPointLightDeferredLightIndexLocation = 0;
@@ -108,6 +113,8 @@ private:
 	void renderShadows();
 
 	void renderDirectionalLightShadows(const DirectionalLight* light, const Transform& lightTransform);
+
+	void renderPointLightShadows(const PointLight* light, const Transform& lightTransform);
 
     // private constructor, only the engine can create a render system
     RenderSystem();

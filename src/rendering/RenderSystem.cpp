@@ -66,6 +66,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 
 	// simple shader for shadow mapping
 	mShadowMapMaterial = std::make_shared<ShadowMapMaterial>();
+	mPointShadowMaterial = std::make_shared<PointShadowMaterial>();
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -149,16 +150,18 @@ void RenderSystem::initDeferredRendering()
 
 	mPointLightDeferred = Shader::loadFromFile({ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightVS.glsl" },
 		std::vector<std::string>{},
-		{ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightFS.glsl" });
+		{ "shaders/Light.glsl", "shaders/PointShadowCalculation.glsl", "shaders/deferred_rendering/pointLightFS.glsl" });
 
 	mPointLightDeferred.use();
 	mPointLightDeferred.setInt("DiffuseData", 0);
 	mPointLightDeferred.setInt("SpecularData", 1);
 	mPointLightDeferred.setInt("PositionData", 2);
 	mPointLightDeferred.setInt("NormalData", 3);
+	mPointLightDeferred.setInt("shadowCube", 4);
 	mPointLightDeferred.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
 	mPointLightDeferred.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
 	mPointLightDeferredLightIndexLocation = mPointLightDeferred.getLocationOf("lightIndex");
+	mPointLightDeferredLightRadiusLocation = mPointLightDeferred.getLocationOf("lightRadius");
 
 	mPointLightSphere = MeshCreator::sphere(1.0f, 10, 10, false, false);
 
@@ -514,11 +517,17 @@ void RenderSystem::pointLightPass()
 
 		stencilPass(i, radius);
 
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, pointLight->getPointShadowTarget().getDepthBuffer().getId());
+		
 		glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
 		mPointLightDeferred.use();
 		mPointLightDeferred.setInt(mPointLightDeferredLightIndexLocation, i);
+		mPointLightDeferred.setFloat(mPointLightDeferredLightRadiusLocation, radius);
 		glBindVertexArray(mScreenMesh.mVao);
 		glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
+
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	}
 
 	glDisable(GL_BLEND);
@@ -534,6 +543,9 @@ void RenderSystem::renderShadows()
 
 		if (light->getType() == Light::Type::DIRECTIONAL)
 			renderDirectionalLightShadows(static_cast<const DirectionalLight*>(light.get()), lightGO->transform);
+
+		if (light->getType() == Light::Type::POINT)
+			renderPointLightShadows(static_cast<const PointLight*>(light.get()), lightGO->transform);
 	}
 }
 
@@ -566,6 +578,38 @@ void RenderSystem::renderDirectionalLightShadows(const DirectionalLight* light, 
 		Engine::gameObjectRenderer.forceMaterial(nullptr);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void RenderSystem::renderPointLightShadows(const PointLight* light, const Transform& lightTransform)
+{
+	const glm::vec3& lightPos = lightTransform.getPosition();
+	float aspect = (float)1024 / (float)1024;
+	float near = 1.0f;
+	float farPlane = light->getRadius();
+	glm::mat4 projection = glm::perspective(glm::radians(90.0f), aspect, near, farPlane);
+
+	std::vector<glm::mat4> transforms{
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
+	};
+
+	mPointShadowMaterial->setTransformations(transforms, farPlane, lightPos);
+
+	Engine::gameObjectRenderer.forceMaterial(mPointShadowMaterial);
+
+	glViewport(0, 0, 1024, 1024); // TODO use settings
+	glBindFramebuffer(GL_FRAMEBUFFER, light->getPointShadowTarget().getFbo());
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	render(RenderPhase::SHADOW_MAPPING);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	Engine::gameObjectRenderer.forceMaterial(nullptr);
 }
 
 void RenderSystem::addLight(const GameObjectEH& light)

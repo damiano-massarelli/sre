@@ -10,7 +10,7 @@ layout (std140) uniform ShadowMapParams {
 const float SHADOWMAP_MIN_BIAS = 0.0001;
 const float SHADOWMAP_MAX_BIAS = 0.001;
 
-const int SMOOTH_RANGE = 1;
+const int SMOOTH_RANGE = 2;
 
 /**
   * Return 1 if the fragment is in shadow, 0 otherwise.

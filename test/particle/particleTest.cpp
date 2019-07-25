@@ -15,8 +15,9 @@
 
 #include <iostream>
 
+bool added = false;
 
-void addParticles(const GameObjectEH eh) {
+void addParticles(const GameObjectEH& eh) {
 	EmitterSettings settings;
 	settings.velocityMin = glm::vec3{ 0.0f, -1.0f, 0.0f };
 	settings.velocityMax = glm::vec3{ 0.0f, 0.0f, 0.0f };
@@ -41,6 +42,13 @@ void addParticles(const GameObjectEH eh) {
 	eh->getComponent<ParticleEmitter>()->setTextureAtlas(Texture::loadFromFile("test_data/particle/fire.png"), 25, 5, 5);
 	eh->getComponent<ParticleEmitter>()->start(300.0f);
 	eh->getComponent<ParticleEmitter>()->settings = settings;
+
+	if (!added) {
+		eh->addComponent(std::make_shared<PointLight>(eh));
+		eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::DYNAMIC);
+		Engine::renderSys.addLight(eh);
+		added = true;
+	}
 }
 
 #ifdef particleTest
@@ -87,36 +95,28 @@ int main(int argc, char* argv[]) {
 	auto human = GameObjectLoader().fromFile("C:/Users/damia/Desktop/warrior_idle.dae");
 	auto animationController = human->getComponent<SkeletralAnimationControllerComponent>();
 	animationController->playAnimation("default");
-	animationController->getAnimation("default").loopDirection = SkeletalAnimation::LoopDirection::REPEAT;
+	auto animation = animationController->getAnimation("default");
+	animation->loopDirection = SkeletalAnimation::LoopDirection::REPEAT;
 
 	human->transform.scaleBy(glm::vec3{ 10.0f });
 
-	auto light3 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
-	light3->name = "light3";
-	light3->addComponent(std::make_shared<DirectionalLight>(light3));
-	light3->transform.setPosition(glm::vec3{ 50.0f, 150.0f, -30.0f });
-	Engine::renderSys.addLight(light3);
-	light3->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
-	light3->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f };
-	light3->getComponent<Light>()->specularColor = glm::vec3{ .9f, .9f, .9f };
-	light3->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
-	light3->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), light3->transform.right()));
-	light3->transform.rotateBy(glm::angleAxis(glm::radians(-15.0f), light3->transform.up()));
-
-    auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
-	light->name = "light";
-    light->addComponent(std::make_shared<PointLight>(light));
-    light->transform.setPosition(glm::vec3{0.0f, 3.0f, 0.0f});
-    Engine::renderSys.addLight(light);
-    light->getComponent<Light>()->diffuseColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
-    light->getComponent<Light>()->specularColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
-    light->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
+	auto sun = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
+	sun->name = "light3";
+	sun->addComponent(std::make_shared<DirectionalLight>(sun));
+	sun->transform.setPosition(glm::vec3{ 50.0f, 150.0f, -30.0f });
+	//Engine::renderSys.addLight(sun);
+	sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
+	sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f };
+	sun->getComponent<Light>()->specularColor = glm::vec3{ .9f, .9f, .9f };
+	sun->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
+	sun->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), sun->transform.right()));
+	sun->transform.rotateBy(glm::angleAxis(glm::radians(-15.0f), sun->transform.up()));
 
 
     auto gizmo = MeshCreator::axisGizmo();
-    gizmo->transform.setParent(light3);
+    gizmo->transform.setParent(sun);
 	gizmo->transform.setLocalRotation(glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f });
-    gizmo->transform.setPosition(light3->transform.getPosition());
+    gizmo->transform.setPosition(sun->transform.getPosition());
 
     Engine::start();
 
