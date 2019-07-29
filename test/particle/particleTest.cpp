@@ -64,6 +64,7 @@ int main(int argc, char* argv[]) {
 	Engine::renderSys.shadowMappingSettings.useFastShader = true;
 	Engine::renderSys.shadowMappingSettings.width = 500;
 	Engine::renderSys.shadowMappingSettings.height = 500;
+	Engine::renderSys.shadowMappingSettings.setShadowStrength(1.0f);
 	Engine::renderSys.shadowMappingSettings.setShadowDistance(500);
 
     auto camera = Engine::gameObjectManager.createGameObject();
@@ -103,10 +104,10 @@ int main(int argc, char* argv[]) {
 	auto sun = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
 	sun->name = "sun";
 	sun->addComponent(std::make_shared<DirectionalLight>(sun));
-	sun->transform.setPosition(glm::vec3{ 50.0f, 150.0f, -30.0f });
+	sun->transform.setPosition(glm::vec3{ 50.0f, 205.0f, -65.0f });
 	Engine::renderSys.addLight(sun);
 	sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
-	sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 50.0f;
+	sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 15.0f;
 	sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f };
 	sun->getComponent<Light>()->specularColor = glm::vec3{ .9f, .9f, .9f };
 	sun->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });

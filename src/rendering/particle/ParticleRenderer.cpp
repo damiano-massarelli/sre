@@ -1,10 +1,10 @@
 #include "ParticleRenderer.h"
 #include "Engine.h"
 #include "MeshLoader.h"
+#include "MeshCreator.h"
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "MeshCreator.h"
 
 template <class Iterator, class Compare>
 void insertionSort(Iterator begin, Iterator end, Compare cmp) {
@@ -71,25 +71,33 @@ void ParticleRenderer::updateParticleVBO(const std::vector<float>& data)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void ParticleRenderer::storeModelMatrix(const Particle& p, std::vector<float>& data)
+void ParticleRenderer::computeInverseViewMatrix()
 {
 	glm::mat4 viewMatrix = Engine::renderSys.getViewMatrix(Engine::renderSys.camera->transform);
 
 	glm::mat3 counterRotation = glm::transpose(glm::mat3{ viewMatrix });
 
-	glm::mat4 counterRotation4 = glm::mat4(counterRotation);
-	counterRotation4[3][3] = 1.0f;
+	mInverseView = glm::mat4(counterRotation);
+	mInverseView[3][3] = 1.0f;
+}
 
+void ParticleRenderer::storeModelMatrix(const Particle& p, std::vector<float>& data)
+{
 	float lifePercent = p.elapsedTime / p.durationMillis;
-	glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, p.position);
-
 	float rotation = glm::mix(p.initialRotation, p.finalRotation, lifePercent);
-	transform = glm::rotate(transform, rotation, glm::vec3{ 0.0f, 0.0f, 1.0f });
-
 	float scale = glm::mix(p.initialScale, p.finalScale, lifePercent);
-	transform = glm::scale(transform, glm::vec3{ scale });
-	
-	transform = transform * counterRotation4;
+
+	glm::mat4 transform = glm::mat4{ 1.0f };
+	float ssin = scale * glm::sin(rotation);
+	float scos = scale * glm::cos(rotation);
+
+	transform[0] = glm::vec4{ scos, ssin, 0, 0 };
+	transform[1] = glm::vec4{ -ssin, scos, 0, 0 };
+	transform[2] = glm::vec4{ 0, 0, scale, 0 };
+	transform[3] = glm::vec4{ p.position, 1.0f };
+
+	// TODO avoid this transformation here, it is heavy
+	transform = transform * mInverseView;
 
 	data.insert(data.end(), glm::value_ptr(transform), glm::value_ptr(transform) + 16);
 }
@@ -136,6 +144,8 @@ void ParticleRenderer::removeEmitter(const ParticleEmitter* emitter)
 
 void ParticleRenderer::render()
 {
+	computeInverseViewMatrix();
+
 	glBindVertexArray(mParticleMesh.getVao());
 	mParticleShader.use();
 

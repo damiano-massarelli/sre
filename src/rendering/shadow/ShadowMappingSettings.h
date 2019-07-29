@@ -11,7 +11,6 @@
  * the same information can be changed using setShadowDistance which will also 
  * affect where shadows starts to fade out. This method should only be called when
  * depth changes considerably. To set the range in which shadows fade out
-
  * (from full-shadow to no-shadow) use setSmoothRange.
  */
 class ShadowMappingSettings

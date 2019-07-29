@@ -4,13 +4,13 @@
 uniform sampler2D shadowMap;
 
 layout (std140) uniform ShadowMapParams {
-    vec3 _shadowParams; // x: distance, y: fade out range
+    vec4 _shadowParams; // x: distance, y: fade out range, z: shadow strength, w: outside shadow map (shadow or light?)
 };
 
 const float SHADOWMAP_MIN_BIAS = 0.0001;
 const float SHADOWMAP_MAX_BIAS = 0.001;
 
-const int SMOOTH_RANGE = 2;
+const int SMOOTH_RANGE = 1;
 
 /**
   * Return 1 if the fragment is in shadow, 0 otherwise.
@@ -31,15 +31,13 @@ float shadowMapIsInShadow(vec4 lightSpacePos, vec3 lightDirection,  vec3 normal,
 
 	// if we are out of the shadow map texture just return 1
 	if (any(lessThan(shadowSampleCoord, vec3(0))) || any(greaterThan(shadowSampleCoord, vec3(1))))
-		return 0.0f;
+		return 0.0;
 
 	float bias = max(SHADOWMAP_MIN_BIAS, SHADOWMAP_MAX_BIAS * (1.0 - dot(lightDirection, normal)));
 
 	float inShadow = 0.0;
 	for (int i = -SMOOTH_RANGE; i <= SMOOTH_RANGE; i++) {
 		for (int j = -SMOOTH_RANGE; j <= SMOOTH_RANGE; j++) {
-			// TODO check the value of w to see if
-			// perspective projection is being used. If that's the case linearize depth.
 			float depthInShadowMap = texture(shadowMap, shadowSampleCoord.xy + texelSize * vec2(i, j)).r;
 			inShadow += float(shadowSampleCoord.z - bias > depthInShadowMap);
 		}
