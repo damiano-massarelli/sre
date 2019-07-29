@@ -5,6 +5,7 @@
 #include "Mesh.h"
 #include <vector>
 #include <cstdint>
+#include <glm/glm.hpp>
 
 /**
  * Renderer for particles.
@@ -15,7 +16,7 @@ class ParticleRenderer
 {
 private:
 	static constexpr int MAX_PARTICLES = 10000;
-	static constexpr int FLOATS_PER_PARTICLE = 16 + 4 + 1;
+	static constexpr int FLOATS_PER_PARTICLE = 21;
 
 	std::vector<ParticleEmitter*> mEmitters;
 
@@ -25,6 +26,8 @@ private:
 	Mesh mParticleMesh;
 	
 	std::uint32_t mParticleDataVBO = 0;
+
+	glm::mat4 mInverseView;
 
 	void renderParticles(ParticleEmitter* emitter);
 
@@ -37,6 +40,8 @@ private:
 	void prepareParticleQuad();
 
 	void updateParticleVBO(const std::vector<float>& data);
+
+	void computeInverseViewMatrix();
 
 public:
 	ParticleRenderer() = default;

@@ -226,11 +226,14 @@ void RenderSystem::updateLights()
  
  		// to light space matrix
 		if (castShadow) {
-			glm::mat4 lightProjection = glm::mat4{ 0.0f };
-			lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
-			lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
-			lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
-			lightProjection[3][3] = 1.0f;
+// 			glm::mat4 lightProjection = glm::mat4{ 0.0f };
+// 			lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
+// 			lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
+// 			lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
+// 			lightProjection[3][3] = 1.0f;
+			glm::mat4 lightProjection = glm::ortho(-shadowMappingSettings.width / 2, shadowMappingSettings.width / 2,
+				-shadowMappingSettings.height / 2, shadowMappingSettings.height / 2,
+				0.1f, shadowMappingSettings.depth);
 
 			glm::mat4 toLightSpace = lightProjection * getViewMatrix(transform);
 
@@ -454,7 +457,9 @@ void RenderSystem::finalizeRendering()
 
 	glBindVertexArray(mScreenMesh.mVao);
 	glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, mLights[4]->getComponent<DirectionalLight>()->getShadowMapTarget().getDepthBuffer().getId());
 	glBindTexture(GL_TEXTURE_2D, effectTarget.getColorBuffer().getId());
+
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, effectTarget.getDepthBuffer().getId());
@@ -552,14 +557,14 @@ void RenderSystem::renderShadows()
 
 void RenderSystem::renderDirectionalLightShadows(const DirectionalLight* light, const Transform& lightTransform)
 {
-	glm::mat4 lightProjection = glm::mat4{ 0.0f };
-	lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
-	lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
-	lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
-	lightProjection[3][3] = 1.0f;
-// 		glm::mat4 lightProjection = glm::ortho(-shadowMappingSettings.width / 2, shadowMappingSettings.width / 2,
-// 			-shadowMappingSettings.height / 2, shadowMappingSettings.height / 2,
-// 			0.1f, shadowMappingSettings.depth);
+// 	glm::mat4 lightProjection = glm::mat4{ 0.0f };
+// 	lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
+// 	lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
+// 	lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
+// 	lightProjection[3][3] = 1.0f;
+		glm::mat4 lightProjection = glm::ortho(-shadowMappingSettings.width / 2, shadowMappingSettings.width / 2,
+			-shadowMappingSettings.height / 2, shadowMappingSettings.height / 2,
+			0.1f, shadowMappingSettings.depth);
 
 	glm::mat4 lightView = getViewMatrix(lightTransform);
 
@@ -589,7 +594,7 @@ void RenderSystem::renderPointLightShadows(const PointLight* light, const Transf
 	float farPlane = light->getRadius();
 	glm::mat4 projection = glm::perspective(glm::radians(90.0f), aspect, near, farPlane);
 
-	std::vector<glm::mat4> transforms{
+	std::vector<glm::mat4> transforms {
 		projection * glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
 		projection * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
 		projection * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
