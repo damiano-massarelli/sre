@@ -57,10 +57,10 @@ int main(int argc, char* argv[]) {
 
     Engine::renderSys.createWindow(1280, 720);
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
- 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
-
-
-	Engine::renderSys.effectManager.enableEffects();
+	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
+// 
+// 
+ 	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.shadowMappingSettings.useFastShader = true;
 	Engine::renderSys.shadowMappingSettings.width = 500;
 	Engine::renderSys.shadowMappingSettings.height = 500;
@@ -76,11 +76,18 @@ int main(int argc, char* argv[]) {
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
+	GLenum error;
+	while ((error = glGetError()) != GL_NO_ERROR)
+		std::cout << "before sponza " << error << "\n";
 	auto sponza = GameObjectLoader().fromFile("test_data/bloom/sponza.fbx");
 	sponza->transform.setScale(glm::vec3{ 0.1f });
 
+	while ((error = glGetError()) != GL_NO_ERROR)
+		std::cout << "before particles " << error << "\n";
 	for (const auto& eh : sponza->transform.findAll("firePos"))
 		addParticles(eh);
+	while ((error = glGetError()) != GL_NO_ERROR)
+		std::cout << "after -- " << error << "\n";
 
 	auto skyTexture = Texture::loadCubemapFromFile({
 					{"front", "test_data/skybox/front.tga"},

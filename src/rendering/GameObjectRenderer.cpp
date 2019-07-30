@@ -62,13 +62,15 @@ void GameObjectRenderer::render()
 		for (std::size_t meshIndex = 0; meshIndex < go.mMeshes.size(); meshIndex++) {
 
 			Material* meshMaterial = go.mMaterials[meshIndex].get();
-			meshMaterial = mForcedMaterial ? mForcedMaterial.get() : meshMaterial;
 
 			const Mesh* mesh = &(go.mMeshes[meshIndex]);
 
 			// do not render this mesh if its material does not support the current render phase
 			if ((meshMaterial->unSupportedRenderPhases & Engine::renderSys.getRenderPhase()))
 				continue;
+
+			// use a default material if required
+			meshMaterial = mForcedMaterial ? mForcedMaterial.get() : meshMaterial;
 
 			auto it = material2mesh.find(meshMaterial);
 			if (it == material2mesh.end()) {
