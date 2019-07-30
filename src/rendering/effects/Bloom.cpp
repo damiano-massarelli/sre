@@ -15,11 +15,16 @@ void Bloom::onSetup(Shader& postProcessingShader)
 	postProcessingShader.setInt("bloomTexture", 2);
 }
 
+#include <iostream>
 void Bloom::update(Shader& postProcessingShader)
 {
+	GLenum error;
+	while ((error = glGetError()) != GL_NO_ERROR)
+		std::cout << "copy " << error << "\n";
 	RenderSystem& rsys = Engine::renderSys;
 
  	Engine::renderSys.copyTexture(rsys.effectTarget.getColorBuffer(), mTarget, mBloomExtractor);
+	
 
 	const auto& blurred = mGaussianBlur.getBlurred(mBloom, 1);
 

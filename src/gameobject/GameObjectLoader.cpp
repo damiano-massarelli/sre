@@ -257,8 +257,15 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
         material->Get(AI_MATKEY_MAPPINGMODE_U(type, 0), mapModeU);
         material->Get(AI_MATKEY_MAPPINGMODE_V(type, 0), mapModeV);
 
-        int mapModeS = aiMapMode2glMapMode[mapModeU];
-        int mapModeT = aiMapMode2glMapMode[mapModeV];
+		GLenum mapModeS = GL_REPEAT;
+		GLenum mapModeT = GL_REPEAT;
+		auto mapModeSData = aiMapMode2glMapMode.find(mapModeU);
+		if (mapModeSData != aiMapMode2glMapMode.end())
+			mapModeS = mapModeSData->second;
+
+		auto mapModeTData = aiMapMode2glMapMode.find(mapModeV);
+		if (mapModeTData != aiMapMode2glMapMode.end())
+			mapModeT = mapModeTData->second;
 
         const char* texturePath = path.C_Str();
         /* check whether or not this is an embedded texture. If that's the case
