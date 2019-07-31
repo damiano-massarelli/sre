@@ -211,8 +211,14 @@ public:
 	/**
 	 * Returns the view matrix for a certain transform.
 	 * The actual matrix is multiplied by mInvertView
+	 * @return the view matrix for the given Transform
 	 */
 	glm::mat4 getViewMatrix(const Transform& transform);
+
+	/**
+	 * @return the projection matrix
+	 */
+	const glm::mat4 getProjectionMatrix() const;
 
 	void enableClipPlane() const;
 

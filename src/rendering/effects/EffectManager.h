@@ -5,6 +5,7 @@
 #include <utility>
 #include <string.h>
 #include <memory.h>
+#include <set>
 
 class EffectManager
 {
@@ -15,12 +16,18 @@ private:
 
 	Shader mPostProcessingShader;
 
+	std::set<int> mInUseTextures;
+
 	std::vector<std::shared_ptr<Effect>> mEffects;
 
 	void createShader(std::vector<std::shared_ptr<Effect>> effects);
 
 public:
-	EffectManager() = default;
+	EffectManager();
+
+	EffectManager(const EffectManager& em) = delete;
+
+	EffectManager& operator=(const EffectManager& em) = delete;
 
 	void init();
 
@@ -29,6 +36,10 @@ public:
 	void enableEffects();
 
 	void disableEffects();
+
+	int getTexture();
+
+	void releaseTexture(int texture);
 
 	void update();
 

@@ -27,7 +27,7 @@ class FreeCameraComponent : public Component, public EventListener {
 
         float xMouseSensitivity = -0.004f;
         float yMouseSensitivity = -0.004f;
-        float moveSpeed = 10.0f;
+        float moveSpeed = 70.0f;
 
         /** is the camera following mouse and keyboard */
         bool tracking = true;

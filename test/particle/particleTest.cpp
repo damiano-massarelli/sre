@@ -12,6 +12,7 @@
 #include "runTest.h"
 #include "ParticleEmitter.h"
 #include "SkyboxMaterial.h"
+#include "MotionBlur.h"
 
 #include <iostream>
 
@@ -44,7 +45,7 @@ void addParticles(const GameObjectEH& eh) {
 
 	eh->transform.moveBy(glm::vec3{ 0, 1.0f, 0 });
 	eh->addComponent(std::make_shared<PointLight>(eh));
-	eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
+	eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
 	eh->getComponent<PointLight>()->ambientColor = glm::vec3{ 0.89f, 0.75f, 0.276f } / 5.0f;
 	eh->getComponent<PointLight>()->diffuseColor = glm::vec3{ 0.89f, 0.75f, 0.276f };
 	eh->getComponent<PointLight>()->specularColor = glm::vec3{ 0.89f, 0.75f, 0.276f };
@@ -55,11 +56,12 @@ void addParticles(const GameObjectEH& eh) {
 int main(int argc, char* argv[]) {
     Engine::init();
 
-    Engine::renderSys.createWindow(1280, 720);
+	Engine::renderSys.createWindow(1280, 720);
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
-// 
-// 
+	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
+
+
  	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.shadowMappingSettings.useFastShader = true;
 	Engine::renderSys.shadowMappingSettings.width = 500;

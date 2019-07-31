@@ -15,7 +15,7 @@ float PointLight::getRadius() const
 	float quadratic = attenuationQuadratic;
 	float lightMax = std::max({ diffuseColor.r, diffuseColor.g , diffuseColor.b,
 		specularColor.r, specularColor.g, specularColor.b });
-	float radius = (float)(-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256.0 / 2.5) * lightMax))) / (2 * quadratic);
+	float radius = (-linear + std::sqrt(linear * linear - 4 * quadratic * (constant - (256.0 / 2.5) * lightMax))) / (2 * quadratic);
 
 	return radius;
 }

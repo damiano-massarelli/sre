@@ -12,6 +12,7 @@ private:
 	RenderTarget mTarget;
 	Texture mBloom;
 	GaussianBlur mGaussianBlur;
+	int mBlurredTexture = -1;
 
 public:
 	Bloom();
