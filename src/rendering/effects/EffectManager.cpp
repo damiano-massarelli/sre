@@ -37,6 +37,12 @@ void EffectManager::createShader(std::vector<std::shared_ptr<Effect>> effects)
 		effect->onSetup(mPostProcessingShader);
 }
 
+EffectManager::EffectManager()
+	: mInUseTextures{0, 1} // these textures are always in use for the effects
+{
+
+}
+
 void EffectManager::init()
 {
 	createShader({ });
@@ -59,6 +65,27 @@ void EffectManager::disableEffects()
 {
 	mEnabled = false;
 	createShader({ });
+}
+
+int EffectManager::getTexture()
+{
+	int texture = -1;
+	for (int i = 0; i < 15; ++i) {
+		if (mInUseTextures.find(i) == mInUseTextures.end()) {
+			texture = i;
+			break;
+		}
+	}
+	
+	if (texture != -1)
+		mInUseTextures.insert(texture);
+
+	return texture;
+}
+
+void EffectManager::releaseTexture(int texture)
+{
+	mInUseTextures.erase(texture);
 }
 
 void EffectManager::update()

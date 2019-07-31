@@ -15,6 +15,8 @@
 #include <iostream>
 #include <map>
 
+#include <nvToolsExt.h>
+
 bool DEBUG = true;
 
 static void APIENTRY printGLError(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
@@ -33,7 +35,8 @@ static void APIENTRY printGLError(GLenum source, GLenum type, GLuint id, GLenum 
 	case GL_DEBUG_SOURCE_THIRD_PARTY:     std::cout << "Source: Third Party"; break;
 	case GL_DEBUG_SOURCE_APPLICATION:     std::cout << "Source: Application"; break;
 	case GL_DEBUG_SOURCE_OTHER:           std::cout << "Source: Other"; break;
-	} std::cout << std::endl;
+	} 
+	std::cout << std::endl;
 
 	switch (type)
 	{
@@ -341,6 +344,11 @@ glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
 	return mInvertView * view;
 }
 
+const glm::mat4 RenderSystem::getProjectionMatrix() const
+{
+	return mProjection;
+}
+
 void RenderSystem::prepareDeferredRendering(const RenderTarget* target)
 {
 	if (shadowMappingSettings.getShadowStrength() != 0.0f)
@@ -378,46 +386,43 @@ void RenderSystem::prepareDeferredRendering(const RenderTarget* target)
 
 void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
 {
-	GLenum error;
-	while ((error = glGetError()) != GL_NO_ERROR)
-		std::cout << "before " <<  error << "\n";
+	//nvtxRangePushA("Frame");
 
 	auto targetToUse = target;
 	if (target == nullptr) // target null means render to screen
 		targetToUse = &effectTarget;
 
+	//nvtxRangePushA("Prepare deferred");
 	prepareDeferredRendering(targetToUse);
+	//nvtxRangePop();
 
-	while ((error = glGetError()) != GL_NO_ERROR)
-		std::cout << "prepare " << error << "\n";
-
+	//nvtxRangePushA("Render deferred");
 	glDisable(GL_BLEND);
 	render(RenderPhase::DEFERRED_RENDERING | phase);
+	//nvtxRangePop();
 
-	while ((error = glGetError()) != GL_NO_ERROR)
-		std::cout << "deferred " << error << "\n";
-
+	//nvtxRangePushA("finalize deferred");
 	finalizeDeferredRendering(targetToUse);
+	//nvtxRangePop();
 
-	while ((error = glGetError()) != GL_NO_ERROR)
-		std::cout << "finalize def " << error << "\n";
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//nvtxRangePushA("Render forward");
 	render(RenderPhase::FORWARD_RENDERING | phase);
-	while ((error = glGetError()) != GL_NO_ERROR)
-		std::cout << "forward " << error << "\n";
+	//nvtxRangePop();
 
 	// render particles
 	Engine::particleRenderer.render();
-	while ((error = glGetError()) != GL_NO_ERROR)
-		std::cout << "particle " << error << "\n";
 
 	// render to screen only if no target specified
-	if (target == nullptr) 
+	if (target == nullptr) {
+		//nvtxRangePushA("finalize rendering");
 		finalizeRendering();
-	while ((error = glGetError()) != GL_NO_ERROR)
-		std::cout << "end " << error << "\n";
+		//nvtxRangePop();
+	}
+
+	//nvtxRangePop();
 }
 
 void RenderSystem::render(int phase)
@@ -497,7 +502,7 @@ void RenderSystem::directionalLightPass()
 
 	mDirectionalLightDeferred.use();
 
-	for (int i = 0; i < mLights.size(); i++) {
+	for (std::size_t i = 0; i < mLights.size(); i++) {
 		const auto& light = mLights[i]->getComponent<Light>();
 		if (light->getType() != Light::Type::DIRECTIONAL)
 			continue;
@@ -533,7 +538,6 @@ void RenderSystem::finalizeRendering()
 
 	glBindVertexArray(mScreenMesh.mVao);
 	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, mLights[4]->getComponent<DirectionalLight>()->getShadowMapTarget().getDepthBuffer().getId());
 	glBindTexture(GL_TEXTURE_2D, effectTarget.getColorBuffer().getId());
 
 
@@ -587,7 +591,7 @@ void RenderSystem::pointLightPass()
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
 
-	for (int i = 0; i < mLights.size(); i++) {
+	for (std::size_t i = 0; i < mLights.size(); i++) {
 		const auto& light = mLights[i]->getComponent<Light>();
 		if (light->getType() != Light::Type::POINT)
 			continue;
