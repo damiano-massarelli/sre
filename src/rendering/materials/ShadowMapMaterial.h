@@ -12,6 +12,8 @@ public:
 
 	virtual void use() override;
 
+	virtual void after() override;
+
 	virtual ~ShadowMapMaterial() = default;
 };
 

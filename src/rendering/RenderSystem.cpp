@@ -6,6 +6,7 @@
 #include "ShadowMapMaterial.h"
 #include "MeshCreator.h"
 #include "DirectionalLight.h"
+#include "debug.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -17,50 +18,8 @@
 
 #include <nvToolsExt.h>
 
+// is openGL debug enabled
 bool DEBUG = true;
-
-static void APIENTRY printGLError(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
-{
-	// ignore non-significant error/warning codes
-	if (id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
-
-	std::cout << "---------------" << std::endl;
-	std::cout << "Debug message (" << id << "): " << message << std::endl;
-
-	switch (source)
-	{
-	case GL_DEBUG_SOURCE_API:             std::cout << "Source: API"; break;
-	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   std::cout << "Source: Window System"; break;
-	case GL_DEBUG_SOURCE_SHADER_COMPILER: std::cout << "Source: Shader Compiler"; break;
-	case GL_DEBUG_SOURCE_THIRD_PARTY:     std::cout << "Source: Third Party"; break;
-	case GL_DEBUG_SOURCE_APPLICATION:     std::cout << "Source: Application"; break;
-	case GL_DEBUG_SOURCE_OTHER:           std::cout << "Source: Other"; break;
-	} 
-	std::cout << std::endl;
-
-	switch (type)
-	{
-	case GL_DEBUG_TYPE_ERROR:               std::cout << "Type: Error"; break;
-	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: std::cout << "Type: Deprecated Behaviour"; break;
-	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  std::cout << "Type: Undefined Behaviour"; break;
-	case GL_DEBUG_TYPE_PORTABILITY:         std::cout << "Type: Portability"; break;
-	case GL_DEBUG_TYPE_PERFORMANCE:         std::cout << "Type: Performance"; break;
-	case GL_DEBUG_TYPE_MARKER:              std::cout << "Type: Marker"; break;
-	case GL_DEBUG_TYPE_PUSH_GROUP:          std::cout << "Type: Push Group"; break;
-	case GL_DEBUG_TYPE_POP_GROUP:           std::cout << "Type: Pop Group"; break;
-	case GL_DEBUG_TYPE_OTHER:               std::cout << "Type: Other"; break;
-	} std::cout << std::endl;
-
-	switch (severity)
-	{
-	case GL_DEBUG_SEVERITY_HIGH:         std::cout << "Severity: high"; break;
-	case GL_DEBUG_SEVERITY_MEDIUM:       std::cout << "Severity: medium"; break;
-	case GL_DEBUG_SEVERITY_LOW:          std::cout << "Severity: low"; break;
-	case GL_DEBUG_SEVERITY_NOTIFICATION: std::cout << "Severity: notification"; break;
-	} 
-	std::cout << std::endl;
-	std::cout << std::endl;
-}
 
 RenderSystem::RenderSystem()
 {
@@ -143,8 +102,8 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     /* Uniform buffer object set up for common matrices */
     glGenBuffers(1, &mUboCommonMat);
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-	// 4 matrices, view, projection, projection * view and shadow mapping projection and a vec4 for the clipping plane
-    glBufferData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::mat4) + sizeof(glm::vec4), nullptr, GL_STREAM_DRAW);
+	// 3 matrices: view, projection, projection * view and a vec4 for the clipping plane
+    glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4) + sizeof(glm::vec4), nullptr, GL_STREAM_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, COMMON_MAT_UNIFORM_BLOCK_INDEX, mUboCommonMat);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -320,7 +279,7 @@ void RenderSystem::updateCamera()
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-void RenderSystem::updateMatrices(const glm::mat4* projection, const glm::mat4* view, const glm::mat4* toLightSpace)
+void RenderSystem::updateMatrices(const glm::mat4* projection, const glm::mat4* view)
 {
 	glm::mat4 projectionView = (*projection) * (*view);
 	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
@@ -328,8 +287,6 @@ void RenderSystem::updateMatrices(const glm::mat4* projection, const glm::mat4* 
 	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(*view));
 	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projectionView));
 
-	if (toLightSpace)
-		glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(*toLightSpace));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -378,7 +335,7 @@ void RenderSystem::prepareDeferredRendering(const RenderTarget* target)
 		view = getViewMatrix(camera->transform);
 
     /* Sets the camera matrix to a UBO so that it is shared */
-	updateMatrices(&mProjection, &view, nullptr);
+	updateMatrices(&mProjection, &view);
 
     updateLights();
     updateCamera();
@@ -648,9 +605,7 @@ void RenderSystem::renderDirectionalLightShadows(const DirectionalLight* light, 
 
 	glm::mat4 lightView = getViewMatrix(lightTransform);
 
-	glm::mat4 lightSpace = lightProjection * lightView;
-
-	updateMatrices(&lightProjection, &lightView, &lightSpace);
+	updateMatrices(&lightProjection, &lightView);
 
 	glViewport(0, 0, shadowMappingSettings.mapWidth, shadowMappingSettings.mapHeight);
 	glBindFramebuffer(GL_FRAMEBUFFER, light->getShadowMapTarget().getFbo());
@@ -755,8 +710,8 @@ void RenderSystem::disableClipPlane() const
 void RenderSystem::setClipPlane(const glm::vec4& clipPlane) const
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-	// it is after 4 matrices (projection, view, projectionView and toLightSpace)
-	glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::mat4), sizeof(glm::vec4), glm::value_ptr(clipPlane));
+	// it is after 3 matrices (projection, view, projectionView)
+	glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), sizeof(glm::vec4), glm::value_ptr(clipPlane));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 

@@ -89,8 +89,8 @@ private:
     /** Updates the camera ubo */
     void updateCamera();
 
-	/** Updates the common matrices ubo (if toLighSpace is nullptr it is not updated) */
-	void updateMatrices(const glm::mat4* projection, const glm::mat4* view, const glm::mat4* toLightSpace);
+	/** Updates the common matrices ubo */
+	void updateMatrices(const glm::mat4* projection, const glm::mat4* view);
 
     /** Performs all operations needed by rendering */
     void prepareDeferredRendering(const RenderTarget* target);

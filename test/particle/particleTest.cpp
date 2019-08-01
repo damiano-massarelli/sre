@@ -58,8 +58,9 @@ int main(int argc, char* argv[]) {
 
 	Engine::renderSys.createWindow(1280, 720);
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
-	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
 	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
+
+	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
 
 
  	Engine::renderSys.effectManager.enableEffects();
@@ -78,18 +79,11 @@ int main(int argc, char* argv[]) {
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
-	GLenum error;
-	while ((error = glGetError()) != GL_NO_ERROR)
-		std::cout << "before sponza " << error << "\n";
 	auto sponza = GameObjectLoader().fromFile("test_data/bloom/sponza.fbx");
 	sponza->transform.setScale(glm::vec3{ 0.1f });
 
-	while ((error = glGetError()) != GL_NO_ERROR)
-		std::cout << "before particles " << error << "\n";
 	for (const auto& eh : sponza->transform.findAll("firePos"))
 		addParticles(eh);
-	while ((error = glGetError()) != GL_NO_ERROR)
-		std::cout << "after -- " << error << "\n";
 
 	auto skyTexture = Texture::loadCubemapFromFile({
 					{"front", "test_data/skybox/front.tga"},
@@ -123,11 +117,28 @@ int main(int argc, char* argv[]) {
 	sun->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), sun->transform.right()));
 	sun->transform.rotateBy(glm::angleAxis(glm::radians(-15.0f), sun->transform.up()));
 
-
     auto gizmo = MeshCreator::axisGizmo();
     gizmo->transform.setParent(sun);
 	gizmo->transform.setLocalRotation(glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f });
     gizmo->transform.setPosition(sun->transform.getPosition());
+
+
+	auto fakeSun = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
+	fakeSun->name = "fakeSun";
+	fakeSun->addComponent(std::make_shared<DirectionalLight>(fakeSun));
+	fakeSun->transform.setPosition(glm::vec3{ -10.0f, 105, 10.0f });
+	Engine::renderSys.addLight(fakeSun);
+	fakeSun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
+	fakeSun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 15.0f;
+	fakeSun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } / 10.0f;
+	fakeSun->getComponent<Light>()->specularColor = glm::vec3{ .9f, .9f, .9f } / 10.0f;
+	fakeSun->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
+	fakeSun->transform.rotateBy(glm::angleAxis(glm::radians(155.0f), fakeSun->transform.right()));
+
+	auto gizmo2 = MeshCreator::axisGizmo();
+	gizmo2->transform.setParent(fakeSun);
+	gizmo2->transform.setLocalRotation(glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f });
+	gizmo2->transform.setPosition(fakeSun->transform.getPosition());
 
     Engine::start();
 
