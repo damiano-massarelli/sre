@@ -176,7 +176,7 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 		loader.loadData(influencingBones.data(), influencingBones.size(), 4, GL_ARRAY_BUFFER, GL_INT);
 		loader.loadData(boneWeights.data(), boneWeights.size(), 4);
 	}
-    loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
+    loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
     Mesh loadedMesh = loader.getMesh(vertices.size(), indices.size());
 
@@ -206,7 +206,7 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS, shininess))
         phongBuilder.setShininess(shininess);
 
-    phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE, cacheName));
+	phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE, cacheName));
     phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR, cacheName));
 	
 	// add bump map only if available
@@ -257,8 +257,15 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
         material->Get(AI_MATKEY_MAPPINGMODE_U(type, 0), mapModeU);
         material->Get(AI_MATKEY_MAPPINGMODE_V(type, 0), mapModeV);
 
-        int mapModeS = aiMapMode2glMapMode[mapModeU];
-        int mapModeT = aiMapMode2glMapMode[mapModeV];
+		GLenum mapModeS = GL_REPEAT;
+		GLenum mapModeT = GL_REPEAT;
+		auto mapModeSData = aiMapMode2glMapMode.find(mapModeU);
+		if (mapModeSData != aiMapMode2glMapMode.end())
+			mapModeS = mapModeSData->second;
+
+		auto mapModeTData = aiMapMode2glMapMode.find(mapModeV);
+		if (mapModeTData != aiMapMode2glMapMode.end())
+			mapModeT = mapModeTData->second;
 
         const char* texturePath = path.C_Str();
         /* check whether or not this is an embedded texture. If that's the case

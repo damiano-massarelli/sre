@@ -9,4 +9,11 @@ ShadowMapMaterial::ShadowMapMaterial() : Material{"shaders/shadowMapVS.glsl", "s
 void ShadowMapMaterial::use()
 {
 	shader.use();
+
+	glDisable(GL_CULL_FACE);
+}
+
+void ShadowMapMaterial::after()
+{
+	glEnable(GL_CULL_FACE);
 }

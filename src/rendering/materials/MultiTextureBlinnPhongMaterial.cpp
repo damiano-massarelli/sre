@@ -2,21 +2,13 @@
 #include "RenderSystem.h"
 
 MultiTextureBlinnPhongMaterial::MultiTextureBlinnPhongMaterial() :
-	Material{ {"shaders/bumpedPhongVS.glsl"},
-			  {}, 
-			  {"shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-			   "shaders/PhongLightCalculation.glsl", "shaders/multiTexturePhongFS.glsl"} }
+	Material{"shaders/bumpedPhongVS.glsl",
+		     "shaders/multiTexturePhongFS.glsl" }
 {
+	unSupportedRenderPhases |= RenderPhase::FORWARD_RENDERING;
+
 	shader.use();
-
-	shader.setInt("shadowMap", 15);
-
-	shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
-
+	
 	shader.setInt("baseTexture", 0);
 	shader.setInt("baseTextureBump", 1);
 	shader.setInt("redTexture", 2);
@@ -94,4 +86,38 @@ void MultiTextureBlinnPhongMaterial::after()
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+std::size_t MultiTextureBlinnPhongMaterial::hash() const
+{
+	return Material::hash()
+		+ baseTexture.getId()
+		+ baseTextureBump.getId()
+		+ redTexture.getId()
+		+ redTextureSpecular.getId()
+		+ redTextureBump.getId()
+		+ greenTexture.getId()
+		+ greenTextureSpecular.getId()
+		+ greenTextureBump.getId()
+		+ blendTexture.getId();
+}
+
+bool MultiTextureBlinnPhongMaterial::equalsTo(const Material* rhs) const
+{
+	if (shader.getId() != rhs->shader.getId())
+		return false;
+
+	auto other = static_cast<const MultiTextureBlinnPhongMaterial*>(rhs);
+	return Material::equalsTo(rhs)
+		&& baseTexture.getId() == other->baseTexture.getId()
+		&& baseTextureBump.getId() == other->baseTextureBump.getId()
+		&& redTexture.getId() == other->redTexture.getId()
+		&& redTextureSpecular.getId() == other->redTextureSpecular.getId()
+		&& redTextureBump.getId() == other->redTextureBump.getId()
+		&& greenTexture.getId() == other->greenTexture.getId()
+		&& greenTextureSpecular.getId() == other->greenTextureSpecular.getId()
+		&& greenTextureBump.getId() == other->greenTextureBump.getId()
+		&& blendTexture.getId() == other->blendTexture.getId()
+		&& redShininess == other->redShininess
+		&& greenShininess == other->greenShininess;
 }

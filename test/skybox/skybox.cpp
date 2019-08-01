@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     child->transform.setLocalPosition(glm::vec3{2, 0, 0});
     child->transform.setLocalRotation(glm::quat{ glm::vec3{0.0f, glm::radians(30.0f), 0.0f }});
 
-    auto skyTexture = Texture::loadCubamapFromFile({
+    auto skyTexture = Texture::loadCubemapFromFile({
                     {"front", "test_data/skybox/front.tga"},
                     {"back", "test_data/skybox/back.tga"},
                     {"top", "test_data/skybox/top.tga"},

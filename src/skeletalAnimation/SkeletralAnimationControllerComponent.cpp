@@ -13,13 +13,14 @@ void SkeletralAnimationControllerComponent::addAnimation(const std::string& name
 	mName2animation[name] = animation;
 }
 
-const SkeletalAnimation& SkeletralAnimationControllerComponent::getAnimation(const std::string& name) const
+SkeletalAnimation* SkeletralAnimationControllerComponent::getAnimation(const std::string& name)
 {
+	SkeletalAnimation* animation = nullptr;
 	auto anim = mName2animation.find(name);
 	if (anim != mName2animation.end())
-		return anim->second;
+		animation = &anim->second;
 
-	return SkeletalAnimation{ 0.0f };
+	return animation;
 }
 
 void SkeletralAnimationControllerComponent::playAnimation(const std::string& name)

@@ -10,6 +10,7 @@ EventManager Engine::eventManager;
 GameObjectManager Engine::gameObjectManager;
 RenderSystem Engine::renderSys;
 GameObjectRenderer Engine::gameObjectRenderer;
+ParticleRenderer Engine::particleRenderer;
 
 Engine::Engine()
 {
@@ -28,6 +29,9 @@ void Engine::init()
         instance = std::make_unique<Engine>();
 }
 
+unsigned int frames = 0;
+float totDeltas;
+
 void Engine::start()
 {
     if (instance == nullptr) {
@@ -36,21 +40,30 @@ void Engine::start()
     }
     Timer actualTime;
     actualTime.start();
-    float elapsedSec;
+    float elapsedMillis;
 
     while (!shouldQuit) {
-        elapsedSec = actualTime.getSeconds();
+        elapsedMillis = actualTime.getMillis();
+
+		totDeltas += elapsedMillis;
+		frames++;
+
         actualTime.stop();
         actualTime.start();
 
-        eventManager.pushEnterFrameEvent(&elapsedSec);
+        eventManager.pushEnterFrameEvent(&elapsedMillis);
         eventManager.dispatchEvents();
 
-		renderSys.renderScene(RenderPhase::NORMAL);
+		eventManager.pushPreRenderEvent(&elapsedMillis);
+		renderSys.renderScene();
+		eventManager.pushExitFrameEvent(&elapsedMillis);
     }
 
 	renderSys.cleanUp();
 	gameObjectManager.cleanUp();
+	particleRenderer.cleanUp();
+
+	std::cout << totDeltas / frames << "\n";
 }
 
 Engine::~Engine()

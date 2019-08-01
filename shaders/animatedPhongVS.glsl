@@ -5,20 +5,24 @@ layout (location = 3) in ivec4 vBones;
 layout (location = 4) in vec4 vWeights;
 
 uniform mat4 model;
+uniform mat3 normalModel;
+
 layout (std140) uniform CommonMat {
     mat4 projection;
     mat4 view;
-	mat4 shadowLightSpace;
+	mat4 projectionView;
+	vec4 clipPlane;
 };
 
-uniform mat4 bones[40];
+uniform mat4 bones[100];
 
 out vec2 texCoord;
 out vec3 position;
 out vec3 normal;
-out vec4 lightSpacePosition;
 
 void main() {
+	gl_ClipDistance[0] = dot(vec4(position, 1.0), clipPlane);
+
     texCoord = vTexCoord;
 	mat4 boneTransform = bones[vBones[0]] * vWeights[0] +
 						 bones[vBones[1]] * vWeights[1]	+
@@ -26,10 +30,8 @@ void main() {
 						 bones[vBones[3]] * vWeights[3];
 
 
-    position = mat3(1.3) * (model * boneTransform * vec4(vPos, 1.0f)).xyz;
-    normal = normalize(inverse(transpose(mat3(model))) * vNorm);
+    position = (model * boneTransform * vec4(vPos, 1.0f)).xyz;
+    normal = normalize(normalModel * vNorm);
 
-	lightSpacePosition = shadowLightSpace * vec4(position, 1.0f);
-
-    gl_Position = projection * view * vec4(position, 1.0f);
+    gl_Position = projectionView * vec4(position, 1.0f);
 }

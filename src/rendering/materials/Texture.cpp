@@ -59,7 +59,7 @@ Texture Texture::loadFromMemoryCached(const std::string& cacheKey, std::uint8_t*
 	return texture;
 }
 
-Texture Texture::loadCubamapFromFile(const std::map<std::string, std::string>& paths)
+Texture Texture::loadCubemapFromFile(const std::map<std::string, std::string>& paths)
 {
     std::map<std::string, int> side2glSide{
         {"front", GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},
@@ -101,7 +101,52 @@ Texture Texture::loadCubamapFromFile(const std::map<std::string, std::string>& p
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-    return Texture{cubemap};
+	auto t = Texture{ cubemap };
+	t.mIsCubeMap = true;
+	return t;
+}
+
+Texture Texture::loadCubemap(const std::map<std::string, void*>& data, int width, int height,
+	int wrapS, int wrapT, int wrapR, int format, int type, int internalFormat)
+{
+	std::map<std::string, int> side2glSide{
+		{"front", GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},
+		{"back", GL_TEXTURE_CUBE_MAP_POSITIVE_Z},
+		{"top", GL_TEXTURE_CUBE_MAP_POSITIVE_Y},
+		{"bottom", GL_TEXTURE_CUBE_MAP_NEGATIVE_Y},
+		{"right", GL_TEXTURE_CUBE_MAP_POSITIVE_X},
+		{"left", GL_TEXTURE_CUBE_MAP_NEGATIVE_X}
+	};
+
+	if (internalFormat == GL_REPEAT) internalFormat = format;
+
+	std::uint32_t cubemap;
+	glGenTextures(1, &cubemap);
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+	for (auto& [face, data] : data) {
+		int side = 0;
+
+		if (side2glSide.count(face) != 0) {
+			side = side2glSide[face];
+		}
+		else {
+			std::cout << "Unknown cubemap side " << face << "\n";
+			continue;
+		}
+		
+		glTexImage2D(side, 0, internalFormat, width, height, 0, format, type, data);
+
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrapS);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrapT);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrapR);
+
+	auto t = Texture{ cubemap };
+	t.mIsCubeMap = true;
+	return t;
 }
 
 Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int wrapT, bool mipmap, int format, int type, int internalFormat)
@@ -111,7 +156,6 @@ Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int 
     glBindTexture(GL_TEXTURE_2D, texture);
 
 	if (internalFormat == GL_REPEAT) internalFormat = format;
-
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -135,7 +179,11 @@ Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int 
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    return Texture{texture};
+    auto tex = Texture{texture};
+	tex.mWidth = width;
+	tex.mHeight = height;
+
+	return tex;
 }
 
 Texture::Texture(std::uint32_t id) : mTextureId{id}
@@ -146,6 +194,21 @@ Texture::Texture(std::uint32_t id) : mTextureId{id}
 uint32_t Texture::getId() const
 {
     return mTextureId;
+}
+
+int Texture::getWidth() const
+{
+	return mWidth;
+}
+
+int Texture::getHeight() const
+{
+	return mHeight;
+}
+
+bool Texture::isCubeMap() const
+{
+	return mIsCubeMap;
 }
 
 bool Texture::isValid() const

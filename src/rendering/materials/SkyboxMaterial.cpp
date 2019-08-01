@@ -8,7 +8,7 @@ SkyboxMaterial::SkyboxMaterial(const Texture& cubemap) :
 			{"shaders/FogCalculation.glsl", "shaders/skyboxFS.glsl"} }, mCubemap{ cubemap }
 {
 	// do not render during shadow mapping
-	supportedRenderPhases = RenderPhase::NORMAL;
+	unSupportedRenderPhases = RenderPhase::DEFERRED_RENDERING | RenderPhase::SHADOW_MAPPING;
 
     shader.use();
 	shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
@@ -41,4 +41,21 @@ float SkyboxMaterial::renderOrder(const glm::vec3& position)
 {
     // be the last, please
     return -std::numeric_limits<float>::infinity();
+}
+
+std::size_t SkyboxMaterial::hash() const
+{
+	return Material::hash()
+		+ mCubemap.getId();
+}
+
+bool SkyboxMaterial::equalsTo(const Material* rhs) const
+{
+	if (shader.getId() != rhs->shader.getId())
+		return false;
+
+	auto other = static_cast<const SkyboxMaterial*>(rhs);
+
+	return Material::equalsTo(rhs)
+		&& mCubemap.getId() == other->mCubemap.getId();
 }

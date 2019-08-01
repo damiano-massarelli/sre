@@ -40,7 +40,6 @@ void GameObjectManager::remove(const GameObjectEH& go)
 
     // cleans up and removes all the GameObjects in the hierarchy
     for (auto& rem : toRemove) {
-        rem->cleanUp();
         mGameObjectsHL.remove(rem.mHandleIndex, rem.mGeneration);
     }
 }
@@ -50,18 +49,8 @@ const std::vector<GameObject>& GameObjectManager::getGameObjects() const
 	return mGameObjects;
 }
 
-void GameObjectManager::update()
-{
-    Engine::gameObjectRenderer.render(mGameObjects);
-}
-
 void GameObjectManager::cleanUp()
 {
-    // no need to remove them, just clean up what they
-    // allocated.
-    for (auto& go : mGameObjects)
-        go.cleanUp();
-
 	mGameObjects.clear();
 }
 

@@ -31,5 +31,11 @@ public:
 	 */
 	virtual void onSetup(Shader& postProcessingShader) {}
 
+	/**
+	 * Called every time the image is going to be processed
+	 * by the effect. 
+	 */
+	virtual void update(Shader& postProcessingShader) {}
+
 	virtual ~Effect() = default;
 };

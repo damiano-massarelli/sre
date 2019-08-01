@@ -20,6 +20,11 @@ class Texture {
 
         Texture(std::uint32_t id);
 
+		int mWidth = 0;
+		int mHeight = 0;
+
+		bool mIsCubeMap = false;
+
     public:
         /**
           * Creates an invalid texture.
@@ -62,20 +67,37 @@ class Texture {
 		 * @param wrapS repeat mode on x axis
 		 * @param wrapT repeat mode on y axis
 		 * @param mipmap should use mipmap?
-		 * @param format OpenGL format (GL_RGB, GL_RGBA, etc)
+		 * @param format pixel data format format (GL_RGB, GL_RGBA, etc)
 		 * @param type the type of data stored in the texture
+		 * @param internalFormat the format of the data stored in the texture (if GL_REPEAT then it will be the same as format)
 		 */
 		static Texture load(std::uint8_t* data, int width, int height,
 			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, bool mipmap = true, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE, int internalFormat = GL_REPEAT);
 
         /**
-          * Loads a cubmap from file.
+          * Loads a cubemap from file.
           * The paths parameter is a map in which the key is the side of the cube
           * (front, bottom, top, back, left, right) and the values are the corresponding paths
           * of the images for those sides.
           * @param paths the paths of the images composing the cubemap.
           * @return a new cubemap */
-        static Texture loadCubamapFromFile(const std::map<std::string, std::string>& paths);
+        static Texture loadCubemapFromFile(const std::map<std::string, std::string>& paths);
+
+		/**
+		 * Creates a new CubeMap.
+		 * @param data a map with the correspondence between cube side and the data for that side
+		 * @param width width of the texture (per single face)
+		 * @param height height of the texture (per single face)
+		 * @param wrapS repeat mode on x axis
+		 * @param wrapT repeat mode on y axis
+		 * @param wrapR repeat mode on z axis
+		 * @param mipmap should use mipmap?
+		 * @param format pixel data format format (GL_RGB, GL_RGBA, etc)
+		 * @param type the type of data stored in the texture
+		 * @param internalFormat the format of the data stored in the texture (if GL_REPEAT then it will be the same as format)
+		 */
+		static Texture loadCubemap(const std::map<std::string, void*>& data, int width, int height,
+			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, int wrapR = GL_REPEAT, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE, int internalFormat = GL_REPEAT);
 
         std::string nameInShader;
 
@@ -83,6 +105,18 @@ class Texture {
           * Returns the texture id for this texture.
           * Needed for rendering */
         std::uint32_t getId() const;
+
+		/**
+		 * @return the width of the texure
+		 */
+		int getWidth() const;
+
+		/**
+		 * @return the height of the texture
+		 */
+		int getHeight() const;
+
+		bool isCubeMap() const;
 
         /**
           * Checks whether this is a valid (usable) texture

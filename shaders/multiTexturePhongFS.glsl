@@ -1,3 +1,8 @@
+layout (location = 0) out vec4 Diffuse;
+layout (location = 1) out vec4 Specular;
+layout (location = 2) out vec3 Position;
+layout (location = 3) out vec3 Normal;
+
 uniform sampler2D baseTexture;
 uniform sampler2D baseTextureBump;
 uniform sampler2D redTexture;
@@ -13,22 +18,9 @@ uniform float greenShininess;
 
 in vec2 texCoord;
 in vec3 position;
-in vec4 lightSpacePosition;
 
 // bump mapping specific ins
 in mat3 tangentToWorldSpace;
-
-out vec4 FragColor;
-
-layout (std140) uniform Lights {
-    int numLights;
-    Light lights[10];
-};
-
-layout (std140) uniform Camera {
-    vec3 cameraPosition;
-    vec3 cameraDirection;
-};
 
 void main() {
     float verticalTiles = 40.0;
@@ -56,15 +48,8 @@ void main() {
 
     float shininess = redShininess * channels.r + greenShininess * channels.g;
 
-	//diffuseColor = pow(diffuseColor, vec3(2.2));
-	//specularColor = pow(specularColor, vec3(2.2));
-    vec3 color = vec3(0.0f);
-    for (int i = 0; i < numLights; i++) {
-        color += phongComputeColor(lights[i], diffuseColor, specularColor, shininess, position, normal, cameraPosition, lightSpacePosition, i == 0);
-    }
-
-	// apply fog
-	color = fogger(color, distance(cameraPosition, position));
-
-    FragColor = vec4(color, 1.0);
+	Position = position;
+	Normal = normal;
+	Diffuse = vec4(diffuseColor, 1.0);
+	Specular = vec4(specularColor, shininess);
 }

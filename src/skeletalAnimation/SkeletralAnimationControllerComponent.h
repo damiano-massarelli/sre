@@ -49,12 +49,12 @@ public:
 	void addAnimation(const std::string& name, const SkeletalAnimation& animation);
 
 	/**
-	 * Returns the animations with the given name.
-	 * If no animation is found, SkeletalAnimation::isEmpty
-	 * will be true on the returned animation.
-	 * CAVEAT: this reference may become invalid if new animations are added.
+	 * Gets the animation with the given name.
+	 * @param name the name of the animation
+	 * @return a pointer to the searched animation, nullptr if no animation is found.
+	 * CAVEAT: this pointer may become invalid if new animations are added.
 	 */
-	const SkeletalAnimation& getAnimation(const std::string& name) const;
+	SkeletalAnimation* getAnimation(const std::string& name);
 
 	/**
 	 * Plays a SkeletalAnimation.
