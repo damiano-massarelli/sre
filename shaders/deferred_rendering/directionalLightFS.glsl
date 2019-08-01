@@ -14,7 +14,6 @@ layout (std140) uniform CommonMat {
     mat4 projection;
     mat4 view;
 	mat4 projectionView;
-	mat4 toShadowLightSpace;
 };
 
 
@@ -69,11 +68,6 @@ void main() {
     float shininess = specularSample.a;
     vec3 normal = texture(NormalData, texCoord).xyz;
     vec3 position = texture(PositionData, texCoord).xyz;
-
-
-    vec4 lightSpacePos = vec4(0.0);
-    if (lightIndex == 0)
-        lightSpacePos = toShadowLightSpace * vec4(position, 1.0);
 
     vec3 color = phongComputeColor(lights[lightIndex], diffuseColor, specularColor, shininess, position, normal, cameraPosition);
     FragColor = vec4(color, 1.0);

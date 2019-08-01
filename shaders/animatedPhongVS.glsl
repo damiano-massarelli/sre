@@ -11,7 +11,6 @@ layout (std140) uniform CommonMat {
     mat4 projection;
     mat4 view;
 	mat4 projectionView;
-	mat4 shadowLightSpace;
 	vec4 clipPlane;
 };
 
