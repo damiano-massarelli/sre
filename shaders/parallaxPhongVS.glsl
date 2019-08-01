@@ -4,10 +4,13 @@ layout (location = 2) in vec2 vTexCoord;
 layout (location = 3) in vec3 vTangent;
 
 uniform mat4 model;
+uniform mat3 normalModel;
+
 layout (std140) uniform CommonMat {
     mat4 projection;
     mat4 view;
-	mat4 shadowLightSpace;
+	mat4 projectionView;
+	vec4 clipPlane;
 };
 
 layout (std140) uniform Camera {
@@ -17,21 +20,21 @@ layout (std140) uniform Camera {
 
 out vec2 texCoord;
 out vec3 position;
-out vec4 lightSpacePosition;
 
 // bump mapping specific outs
 out mat3 tangentToWorldSpace;
 out vec3 tangentSpaceRayToCamera;
 
 void main() {
+	gl_ClipDistance[0] = dot(vec4(position, 1.0), clipPlane);
+
     texCoord = vTexCoord;
 
     position = (model * vec4(vPos, 1.0f)).xyz;
 
-    mat3 normalMatrix = inverse(transpose(mat3(model)));
-    vec3 normal = normalize(normalMatrix * vNorm);
+    vec3 normal = normalize(normalModel * vNorm);
 
-    vec3 tangent = normalize(normalMatrix * vTangent);
+    vec3 tangent = normalize(normalModel * vTangent);
     tangent = normalize(tangent - (dot(tangent, normal) * normal)); // ortogonalize it
 
     vec3 bitangent = cross(normal, tangent);
@@ -39,7 +42,5 @@ void main() {
     tangentToWorldSpace = mat3(tangent, bitangent, normal);
     tangentSpaceRayToCamera = transpose(tangentToWorldSpace) * normalize(cameraPosition - position);
 
-	lightSpacePosition = shadowLightSpace * vec4(position, 1.0f);
-
-    gl_Position = projection * view * vec4(position, 1.0f);
+    gl_Position = projectionView * vec4(position, 1.0f);
 }

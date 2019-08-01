@@ -3,17 +3,33 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <algorithm>
+#include <queue>
 
 glm::mat4 Transform::modelToWorld() const
 {
+	if (mModelWorldCacheValid)
+		return mCacheModelToWorld;
     glm::mat4 m2w = glm::translate(glm::mat4{1.0f}, mPosition);
     m2w *= glm::toMat4(mRotation);
     m2w = glm::scale(m2w, mScale);
     return m2w;
 }
 
+glm::mat4 Transform::modelToWorld()
+{
+	if (!mModelWorldCacheValid) {
+		mCacheModelToWorld = glm::translate(glm::mat4{ 1.0f }, mPosition);
+		mCacheModelToWorld *= glm::toMat4(mRotation);
+		mCacheModelToWorld = glm::scale(mCacheModelToWorld, mScale);
+		mModelWorldCacheValid = true;
+	}
+	return mCacheModelToWorld;
+}
+
 void Transform::setPosition(const glm::vec3& position)
 {
+	mModelWorldCacheValid = false;
+	mModelWorldNormalCacheValid = false;
     glm::vec3 diff = position - mPosition;
     mPosition = position;
     for (auto& child : mChildren)
@@ -32,6 +48,9 @@ void Transform::setRotation(const glm::quat& rotation)
 
 void Transform::setRotation(const glm::quat& rotation, const glm::vec3& pivot)
 {
+	mModelWorldCacheValid = false;
+	mModelWorldNormalCacheValid = false;
+
     glm::quat diff = glm::normalize(rotation * glm::conjugate(mRotation));
 
     mRotation = rotation;
@@ -60,6 +79,9 @@ void Transform::setScale(const glm::vec3& scale)
 
 void Transform::setScale(const glm::vec3& scale, const glm::vec3& pivot)
 {
+	mModelWorldCacheValid = false;
+	mModelWorldNormalCacheValid = false;
+
     glm::vec3 diff{scale.x / mScale.x, scale.y / mScale.y, scale.z / mScale.z};
     auto pos = mPosition - pivot;
     pos = glm::mat3{glm::scale(glm::mat4{1.0f}, diff)} * pos;
@@ -163,6 +185,22 @@ glm::vec3 Transform::getLocalScale() const
     return glm::vec3{scale.x / parentScale.x, scale.y / parentScale.y, scale.z / parentScale.z};
 }
 
+glm::mat3 Transform::modelToWorldForNormals() const
+{
+	if (mModelWorldNormalCacheValid)
+		return mCacheModelToWorldNormal;
+	return glm::inverse(glm::transpose(glm::mat3(modelToWorld())));
+}
+
+glm::mat3 Transform::modelToWorldForNormals()
+{
+	if (!mModelWorldNormalCacheValid) {
+		mCacheModelToWorldNormal = glm::inverse(glm::transpose(glm::mat3(modelToWorld())));
+		mModelWorldNormalCacheValid = true;
+	}
+	return mCacheModelToWorldNormal;
+}
+
 glm::mat3 Transform::modelToUpright() const
 {
     return glm::toMat3(mRotation);
@@ -219,5 +257,47 @@ void Transform::removeParent()
 const std::vector<GameObjectEH>& Transform::getChildren()
 {
     return mChildren;
+}
+
+std::vector<GameObjectEH> Transform::findAll(const std::string& name)
+{
+	std::vector<GameObjectEH> found;
+
+	std::queue<GameObjectEH> searching;
+	searching.push(gameObject);
+
+	while (!searching.empty()) {
+		auto eh = searching.front();
+		searching.pop();
+
+		if (eh->name == name)
+			found.push_back(eh);
+
+		for (auto child : eh->transform.getChildren())
+			searching.push(child);
+	}
+
+	return found;
+}
+
+GameObjectEH Transform::find(const std::filesystem::path& path)
+{
+	return find(path.begin(), path.end());
+}
+
+GameObjectEH Transform::find(std::filesystem::path::iterator it, std::filesystem::path::iterator end)
+{
+	if (it == end)
+		return gameObject;
+	else if (*it == "..")
+		return mParent->transform.find(++it, end);
+	else if (*it == ".")
+		return find(++it, end);
+
+	for (const auto& child : getChildren())
+		if (child->name == *it)
+			return child->transform.find(++it, end);
+
+	return GameObjectEH{};
 }
 

@@ -4,6 +4,9 @@
 #include "Engine.h"
 #include "MeshLoader.h"
 #include "ShadowMapMaterial.h"
+#include "MeshCreator.h"
+#include "DirectionalLight.h"
+#include "debug.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -12,6 +15,11 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
+
+#include <nvToolsExt.h>
+
+// is openGL debug enabled
+bool DEBUG = true;
 
 RenderSystem::RenderSystem()
 {
@@ -28,8 +36,11 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 
     SDL_GL_LoadLibrary(nullptr); // use default OpenGL
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
+	if (DEBUG)
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -37,7 +48,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 //	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 //	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
-    mWindow = SDL_CreateWindow("opengl", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+    mWindow = SDL_CreateWindow("sre", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
     if (mWindow == nullptr) {
         std::cout << "Cannot create window " << SDL_GetError() << "\n";
         std::terminate();
@@ -46,7 +57,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     SDL_GL_CreateContext(mWindow);
 
     // Use v-sync
-    SDL_GL_SetSwapInterval(1);
+    //SDL_GL_SetSwapInterval(1);
 
     if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
         std::cout << "Failed to initialize GLAD\n";
@@ -54,10 +65,25 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
     }
 
     initGL(width, height, fovy, nearPlane, farPlane);
-	initScreenFbo();
-	initShadowFbo();
+
+	if (DEBUG) {
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(printGLError, nullptr);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	}
+
+	initDeferredRendering();
+	effectTarget.create(width, height);
+	effectManager.init();
 	fogSettings.init();
 	shadowMappingSettings.init();
+
+	Engine::particleRenderer.init();
+
+	// simple shader for shadow mapping
+	mShadowMapMaterial = std::make_shared<ShadowMapMaterial>();
+	mPointShadowMaterial = std::make_shared<PointShadowMaterial>();
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -76,20 +102,17 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     /* Uniform buffer object set up for common matrices */
     glGenBuffers(1, &mUboCommonMat);
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-	// 3 matrices, view projection and shadow mapping projection
-    glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
+	// 3 matrices: view, projection, projection * view and a vec4 for the clipping plane
+    glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4) + sizeof(glm::vec4), nullptr, GL_STREAM_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, COMMON_MAT_UNIFORM_BLOCK_INDEX, mUboCommonMat);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(mProjection));
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     /* Uniform buffer object set up for lights */
     glGenBuffers(1, &mUboLights);
     glBindBuffer(GL_UNIFORM_BUFFER, mUboLights);
-    // 16 numLights, 112 size of a light array element
-    glBufferData(GL_UNIFORM_BUFFER, 16 + 128 * MAX_LIGHT_NUMBER, nullptr, GL_STATIC_DRAW);
+    // 16 numLights, 208 size of a light array element
+    glBufferData(GL_UNIFORM_BUFFER, 16 + 208 * MAX_LIGHT_NUMBER, nullptr, GL_STREAM_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, LIGHT_UNIFORM_BLOCK_INDEX, mUboLights);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -97,25 +120,40 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy,
     glGenBuffers(1, &mUboCamera);
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
 
-    // size for position and direction
-    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec3), nullptr, GL_STATIC_DRAW);
+    // size for camera position and direction
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), nullptr, GL_STREAM_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA_UNIFORM_BLOCK_INDEX, mUboCamera);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     /* General OpenGL settings */
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-	//glEnable(GL_MULTISAMPLE);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_CULL_FACE);
+	glEnable(GL_STENCIL_TEST);
+	glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 }
 
-void RenderSystem::initScreenFbo()
+void RenderSystem::initDeferredRendering()
 {
-	effectsTarget.create(getScreenWidth(), getScreenHeight());
+	deferredRenderingFBO.init(getScreenWidth(), getScreenHeight());
+
+	mDirectionalLightDeferred = Shader::loadFromFile({ "shaders/deferred_rendering/directionalLightVS.glsl" },
+		std::vector<std::string>{},
+		{ "shaders/Light.glsl", "shaders/ShadowMappingCalculation.glsl", "shaders/deferred_rendering/directionalLightFS.glsl" });
+
+	mDirectionalLightDeferred.use();
+	mDirectionalLightDeferred.setInt("DiffuseData", 0);
+	mDirectionalLightDeferred.setInt("SpecularData", 1);
+	mDirectionalLightDeferred.setInt("PositionData", 2);
+	mDirectionalLightDeferred.setInt("NormalData", 3);
+	mDirectionalLightDeferred.setInt("shadowMap", 4);
+	mDirectionalLightDeferred.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
+	mDirectionalLightDeferred.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
+	mDirectionalLightDeferred.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
+	mDirectionalLightDeferred.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
+
+	mDirectionalLightDeferredLightIndexLocation = mDirectionalLightDeferred.getLocationOf("lightIndex");
 
 	MeshLoader loader;
 	float verts[]{ -1, -1, -1, 1, 1, 1, 1, -1 };
@@ -123,24 +161,34 @@ void RenderSystem::initScreenFbo()
 	std::uint32_t indices[]{ 0, 2, 1, 0, 3, 2 };
 	loader.loadData(verts, 8, 2);
 	loader.loadData(texCoords, 8, 2);
-	loader.loadData(indices, 6, 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT);
+	loader.loadData(indices, 6, 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 	mScreenMesh = loader.getMesh(0, 6);
-}
 
-void RenderSystem::initShadowFbo()
-{
-	mShadowMapMaterial = std::make_shared<ShadowMapMaterial>();
 
-	mShadowMap = Texture::load(nullptr, shadowMappingSettings.mapWidth, shadowMappingSettings.mapHeight, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_COMPONENT, GL_FLOAT);
+	mPointLightDeferred = Shader::loadFromFile({ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightVS.glsl" },
+		std::vector<std::string>{},
+		{ "shaders/Light.glsl", "shaders/PointShadowCalculation.glsl", "shaders/deferred_rendering/pointLightFS.glsl" });
 
-	glGenFramebuffers(1, &mShadowFbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, mShadowFbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mShadowMap.getId(), 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "Shadow map frame buffer is incomplete\n";
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	mPointLightDeferred.use();
+	mPointLightDeferred.setInt("DiffuseData", 0);
+	mPointLightDeferred.setInt("SpecularData", 1);
+	mPointLightDeferred.setInt("PositionData", 2);
+	mPointLightDeferred.setInt("NormalData", 3);
+	mPointLightDeferred.setInt("shadowCube", 4);
+	mPointLightDeferred.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
+	mPointLightDeferred.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
+	mPointLightDeferredLightIndexLocation = mPointLightDeferred.getLocationOf("lightIndex");
+	mPointLightDeferredLightRadiusLocation = mPointLightDeferred.getLocationOf("lightRadius");
+
+	mPointLightSphere = MeshCreator::sphere(1.0f, 10, 10, false, false);
+
+	mPointLightDeferredStencil = Shader::loadFromFile({ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightSphereStencilPassVS.glsl" },
+		std::vector<std::string>{},
+		{ "shaders/deferred_rendering/pointLightSphereStencilPassFS.glsl" });
+	mPointLightDeferredStencil.use();
+	mPointLightDeferredStencil.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
+	mPointLightStencilLightIndexLocation = mPointLightDeferredStencil.getLocationOf("lightIndex");
+	mPointLightStencilScaleLocation = mPointLightDeferredStencil.getLocationOf("scale");
 }
 
 void RenderSystem::updateLights()
@@ -149,11 +197,13 @@ void RenderSystem::updateLights()
     glBindBuffer(GL_UNIFORM_BUFFER, mUboLights);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(std::size_t), (void*)&numLight);
     for (std::size_t i = 0; i < numLight; i++) {
-        int base = 16 + 128 * i;
+        int base = 16 + 208 * i;
         LightPtr lightComponent = mLights[i]->getComponent<Light>();
         if (lightComponent == nullptr) continue;
 
-        std::uint32_t lightType = static_cast<std::uint32_t>(lightComponent->type);
+        std::uint32_t lightType = static_cast<std::uint32_t>(lightComponent->mType);
+		bool castShadow = lightComponent->getShadowCasterMode() != Light::ShadowCasterMode::NO_SHADOWS;
+
         glm::vec3 attenuation = glm::vec3{
             lightComponent->attenuationConstant,
             lightComponent->attenuationLinear,
@@ -165,14 +215,16 @@ void RenderSystem::updateLights()
             glm::cos(lightComponent->outerAngle)
         };
 
+		Transform& transform = mLights[i]->transform;
+
         // type
         glBufferSubData(GL_UNIFORM_BUFFER, base, sizeof(std::uint32_t), (void *)(&lightType));
 
         // position
-        glBufferSubData(GL_UNIFORM_BUFFER, base + 16, sizeof(glm::vec3), glm::value_ptr(mLights[i]->transform.getPosition()));
+        glBufferSubData(GL_UNIFORM_BUFFER, base + 16, sizeof(glm::vec3), glm::value_ptr(transform.getPosition()));
 
         // direction
-        glBufferSubData(GL_UNIFORM_BUFFER, base + 32, sizeof(glm::vec3), glm::value_ptr(mLights[i]->transform.forward()));
+        glBufferSubData(GL_UNIFORM_BUFFER, base + 32, sizeof(glm::vec3), glm::value_ptr(transform.forward()));
 
         // ambient
         glBufferSubData(GL_UNIFORM_BUFFER, base + 48, sizeof(glm::vec3), glm::value_ptr(lightComponent->ambientColor));
@@ -188,13 +240,34 @@ void RenderSystem::updateLights()
 
         // spot light angles
         glBufferSubData(GL_UNIFORM_BUFFER, base + 112, sizeof(glm::vec2), glm::value_ptr(spotAngles));
+ 
+ 		// to light space matrix
+		if (castShadow) {
+// 			glm::mat4 lightProjection = glm::mat4{ 0.0f };
+// 			lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
+// 			lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
+// 			lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
+// 			lightProjection[3][3] = 1.0f;
+			glm::mat4 lightProjection = glm::ortho(-shadowMappingSettings.width / 2, shadowMappingSettings.width / 2,
+				-shadowMappingSettings.height / 2, shadowMappingSettings.height / 2,
+				0.1f, shadowMappingSettings.depth);
+
+			glm::mat4 toLightSpace = lightProjection * getViewMatrix(transform);
+
+			glBufferSubData(GL_UNIFORM_BUFFER, base + 128, sizeof(glm::mat4), glm::value_ptr(toLightSpace));
+		}
+
+		// cast shadow
+		glBufferSubData(GL_UNIFORM_BUFFER, base + 192, sizeof(bool), (void *)(&castShadow));
     }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
+
+
 void RenderSystem::updateCamera()
 {
-    glm::vec3 cameraPosition{0.0f};
-    glm::vec3 cameraDirection{0.0f, 0.0f, 1.0f};
+    glm::vec3 cameraPosition{ 0.0f };
+    glm::vec3 cameraDirection{ 0.0f, 0.0f, 1.0f };
     if (camera) {
         cameraPosition = camera->transform.getPosition();
         cameraDirection = camera->transform.forward();
@@ -204,6 +277,17 @@ void RenderSystem::updateCamera()
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec3), glm::value_ptr(cameraPosition));
     glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(cameraDirection));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void RenderSystem::updateMatrices(const glm::mat4* projection, const glm::mat4* view)
+{
+	glm::mat4 projectionView = (*projection) * (*view);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(*projection));
+	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(*view));
+	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projectionView));
+
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
@@ -217,24 +301,33 @@ glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
 	return mInvertView * view;
 }
 
-void RenderSystem::prepareRendering(const RenderTarget* target)
+const glm::mat4 RenderSystem::getProjectionMatrix() const
+{
+	return mProjection;
+}
+
+void RenderSystem::prepareDeferredRendering(const RenderTarget* target)
 {
 	if (shadowMappingSettings.getShadowStrength() != 0.0f)
 		renderShadows();
 
-	std::uint32_t width = getScreenWidth();
-	std::uint32_t height = getScreenHeight();
+	// view port might be changed during shadow rendering
+	glViewport(0, 0, target->getWidth(), target->getHeight());
 	glEnable(GL_DEPTH_TEST);
-	if (target) {
-		glBindFramebuffer(GL_FRAMEBUFFER, target->getFbo());
-		width = target->getWidth();
-		height = target->getHeight();
-	}
 
-	glViewport(0, 0, width, height);
+	// bind the deferred rendering frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, deferredRenderingFBO.getFBO());
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// set up the stencil test so that only the parts affected by deferred rendering
+	// are actually lit in the deferred rendering directional light pass pass
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilMask(0xFF);
+
+	// clear all the buffers
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     /* Camera calculations */
     glm::mat4 view = glm::mat4{ 1.0f };
@@ -242,75 +335,280 @@ void RenderSystem::prepareRendering(const RenderTarget* target)
 		view = getViewMatrix(camera->transform);
 
     /* Sets the camera matrix to a UBO so that it is shared */
-	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(mProjection));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	updateMatrices(&mProjection, &view);
 
     updateLights();
     updateCamera();
 }
 
-void RenderSystem::render(RenderPhase phase)
+void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
+{
+	//nvtxRangePushA("Frame");
+
+	auto targetToUse = target;
+	if (target == nullptr) // target null means render to screen
+		targetToUse = &effectTarget;
+
+	//nvtxRangePushA("Prepare deferred");
+	prepareDeferredRendering(targetToUse);
+	//nvtxRangePop();
+
+	//nvtxRangePushA("Render deferred");
+	glDisable(GL_BLEND);
+	render(RenderPhase::DEFERRED_RENDERING | phase);
+	//nvtxRangePop();
+
+	//nvtxRangePushA("finalize deferred");
+	finalizeDeferredRendering(targetToUse);
+	//nvtxRangePop();
+
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//nvtxRangePushA("Render forward");
+	render(RenderPhase::FORWARD_RENDERING | phase);
+	//nvtxRangePop();
+
+	// render particles
+	Engine::particleRenderer.render();
+
+	// render to screen only if no target specified
+	if (target == nullptr) {
+		//nvtxRangePushA("finalize rendering");
+		finalizeRendering();
+		//nvtxRangePop();
+	}
+
+	//nvtxRangePop();
+}
+
+void RenderSystem::render(int phase)
 {
 	mRenderPhase = phase;
-	Engine::gameObjectRenderer.render(Engine::gameObjectManager.getGameObjects());
+	Engine::gameObjectRenderer.render();
+}
+
+void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
+{
+	/* Depth and stencil information is needed in the forward rendering pass (see renderScene).
+	 * Therefore, we need to copy the depth and stencil information created during the deferred
+	 * shader pass into the currently bound fbo. */
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, deferredRenderingFBO.getFBO());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->getFbo());
+	glBlitFramebuffer(
+		0, 0, deferredRenderingFBO.getWidth(), deferredRenderingFBO.getHeight(),
+		0, 0, deferredRenderingFBO.getWidth(), deferredRenderingFBO.getHeight(),
+		GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
+	);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, target->getFbo());
+
+	// clear the color buffer of the currently bound fbo (can be either effects fbo or default (0) fbo)
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	// we are rendering to a texture now (or screen)
+	// there is no need of using a depth buffer
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+
+	// stop writing into the stencil buffer
+	glStencilMask(0);
+	glDisable(GL_STENCIL_TEST);
+
+	// bind texture used by directional and point light passes
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getDiffuseBuffer().getId());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getSpecularBuffer().getId());
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getPositionBuffer().getId());
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getNormalBuffer().getId());
+
+	// perform directional light pass (include shadows)
+	directionalLightPass();
+
+	// perform point light pass
+	pointLightPass();
+
+	// unbind textures
+	for (int i = 3; i >= 0; --i) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+}
+
+void RenderSystem::directionalLightPass()
+{
+	glBindVertexArray(mScreenMesh.mVao);
+
+	// enable stencil test so that this operation is only carried
+	// out for those pixels actually drawn during deferred rendering
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+	// for multiple lights
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+
+	mDirectionalLightDeferred.use();
+
+	for (std::size_t i = 0; i < mLights.size(); i++) {
+		const auto& light = mLights[i]->getComponent<Light>();
+		if (light->getType() != Light::Type::DIRECTIONAL)
+			continue;
+		
+		// can cast safely now
+		const DirectionalLight* directionalLight = static_cast<const DirectionalLight*>(light.get());
+
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, directionalLight->getShadowMapTarget().getDepthBuffer().getId());
+
+		mDirectionalLightDeferred.setInt(mDirectionalLightDeferredLightIndexLocation, i);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	glDisable(GL_BLEND);
+	glDisable(GL_STENCIL_TEST);
 }
 
 void RenderSystem::finalizeRendering()
 {
-	if (effectManager.mEnabled) {
-		// unbind frame buffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	effectManager.update();
+	effectManager.mPostProcessingShader.use();
 
-		// restore viewport for the screen
-		glViewport(0, 0, getScreenWidth(), getScreenHeight());
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
 
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDisable(GL_DEPTH_TEST);
-		effectManager.mPostProcessingShader.use();
+	glViewport(0, 0, getScreenWidth(), getScreenHeight());
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+
+	glBindVertexArray(mScreenMesh.mVao);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, effectTarget.getColorBuffer().getId());
+
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, effectTarget.getDepthBuffer().getId());
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+
+	glEnable(GL_DEPTH_TEST);
+
+	SDL_GL_SwapWindow(mWindow);
+}
+
+void RenderSystem::stencilPass(int lightIndex, float radius)
+{
+	// different for every sphere
+	glClear(GL_STENCIL_BUFFER_BIT);
+
+	// both faces of the sphere must be rendered
+	glDisable(GL_CULL_FACE);
+	// depth test must be enabled
+	glEnable(GL_DEPTH_TEST);
+
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	// increment if back face of sphere is behind something
+	glStencilOpSeparate(GL_BACK, GL_REPLACE, GL_REPLACE, GL_KEEP);
+	// decrement if front face of sphere is before something
+	glStencilOpSeparate(GL_FRONT, GL_REPLACE, GL_REPLACE, GL_KEEP);
+
+	// do not write this sphere on the color buffer
+	glDrawBuffer(GL_NONE);
+	mPointLightDeferredStencil.use();
+	mPointLightDeferredStencil.setFloat(mPointLightStencilScaleLocation, radius);
+	mPointLightDeferredStencil.setInt(mPointLightStencilLightIndexLocation, lightIndex);
+
+	glBindVertexArray(mPointLightSphere.mVao);
+	glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
+
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+}
+
+void RenderSystem::pointLightPass()
+{
+	glStencilMask(0xFF);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_STENCIL_BUFFER_BIT);
+	glEnable(GL_STENCIL_TEST);
+
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+
+	for (std::size_t i = 0; i < mLights.size(); i++) {
+		const auto& light = mLights[i]->getComponent<Light>();
+		if (light->getType() != Light::Type::POINT)
+			continue;
+
+		const PointLight* pointLight = static_cast<const PointLight*>(light.get());
+
+		float radius = pointLight->getRadius();
+
+		stencilPass(i, radius);
+
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, pointLight->getPointShadowTarget().getDepthBuffer().getId());
+		
+		glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
+		mPointLightDeferred.use();
+		mPointLightDeferred.setInt(mPointLightDeferredLightIndexLocation, i);
+		mPointLightDeferred.setFloat(mPointLightDeferredLightRadiusLocation, radius);
 		glBindVertexArray(mScreenMesh.mVao);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, effectsTarget.getColorBuffer().getId());
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, effectsTarget.getDepthBuffer().getId());
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
-		glEnable(GL_DEPTH_TEST);
+		glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
+
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	}
 
-    SDL_GL_SwapWindow(mWindow);
+	glDisable(GL_BLEND);
+	glDisable(GL_STENCIL_TEST);
 }
 
 void RenderSystem::renderShadows()
 {
-	if (mLights.size() == 0)
-		return;
+	for (const auto& lightGO : mLights) {
+		const auto& light = lightGO->getComponent<Light>();
 
-	auto light = mLights[0]->getComponent<Light>();
-	if (!light->castShadow || light->type != Light::Type::DIRECTIONAL)  return;
+		if (light->getShadowCasterMode() == Light::ShadowCasterMode::NO_SHADOWS || !light->needsShadowUpdate())  continue;
 
-	glm::mat4 lightProjection = glm::mat4{ 0.0f };
-	lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
-	lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
-	lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
-	lightProjection[3][3] = 1.0f;
-// 	glm::mat4 lightProjection = glm::ortho(-shadowMappingSettings.width / 2, shadowMappingSettings.width / 2,
-// 		-shadowMappingSettings.height / 2, shadowMappingSettings.height / 2,
-// 		0.1f, shadowMappingSettings.depth);
+		std::cout << lightGO->name << "\n";
 
-	glm::mat4 lightView = getViewMatrix(mLights[0]->transform);
+		if (light->getType() == Light::Type::DIRECTIONAL)
+			renderDirectionalLightShadows(static_cast<const DirectionalLight*>(light.get()), lightGO->transform);
+		else if (light->getType() == Light::Type::POINT)
+			renderPointLightShadows(static_cast<const PointLight*>(light.get()), lightGO->transform);
+	}
+}
 
-	glm::mat4 lightSpace = lightProjection * lightView;
+void RenderSystem::renderDirectionalLightShadows(const DirectionalLight* light, const Transform& lightTransform)
+{
+// 	glm::mat4 lightProjection = glm::mat4{ 0.0f };
+// 	lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
+// 	lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
+// 	lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
+// 	lightProjection[3][3] = 1.0f;
+		glm::mat4 lightProjection = glm::ortho(-shadowMappingSettings.width / 2, shadowMappingSettings.width / 2,
+			-shadowMappingSettings.height / 2, shadowMappingSettings.height / 2,
+			0.1f, shadowMappingSettings.depth);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(lightProjection));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightView));
-	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightSpace));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glm::mat4 lightView = getViewMatrix(lightTransform);
+
+	updateMatrices(&lightProjection, &lightView);
 
 	glViewport(0, 0, shadowMappingSettings.mapWidth, shadowMappingSettings.mapHeight);
-	glBindFramebuffer(GL_FRAMEBUFFER, mShadowFbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, light->getShadowMapTarget().getFbo());
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -321,9 +619,38 @@ void RenderSystem::renderShadows()
 		Engine::gameObjectRenderer.forceMaterial(nullptr);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
-	glActiveTexture(GL_TEXTURE15);
-	glBindTexture(GL_TEXTURE_2D, mShadowMap.getId());
+void RenderSystem::renderPointLightShadows(const PointLight* light, const Transform& lightTransform)
+{
+	const glm::vec3& lightPos = lightTransform.getPosition();
+	float aspect = (float)1024 / (float)1024;
+	float near = 1.0f;
+	float farPlane = light->getRadius();
+	glm::mat4 projection = glm::perspective(glm::radians(90.0f), aspect, near, farPlane);
+
+	std::vector<glm::mat4> transforms {
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
+		projection * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
+	};
+
+	mPointShadowMaterial->setTransformations(transforms, farPlane, lightPos);
+
+	Engine::gameObjectRenderer.forceMaterial(mPointShadowMaterial);
+
+	glViewport(0, 0, 1024, 1024); // TODO use settings
+	glBindFramebuffer(GL_FRAMEBUFFER, light->getPointShadowTarget().getFbo());
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	render(RenderPhase::SHADOW_MAPPING);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	Engine::gameObjectRenderer.forceMaterial(nullptr);
 }
 
 void RenderSystem::renderScene(RenderPhase phase, const RenderTarget* target /*= nullptr*/)
@@ -380,9 +707,50 @@ float RenderSystem::getVerticalFov() const
 	return mVerticalFov;
 }
 
-RenderPhase RenderSystem::getRenderPhase() const
+int RenderSystem::getRenderPhase() const
 {
 	return mRenderPhase;
+}
+
+void RenderSystem::enableClipPlane() const
+{
+	glEnable(GL_CLIP_DISTANCE0);
+}
+
+void RenderSystem::disableClipPlane() const
+{
+	glDisable(GL_CLIP_DISTANCE0);
+}
+
+void RenderSystem::setClipPlane(const glm::vec4& clipPlane) const
+{
+	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
+	// it is after 3 matrices (projection, view, projectionView)
+	glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), sizeof(glm::vec4), glm::value_ptr(clipPlane));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, const Shader& shader, bool clear)
+{
+	shader.use();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, dst.getFbo());
+
+	glViewport(0, 0, dst.getWidth(), dst.getHeight());
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	if (clear) glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+
+	glBindVertexArray(mScreenMesh.mVao);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, src.getId());
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glEnable(GL_DEPTH_TEST);
 }
 
 void RenderSystem::cleanUp()
@@ -390,10 +758,14 @@ void RenderSystem::cleanUp()
     // Delete uniform buffers
     glDeleteBuffers(1, &mUboCommonMat);
     glDeleteBuffers(1, &mUboLights);
-	glDeleteFramebuffers(1, &mShadowFbo);
 	mShadowMapMaterial = nullptr;
 
 	effectManager.cleanUp();
+
+	// cleans shaders
+	mPointLightDeferred = Shader();
+	mPointLightDeferredStencil = Shader();
+	mDirectionalLightDeferred = Shader();
 
     // Destroys the window and quit SDL
     SDL_DestroyWindow(mWindow);

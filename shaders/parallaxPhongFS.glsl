@@ -1,3 +1,8 @@
+layout (location = 0) out vec4 Diffuse;
+layout (location = 1) out vec4 Specular;
+layout (location = 2) out vec3 Position;
+layout (location = 3) out vec3 Normal;
+
 const float PARALLAX_HEIGHT = 0.115;
 const float MIN_LAYERS = 8.0f;
 const float MAX_LAYERS = 32.0f;
@@ -27,20 +32,12 @@ struct PhongMaterial {
 
 in vec2 texCoord;
 in vec3 position;
-in vec4 lightSpacePosition;
 
 // bump mapping specific ins
 in mat3 tangentToWorldSpace;
 in vec3 tangentSpaceRayToCamera;
 
-out vec4 FragColor;
-
 uniform PhongMaterial material;
-
-layout (std140) uniform Lights {
-    int numLights;
-    Light lights[10];
-};
 
 layout (std140) uniform Camera {
     vec3 cameraPosition;
@@ -83,33 +80,17 @@ void main() {
     // from tangent space to world space
     normal = normalize(tangentToWorldSpace * normal);
 
-	vec3 shadowSampleCoord = lightSpacePosition.xyz / lightSpacePosition.w;
-	shadowSampleCoord = (shadowSampleCoord + vec3(1.0)) / 2.0;
-
-	// TODO check the value of w to see if
-	// perspective projection is being used. If that's the case linearize depth.
-	float depthInShadowMap = texture(shadowMap, shadowSampleCoord.xy).r;
+	Position = position;
+	Normal = normal;
 
 	vec4 sampledDiffuseColor = texture(material.diffuse, parallaxTexCoord);
-	if (material.opacity == 0.0f || sampledDiffuseColor.a < 0.01) discard;
+	if (material.opacity == 0.0f || sampledDiffuseColor.a < 0.5) discard;
 
-    vec3 diffuseColor = material.diffuseColor;
+    Diffuse = vec4(material.diffuseColor, 1.0);
     if (material.useDiffuseMap)
-        diffuseColor *= sampledDiffuseColor.rgb;
+        Diffuse.rgb *= sampledDiffuseColor.rgb;
 
-    vec3 specularColor = material.specularColor;
+    Specular = vec4(material.specularColor, material.shininess);
     if (material.useSpecularMap)
-        specularColor *= vec3(texture(material.specular, parallaxTexCoord));
-
-	//diffuseColor = pow(diffuseColor, vec3(2.2));
-	//specularColor = pow(specularColor, vec3(2.2));
-    vec3 color = vec3(0.0f);
-    for (int i = 0; i < numLights; i++) {
-        color += phongComputeColor(lights[i], diffuseColor, specularColor, material.shininess, position, normal, cameraPosition, lightSpacePosition, i == 0);
-    }
-
-	// apply fog
-	color = fogger(color, distanceToCamera);
-
-    FragColor = vec4(color, material.opacity);
+        Specular.rgb *= vec3(texture(material.specular, parallaxTexCoord));
 }

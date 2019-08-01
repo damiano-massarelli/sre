@@ -22,16 +22,19 @@ std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec)
 
 Shader Shader::loadFromFile(const std::vector<std::string>& vertexPaths,
 	const std::vector<std::string>& geometryPaths,
-	const std::vector<std::string>& fragmentPaths) {
+	const std::vector<std::string>& fragmentPaths,
+	bool cache) {
 
 	std::stringstream cacheName;
 	cacheName << vertexPaths << fragmentPaths << geometryPaths;
 	std::string cacheKey = cacheName.str();
 	
 	// cache checks
-	auto cachedShader = mShaderCache.find(cacheKey);
-	if (cachedShader != mShaderCache.end()) {
-		return cachedShader->second;
+	if (cache) {
+		auto cachedShader = mShaderCache.find(cacheKey);
+		if (cachedShader != mShaderCache.end()) {
+			return cachedShader->second;
+		}
 	}
 
 	GLint success = 1;
@@ -46,10 +49,13 @@ Shader Shader::loadFromFile(const std::vector<std::string>& vertexPaths,
 	}
 
 	Shader shader{ program };
-	shader.refCount.onRemove = [cacheKey]() { Shader::mShaderCache.erase(cacheKey); };
 
-	mShaderCache[cacheKey] = shader;
-	mShaderCache[cacheKey].refCount.setWeak();
+	if (cache) {
+		shader.refCount.onRemove = [cacheKey]() { Shader::mShaderCache.erase(cacheKey); };
+
+		mShaderCache[cacheKey] = shader;
+		mShaderCache[cacheKey].refCount.setWeak();
+	}
 
 	return shader;
 }
@@ -236,6 +242,18 @@ void Shader::setInt(std::int32_t location, int value) const
 	glUniform1i(location, value);
 }
 
+void Shader::setMat3(const std::string& name, const glm::mat3& value) const
+{
+	std::int32_t location = getLocationOf(name);
+	if (location != -1)
+		glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void Shader::setMat3(std::int32_t location, const glm::mat3& value) const
+{
+	glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
 void Shader::setMat4(const std::string& name, const glm::mat4& value) const
 {
     std::int32_t location = getLocationOf(name);
@@ -267,6 +285,11 @@ void Shader::setVec2(const std::string & name, const glm::vec2 & value) const
 		glUniform2fv(location, 1, glm::value_ptr(value));
 }
 
+void Shader::setVec2(std::int32_t location, const glm::vec2& value) const
+{
+	glUniform2fv(location, 1, glm::value_ptr(value));
+}
+
 void Shader::setMat4Array(const std::string& name, const std::vector<glm::mat4>& array) const
 {
 	std::int32_t location = getLocationOf(name);
@@ -288,6 +311,11 @@ void Shader::use() const
 bool Shader::isValid() const
 {
 	return mProgramId != 0;
+}
+
+std::uint32_t Shader::getId() const
+{
+	return mProgramId;
 }
 
 Shader::operator bool() const {

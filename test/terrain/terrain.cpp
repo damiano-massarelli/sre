@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     //Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), std::make_shared<PropMaterial>(true));
     Engine::gameObjectManager.createGameObject(generator.createTerrain(hProvider), phong);
 
-    auto skyTexture = Texture::loadCubamapFromFile({
+    auto skyTexture = Texture::loadCubemapFromFile({
                     {"front", "test_data/skybox/front.tga"},
                     {"back", "test_data/skybox/back.tga"},
                     {"top", "test_data/skybox/top.tga"},

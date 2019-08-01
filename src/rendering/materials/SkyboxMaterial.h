@@ -28,6 +28,10 @@ class SkyboxMaterial : public Material
 
         virtual float renderOrder(const glm::vec3& position) override;
 
+		virtual std::size_t hash() const override;
+
+		virtual bool equalsTo(const Material* rhs) const override;
+
         virtual ~SkyboxMaterial() = default;
 };
 

@@ -20,10 +20,23 @@ class EventManager
 
         EventManager();
 
-        void pushEnterFrameEvent(float* deltaMillis) const;
+        void pushEnterFrameEvent(float* deltaMillis);
+
+		void pushExitFrameEvent(float* deltaMillis);
+
+		void pushPreRenderEvent(float* deltaMillis);
+
+		void pushEvent(SDL_EventType type, void* data1 = nullptr, void* data2 = nullptr);
 
     public:
+		/** Enter frame event. Emitted every time a new frame begins */
         static const SDL_EventType ENTER_FRAME_EVENT;
+
+		/** Exit frame event. Emitted every time a frame ends */
+		static const SDL_EventType EXIT_FRAME_EVENT;
+
+		/** Emitted every frame just before rendering begins: after enter frame events and before exit frame */
+		static const SDL_EventType PRE_RENDER_EVENT;
 
         EventManager(const EventManager& em) = delete;
         EventManager& operator=(const EventManager& em) = delete;
@@ -35,6 +48,11 @@ class EventManager
           */
         void addListenerFor(SDL_EventType event, EventListenerCrumb* existingCrumb);
 
+		/**
+		 * Removes a listener for a given event.
+		 * @param event the listener will no more receive notifications for this event.
+		 * @listener the listener
+		 */
         void removeListenerFor(SDL_EventType event, EventListener* listener);
 
         /**

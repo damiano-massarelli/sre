@@ -5,29 +5,44 @@
 #include <utility>
 #include <string.h>
 #include <memory.h>
+#include <set>
 
 class EffectManager
 {
-	friend class RenderSystem;
+friend class RenderSystem;
 
-	private:
-		bool mEnabled = false;
+private:
+	bool mEnabled = false;
 
-		Shader mPostProcessingShader;
+	Shader mPostProcessingShader;
 
-		std::vector<std::shared_ptr<Effect>> mEffects;
+	std::set<int> mInUseTextures;
 
-		void createShader();
+	std::vector<std::shared_ptr<Effect>> mEffects;
 
-	public:
-		EffectManager() = default;
+	void createShader(std::vector<std::shared_ptr<Effect>> effects);
 
-		void addEffect(const std::shared_ptr<Effect>& effect);
+public:
+	EffectManager();
 
-		void enableEffects();
+	EffectManager(const EffectManager& em) = delete;
 
-		void disableEffects();
+	EffectManager& operator=(const EffectManager& em) = delete;
 
-		void cleanUp();
+	void init();
+
+	void addEffect(const std::shared_ptr<Effect>& effect);
+
+	void enableEffects();
+
+	void disableEffects();
+
+	int getTexture();
+
+	void releaseTexture(int texture);
+
+	void update();
+
+	void cleanUp();
 };
 

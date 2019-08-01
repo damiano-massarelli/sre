@@ -2,30 +2,22 @@
 #include "RenderSystem.h"
 
 MultiTextureLambertMaterial::MultiTextureLambertMaterial(Texture base, Texture red, Texture green, Texture blue, Texture blend, float horizontalTiles, float verticalTiles)
-	: Material{ {"shaders/phongVS.glsl"},
-				{},
-				{"shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl", 
-				 "shaders/PhongLightCalculation.glsl", "shaders/multiTextureLambertFS.glsl"} },
-	baseTexture {base}, redTexture{ red }, greenTexture{ green }, blueTexture{ blue }, blendTexture{ blend }
+	: Material{ "shaders/phongVS.glsl",
+				"shaders/multiTextureLambertFS.glsl" },
+	baseTexture { base }, redTexture{ red }, greenTexture{ green }, blueTexture{ blue }, blendTexture{ blend }
 {
+	unSupportedRenderPhases |= RenderPhase::FORWARD_RENDERING;
+
 	shader.use();
 
 	shader.setFloat("horizontalTiles", horizontalTiles);
 	shader.setFloat("verticalTiles", verticalTiles);
-
-	shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
 
 	shader.setInt("baseTexture", 0);
 	shader.setInt("redTexture", 1);
 	shader.setInt("greenTexture", 2);
 	shader.setInt("blueTexture", 3);
 	shader.setInt("blendTexture", 4);
-
-	shader.setInt("shadowMap", 15);
 }
 
 void MultiTextureLambertMaterial::use()
@@ -65,4 +57,27 @@ void MultiTextureLambertMaterial::after()
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+std::size_t MultiTextureLambertMaterial::hash() const
+{
+	return Material::hash()
+		+ baseTexture.getId()
+		+ redTexture.getId()
+		+ greenTexture.getId()
+		+ blueTexture.getId();
+}
+
+bool MultiTextureLambertMaterial::equalsTo(const Material* rhs) const
+{
+	if (shader.getId() != rhs->shader.getId())
+		return false;
+
+	auto other = static_cast<const MultiTextureLambertMaterial*>(rhs);
+	
+	return Material::equalsTo(rhs)
+		&& baseTexture.getId() == other->baseTexture.getId()
+		&& redTexture.getId() == other->redTexture.getId()
+		&& greenTexture.getId() == other->greenTexture.getId()
+		&& blueTexture.getId() == other->blueTexture.getId();
 }

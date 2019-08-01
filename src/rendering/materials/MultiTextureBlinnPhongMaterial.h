@@ -51,6 +51,10 @@ public:
 
 	virtual void after() override;
 
+	virtual std::size_t hash() const override;
+
+	virtual bool equalsTo(const Material* rhs) const override;
+
 	~MultiTextureBlinnPhongMaterial() = default;
 };
 

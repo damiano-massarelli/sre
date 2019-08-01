@@ -2,6 +2,8 @@
 #include "Engine.h"
 #include <iostream>
 #include <vector>
+#include <functional>
+#include <glm/gtx/hash.hpp>
 
 std::vector<std::string> getVertexShaders(bool hasBumps, bool isAnimated, bool hasParallax) {
 	std::vector<std::string> shaders;
@@ -14,13 +16,10 @@ std::vector<std::string> getVertexShaders(bool hasBumps, bool isAnimated, bool h
 }
 
 std::vector<std::string> getFragmentShaders(bool hasBumps, bool hasParallax) {
-	if (hasParallax) return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-							  "shaders/PhongLightCalculation.glsl", "shaders/parallaxPhongFS.glsl" };
-	if (hasBumps) return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-						   "shaders/PhongLightCalculation.glsl", "shaders/bumpedPhongFS.glsl" };
+	if (hasParallax) return { "shaders/parallaxPhongFS.glsl" };
+	if (hasBumps) return { "shaders/bumpedPhongFS.glsl" };
 
-	else return { "shaders/Light.glsl", "shaders/FogCalculation.glsl", "shaders/ShadowMappingCalculation.glsl",
-				  "shaders/PhongLightCalculation.glsl", "shaders/phongFS.glsl" };
+	else return { "shaders/phongFS.glsl" };
 }
 
 BlinnPhongMaterial::BlinnPhongMaterial(bool hasBumps, bool isAnimated, bool hasParallax)
@@ -29,15 +28,13 @@ BlinnPhongMaterial::BlinnPhongMaterial(bool hasBumps, bool isAnimated, bool hasP
                getFragmentShaders(hasBumps, hasParallax)},
 	 mHasBumps{hasBumps}, mHasParallax{hasParallax}
 {
+	unSupportedRenderPhases |= RenderPhase::FORWARD_RENDERING;
+
 	shader.use();
 
-	shader.setInt("shadowMap", 15);
-
     shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
-    shader.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
-    shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
-	shader.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
+	if (hasParallax) // parallax mapping needs the position of the camera
+		shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
 
 	mDiffuseColorLocation		= shader.getLocationOf("material.diffuseColor");
 	mSpecularColorLocation		= shader.getLocationOf("material.specularColor");
@@ -176,4 +173,35 @@ float BlinnPhongMaterial::renderOrder(const glm::vec3& position)
 BlinnPhongMaterial::~BlinnPhongMaterial()
 {
 
+}
+
+std::size_t BlinnPhongMaterial::hash() const
+{
+	// this hash is far from being perfect but it is fast
+	// since it has to be computed every frame. Some collisions are
+	// allowed
+	return Material::hash()
+		+ diffuseMap.getId()
+		+ specularMap.getId()
+		+ bumpMap.getId()
+		+ parallaxMap.getId();
+}
+
+bool BlinnPhongMaterial::equalsTo(const Material* rhs) const
+{
+	// avoid dynamic cast. Same materials will have the same shader id
+	// FIXME add type to Material
+	if (shader.getId() != rhs->shader.getId()) return false;
+
+	auto other = static_cast<const BlinnPhongMaterial*>(rhs);
+
+	return Material::equalsTo(rhs)
+		&& diffuseMap.getId() == other->diffuseMap.getId()
+		&& specularMap.getId() == other->specularMap.getId()
+		&& bumpMap.getId() == other->bumpMap.getId()
+		&& parallaxMap.getId() == other->parallaxMap.getId()
+		&& shininess == other->shininess
+		&& diffuseColor == other->diffuseColor
+		&& specularColor == other->specularColor
+		&& opacity == other->opacity;
 }
