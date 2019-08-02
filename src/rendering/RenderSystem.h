@@ -23,30 +23,28 @@
 #include <SDL.h>
 #include <glm/gtx/quaternion.hpp>
 
-#include "RenderTarget.h"
-
 /** The master renderer.
   * The master renderer manages all rendering settings
   * global for all renderers */
 class RenderSystem
 {
-friend class Engine;
+	friend class Engine;
 
 private:
-    SDL_Window* mWindow = nullptr;
+	SDL_Window* mWindow = nullptr;
 
-    glm::mat4 mProjection{1.0f};
+	glm::mat4 mProjection{ 1.0f };
 
 	glm::mat4 mInvertView;
 
-    /** reference for the common matrix ubo */
-    std::uint32_t mUboCommonMat;
+	/** reference for the common matrix ubo */
+	std::uint32_t mUboCommonMat;
 
-    /** reference for the lights ubo */
-    std::uint32_t mUboLights;
+	/** reference for the lights ubo */
+	std::uint32_t mUboLights;
 
-    /** reference for camera ubo */
-    std::uint32_t mUboCamera;
+	/** reference for camera ubo */
+	std::uint32_t mUboCamera;
 
 	/** Simple rect that represents the screen */
 	Mesh mScreenMesh;
@@ -76,32 +74,32 @@ private:
 	float mFarPlane = 0.0f;
 	float mVerticalFov = 0.0f;
 
-    std::vector<GameObjectEH> mLights;
+	std::vector<GameObjectEH> mLights;
 
 	/** Current rendering phase */
 	int mRenderPhase;
 
-    void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
+	void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
 
 	void initDeferredRendering();
 
-    /** Updates the lights ubo */
-    void updateLights();
+	/** Updates the lights ubo */
+	void updateLights();
 
-    /** Updates the camera ubo */
-    void updateCamera();
+	/** Updates the camera ubo */
+	void updateCamera();
 
 	/** Updates the common matrices ubo */
 	void updateMatrices(const glm::mat4* projection, const glm::mat4* view);
 
-    /** Performs all operations needed by rendering */
-    void prepareDeferredRendering(const RenderTarget* target);
+	/** Performs all operations needed by rendering */
+	void prepareDeferredRendering(const RenderTarget* target);
 
 	/** Calls rendering submodules to perform rendering */
 	void render(int phase);
 
-    /** Performs all operations needed to finalize deferred rendering: combine g-buffer data */
-    void finalizeDeferredRendering(const RenderTarget* target);
+	/** Performs all operations needed to finalize deferred rendering: combine g-buffer data */
+	void finalizeDeferredRendering(const RenderTarget* target);
 
 	void finalizeRendering();
 
@@ -118,26 +116,26 @@ private:
 
 	void renderPointLightShadows(const PointLight* light, const Transform& lightTransform);
 
-    // private constructor, only the engine can create a render system
-    RenderSystem();
+	// private constructor, only the engine can create a render system
+	RenderSystem();
 
 	void cleanUp();
 
 public:
-    /** Creates a new window */
-    void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 400.0f);
+	/** Creates a new window */
+	void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 400.0f);
 
-    /** Maximum number of lights */
-    static constexpr std::size_t MAX_LIGHT_NUMBER = 32;
+	/** Maximum number of lights */
+	static constexpr std::size_t MAX_LIGHT_NUMBER = 32;
 
-    /** The index of the common matrices uniform block */
-    static constexpr std::uint32_t COMMON_MAT_UNIFORM_BLOCK_INDEX = 0;
+	/** The index of the common matrices uniform block */
+	static constexpr std::uint32_t COMMON_MAT_UNIFORM_BLOCK_INDEX = 0;
 
-    /** The index of uniform block used for lights */
-    static constexpr std::uint32_t LIGHT_UNIFORM_BLOCK_INDEX = 1;
+	/** The index of uniform block used for lights */
+	static constexpr std::uint32_t LIGHT_UNIFORM_BLOCK_INDEX = 1;
 
-    /** The index of uniform block used for lights */
-    static constexpr std::uint32_t CAMERA_UNIFORM_BLOCK_INDEX = 2;
+	/** The index of uniform block used for lights */
+	static constexpr std::uint32_t CAMERA_UNIFORM_BLOCK_INDEX = 2;
 
 	static constexpr std::uint32_t FOG_UNIFORM_BLOCK_INDEX = 3;
 
@@ -155,25 +153,25 @@ public:
 	/** settings for fog */
 	FogSettings fogSettings;
 
-    /** The camera used for rendering */
-    GameObjectEH camera;
+	/** The camera used for rendering */
+	GameObjectEH camera;
 
 	/** The effect manager handles post processing effects */
 	EffectManager effectManager;
 
 public:
-    // Cannot copy this system, only the engine has an instance
-    RenderSystem(const RenderSystem& rs) = delete;
-    RenderSystem& operator=(const RenderSystem& rs) = delete;
+	// Cannot copy this system, only the engine has an instance
+	RenderSystem(const RenderSystem& rs) = delete;
+	RenderSystem& operator=(const RenderSystem& rs) = delete;
 
-    /**
-     * Adds a light to the scene
-     * if the GameObject does not have a Light component it is silently
-     * discarded.
-     * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
-     */
+	/**
+	 * Adds a light to the scene
+	 * if the GameObject does not have a Light component it is silently
+	 * discarded.
+	 * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
+	 */
 
-    void addLight(const GameObjectEH& light);
+	void addLight(const GameObjectEH& light);
 
 	/**
 	 * @return the width of the current window
@@ -203,7 +201,7 @@ public:
 	 */
 	int getRenderPhase() const;
 
-	/** 
+	/**
 	 * Render the current scene.
 	 * @param renderTarget the target onto which the scene is rendered. if nullptr the screen is used.
 	 * @param phase specifies which render phase to use

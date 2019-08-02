@@ -6,7 +6,7 @@
 #include "ShadowMapMaterial.h"
 #include "MeshCreator.h"
 #include "DirectionalLight.h"
-#include "debug.h"
+//#include "debug.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -23,55 +23,55 @@ bool DEBUG = true;
 
 RenderSystem::RenderSystem()
 {
-    camera = Engine::gameObjectManager.createGameObject();
-    camera->name = "defaultCamera";
+	camera = Engine::gameObjectManager.createGameObject();
+	camera->name = "defaultCamera";
 }
 
 void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
 {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cout << "Cannot init SDL " << SDL_GetError() << "\n";
-        std::terminate();
-    }
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		std::cout << "Cannot init SDL " << SDL_GetError() << "\n";
+		std::terminate();
+	}
 
-    SDL_GL_LoadLibrary(nullptr); // use default OpenGL
-    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_LoadLibrary(nullptr); // use default OpenGL
+	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
 	if (DEBUG)
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-//	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-//	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+	//	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	//	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
-    mWindow = SDL_CreateWindow("sre", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
-    if (mWindow == nullptr) {
-        std::cout << "Cannot create window " << SDL_GetError() << "\n";
-        std::terminate();
-    }
-
-    SDL_GL_CreateContext(mWindow);
-
-    // Use v-sync
-    //SDL_GL_SetSwapInterval(1);
-
-    if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
-        std::cout << "Failed to initialize GLAD\n";
-        std::terminate();
-    }
-
-    initGL(width, height, fovy, nearPlane, farPlane);
-
-	if (DEBUG) {
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback(printGLError, nullptr);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	mWindow = SDL_CreateWindow("sre", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+	if (mWindow == nullptr) {
+		std::cout << "Cannot create window " << SDL_GetError() << "\n";
+		std::terminate();
 	}
+
+	SDL_GL_CreateContext(mWindow);
+
+	// Use v-sync
+	//SDL_GL_SetSwapInterval(1);
+
+	if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
+		std::cout << "Failed to initialize GLAD\n";
+		std::terminate();
+	}
+
+	initGL(width, height, fovy, nearPlane, farPlane);
+
+// 	if (DEBUG) {
+// 		glEnable(GL_DEBUG_OUTPUT);
+// 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+// 		glDebugMessageCallback(printGLError, nullptr);
+// 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+// 	}
 
 	initDeferredRendering();
 	effectTarget.create(width, height);
@@ -88,50 +88,50 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
 {
-    mProjection = glm::perspective(fovy, static_cast<float>(width)/height, nearPlane, farPlane);
+	mProjection = glm::perspective(fovy, static_cast<float>(width) / height, nearPlane, farPlane);
 	mNearPlane = nearPlane;
 	mFarPlane = farPlane;
 	mVerticalFov = fovy;
 
-	mInvertView = glm::mat4	{
+	mInvertView = glm::mat4{
 			glm::vec4{ -1, 0, 0, 0 },
 			glm::vec4{ 0, 1, 0, 0 },
 			glm::vec4{ 0, 0, -1, 0 },
-			glm::vec4{ 0, 0, 0, 1 }};
+			glm::vec4{ 0, 0, 0, 1 } };
 
-    /* Uniform buffer object set up for common matrices */
-    glGenBuffers(1, &mUboCommonMat);
-    glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
+	/* Uniform buffer object set up for common matrices */
+	glGenBuffers(1, &mUboCommonMat);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);
 	// 3 matrices: view, projection, projection * view and a vec4 for the clipping plane
-    glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4) + sizeof(glm::vec4), nullptr, GL_STREAM_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, COMMON_MAT_UNIFORM_BLOCK_INDEX, mUboCommonMat);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4) + sizeof(glm::vec4), nullptr, GL_STREAM_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, COMMON_MAT_UNIFORM_BLOCK_INDEX, mUboCommonMat);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 
-    /* Uniform buffer object set up for lights */
-    glGenBuffers(1, &mUboLights);
-    glBindBuffer(GL_UNIFORM_BUFFER, mUboLights);
-    // 16 numLights, 208 size of a light array element
-    glBufferData(GL_UNIFORM_BUFFER, 16 + 208 * MAX_LIGHT_NUMBER, nullptr, GL_STREAM_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, LIGHT_UNIFORM_BLOCK_INDEX, mUboLights);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	/* Uniform buffer object set up for lights */
+	glGenBuffers(1, &mUboLights);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUboLights);
+	// 16 numLights, 208 size of a light array element
+	glBufferData(GL_UNIFORM_BUFFER, 16 + 208 * MAX_LIGHT_NUMBER, nullptr, GL_STREAM_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, LIGHT_UNIFORM_BLOCK_INDEX, mUboLights);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    /* Uniform buffer object set up for camera */
-    glGenBuffers(1, &mUboCamera);
-    glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
+	/* Uniform buffer object set up for camera */
+	glGenBuffers(1, &mUboCamera);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
 
-    // size for camera position and direction
-    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), nullptr, GL_STREAM_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA_UNIFORM_BLOCK_INDEX, mUboCamera);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	// size for camera position and direction
+	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), nullptr, GL_STREAM_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA_UNIFORM_BLOCK_INDEX, mUboCamera);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    /* General OpenGL settings */
-    glViewport(0, 0, width, height);
-    glEnable(GL_DEPTH_TEST);
+	/* General OpenGL settings */
+	glViewport(0, 0, width, height);
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
 	glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
 }
 
 void RenderSystem::initDeferredRendering()
@@ -193,61 +193,61 @@ void RenderSystem::initDeferredRendering()
 
 void RenderSystem::updateLights()
 {
-    std::size_t numLight = std::min((std::size_t)MAX_LIGHT_NUMBER, mLights.size());
-    glBindBuffer(GL_UNIFORM_BUFFER, mUboLights);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(std::size_t), (void*)&numLight);
-    for (std::size_t i = 0; i < numLight; i++) {
-        int base = 16 + 208 * i;
-        LightPtr lightComponent = mLights[i]->getComponent<Light>();
-        if (lightComponent == nullptr) continue;
+	std::size_t numLight = std::min((std::size_t)MAX_LIGHT_NUMBER, mLights.size());
+	glBindBuffer(GL_UNIFORM_BUFFER, mUboLights);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(std::size_t), (void*)&numLight);
+	for (std::size_t i = 0; i < numLight; i++) {
+		int base = 16 + 208 * i;
+		LightPtr lightComponent = mLights[i]->getComponent<Light>();
+		if (lightComponent == nullptr) continue;
 
-        std::uint32_t lightType = static_cast<std::uint32_t>(lightComponent->mType);
+		std::uint32_t lightType = static_cast<std::uint32_t>(lightComponent->mType);
 		bool castShadow = lightComponent->getShadowCasterMode() != Light::ShadowCasterMode::NO_SHADOWS;
 
-        glm::vec3 attenuation = glm::vec3{
-            lightComponent->attenuationConstant,
-            lightComponent->attenuationLinear,
-            lightComponent->attenuationQuadratic
-        };
+		glm::vec3 attenuation = glm::vec3{
+			lightComponent->attenuationConstant,
+			lightComponent->attenuationLinear,
+			lightComponent->attenuationQuadratic
+		};
 
-        glm::vec2 spotAngles{
-            glm::cos(lightComponent->innerAngle),
-            glm::cos(lightComponent->outerAngle)
-        };
+		glm::vec2 spotAngles{
+			glm::cos(lightComponent->innerAngle),
+			glm::cos(lightComponent->outerAngle)
+		};
 
 		Transform& transform = mLights[i]->transform;
 
-        // type
-        glBufferSubData(GL_UNIFORM_BUFFER, base, sizeof(std::uint32_t), (void *)(&lightType));
+		// type
+		glBufferSubData(GL_UNIFORM_BUFFER, base, sizeof(std::uint32_t), (void *)(&lightType));
 
-        // position
-        glBufferSubData(GL_UNIFORM_BUFFER, base + 16, sizeof(glm::vec3), glm::value_ptr(transform.getPosition()));
+		// position
+		glBufferSubData(GL_UNIFORM_BUFFER, base + 16, sizeof(glm::vec3), glm::value_ptr(transform.getPosition()));
 
-        // direction
-        glBufferSubData(GL_UNIFORM_BUFFER, base + 32, sizeof(glm::vec3), glm::value_ptr(transform.forward()));
+		// direction
+		glBufferSubData(GL_UNIFORM_BUFFER, base + 32, sizeof(glm::vec3), glm::value_ptr(transform.forward()));
 
-        // ambient
-        glBufferSubData(GL_UNIFORM_BUFFER, base + 48, sizeof(glm::vec3), glm::value_ptr(lightComponent->ambientColor));
+		// ambient
+		glBufferSubData(GL_UNIFORM_BUFFER, base + 48, sizeof(glm::vec3), glm::value_ptr(lightComponent->ambientColor));
 
-        // diffuse
-        glBufferSubData(GL_UNIFORM_BUFFER, base + 64, sizeof(glm::vec3), glm::value_ptr(lightComponent->diffuseColor));
+		// diffuse
+		glBufferSubData(GL_UNIFORM_BUFFER, base + 64, sizeof(glm::vec3), glm::value_ptr(lightComponent->diffuseColor));
 
-        // specular
-        glBufferSubData(GL_UNIFORM_BUFFER, base + 80, sizeof(glm::vec3), glm::value_ptr(lightComponent->specularColor));
+		// specular
+		glBufferSubData(GL_UNIFORM_BUFFER, base + 80, sizeof(glm::vec3), glm::value_ptr(lightComponent->specularColor));
 
-        // attenuation
-        glBufferSubData(GL_UNIFORM_BUFFER, base + 96, sizeof(glm::vec3), glm::value_ptr(attenuation));
+		// attenuation
+		glBufferSubData(GL_UNIFORM_BUFFER, base + 96, sizeof(glm::vec3), glm::value_ptr(attenuation));
 
-        // spot light angles
-        glBufferSubData(GL_UNIFORM_BUFFER, base + 112, sizeof(glm::vec2), glm::value_ptr(spotAngles));
- 
- 		// to light space matrix
+		// spot light angles
+		glBufferSubData(GL_UNIFORM_BUFFER, base + 112, sizeof(glm::vec2), glm::value_ptr(spotAngles));
+
+		// to light space matrix
 		if (castShadow) {
-// 			glm::mat4 lightProjection = glm::mat4{ 0.0f };
-// 			lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
-// 			lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
-// 			lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
-// 			lightProjection[3][3] = 1.0f;
+			// 			glm::mat4 lightProjection = glm::mat4{ 0.0f };
+			// 			lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
+			// 			lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
+			// 			lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
+			// 			lightProjection[3][3] = 1.0f;
 			glm::mat4 lightProjection = glm::ortho(-shadowMappingSettings.width / 2, shadowMappingSettings.width / 2,
 				-shadowMappingSettings.height / 2, shadowMappingSettings.height / 2,
 				0.1f, shadowMappingSettings.depth);
@@ -259,24 +259,24 @@ void RenderSystem::updateLights()
 
 		// cast shadow
 		glBufferSubData(GL_UNIFORM_BUFFER, base + 192, sizeof(bool), (void *)(&castShadow));
-    }
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	}
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 
 void RenderSystem::updateCamera()
 {
-    glm::vec3 cameraPosition{ 0.0f };
-    glm::vec3 cameraDirection{ 0.0f, 0.0f, 1.0f };
-    if (camera) {
-        cameraPosition = camera->transform.getPosition();
-        cameraDirection = camera->transform.forward();
-    }
+	glm::vec3 cameraPosition{ 0.0f };
+	glm::vec3 cameraDirection{ 0.0f, 0.0f, 1.0f };
+	if (camera) {
+		cameraPosition = camera->transform.getPosition();
+		cameraDirection = camera->transform.forward();
+	}
 
-    glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec3), glm::value_ptr(cameraPosition));
-    glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(cameraDirection));
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec3), glm::value_ptr(cameraPosition));
+	glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(cameraDirection));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void RenderSystem::updateMatrices(const glm::mat4* projection, const glm::mat4* view)
@@ -326,19 +326,19 @@ void RenderSystem::prepareDeferredRendering(const RenderTarget* target)
 	glStencilMask(0xFF);
 
 	// clear all the buffers
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    /* Camera calculations */
-    glm::mat4 view = glm::mat4{ 1.0f };
-	if (camera) 
+	/* Camera calculations */
+	glm::mat4 view = glm::mat4{ 1.0f };
+	if (camera)
 		view = getViewMatrix(camera->transform);
 
-    /* Sets the camera matrix to a UBO so that it is shared */
+	/* Sets the camera matrix to a UBO so that it is shared */
 	updateMatrices(&mProjection, &view);
 
-    updateLights();
-    updateCamera();
+	updateLights();
+	updateCamera();
 }
 
 void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
@@ -463,7 +463,7 @@ void RenderSystem::directionalLightPass()
 		const auto& light = mLights[i]->getComponent<Light>();
 		if (light->getType() != Light::Type::DIRECTIONAL)
 			continue;
-		
+
 		// can cast safely now
 		const DirectionalLight* directionalLight = static_cast<const DirectionalLight*>(light.get());
 
@@ -561,7 +561,7 @@ void RenderSystem::pointLightPass()
 
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, pointLight->getPointShadowTarget().getDepthBuffer().getId());
-		
+
 		glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
 		mPointLightDeferred.use();
 		mPointLightDeferred.setInt(mPointLightDeferredLightIndexLocation, i);
@@ -594,14 +594,14 @@ void RenderSystem::renderShadows()
 
 void RenderSystem::renderDirectionalLightShadows(const DirectionalLight* light, const Transform& lightTransform)
 {
-// 	glm::mat4 lightProjection = glm::mat4{ 0.0f };
-// 	lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
-// 	lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
-// 	lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
-// 	lightProjection[3][3] = 1.0f;
-		glm::mat4 lightProjection = glm::ortho(-shadowMappingSettings.width / 2, shadowMappingSettings.width / 2,
-			-shadowMappingSettings.height / 2, shadowMappingSettings.height / 2,
-			0.1f, shadowMappingSettings.depth);
+	// 	glm::mat4 lightProjection = glm::mat4{ 0.0f };
+	// 	lightProjection[0][0] = 2.0f / shadowMappingSettings.width;
+	// 	lightProjection[1][1] = 2.0f / shadowMappingSettings.height;
+	// 	lightProjection[2][2] = -2.0f / shadowMappingSettings.depth;
+	// 	lightProjection[3][3] = 1.0f;
+	glm::mat4 lightProjection = glm::ortho(-shadowMappingSettings.width / 2, shadowMappingSettings.width / 2,
+		-shadowMappingSettings.height / 2, shadowMappingSettings.height / 2,
+		0.1f, shadowMappingSettings.depth);
 
 	glm::mat4 lightView = getViewMatrix(lightTransform);
 
@@ -629,7 +629,7 @@ void RenderSystem::renderPointLightShadows(const PointLight* light, const Transf
 	float farPlane = light->getRadius();
 	glm::mat4 projection = glm::perspective(glm::radians(90.0f), aspect, near, farPlane);
 
-	std::vector<glm::mat4> transforms {
+	std::vector<glm::mat4> transforms{
 		projection * glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
 		projection * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
 		projection * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
@@ -653,29 +653,14 @@ void RenderSystem::renderPointLightShadows(const PointLight* light, const Transf
 	Engine::gameObjectRenderer.forceMaterial(nullptr);
 }
 
-void RenderSystem::renderScene(RenderPhase phase, const RenderTarget* target /*= nullptr*/)
-{
-	/* If effects are enabled and no target is specified
-	 * use the effect target */
-	auto targetToUse = target;
-	if (target == nullptr && effectManager.mEnabled)
-		targetToUse = &effectsTarget;
-
-	prepareRendering(targetToUse);
-	render(phase);
-
-	if (target == nullptr)
-		finalizeRendering();
-}
-
 void RenderSystem::addLight(const GameObjectEH& light)
 {
-    if (light->getComponent<Light>() == nullptr) {
-        std::cerr << "Adding a light without a Light component, discarded\n";
-        return;
-    }
+	if (light->getComponent<Light>() == nullptr) {
+		std::cerr << "Adding a light without a Light component, discarded\n";
+		return;
+	}
 
-    mLights.push_back(light);
+	mLights.push_back(light);
 }
 
 std::int32_t RenderSystem::getScreenWidth() const
@@ -755,9 +740,9 @@ void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, const Shad
 
 void RenderSystem::cleanUp()
 {
-    // Delete uniform buffers
-    glDeleteBuffers(1, &mUboCommonMat);
-    glDeleteBuffers(1, &mUboLights);
+	// Delete uniform buffers
+	glDeleteBuffers(1, &mUboCommonMat);
+	glDeleteBuffers(1, &mUboLights);
 	mShadowMapMaterial = nullptr;
 
 	effectManager.cleanUp();
@@ -767,7 +752,7 @@ void RenderSystem::cleanUp()
 	mPointLightDeferredStencil = Shader();
 	mDirectionalLightDeferred = Shader();
 
-    // Destroys the window and quit SDL
-    SDL_DestroyWindow(mWindow);
-    SDL_Quit();
+	// Destroys the window and quit SDL
+	SDL_DestroyWindow(mWindow);
+	SDL_Quit();
 }
