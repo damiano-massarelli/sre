@@ -13,6 +13,7 @@
 #include "ParticleEmitter.h"
 #include "SkyboxMaterial.h"
 #include "MotionBlur.h"
+#include "PBRMaterial.h"
 
 #include <iostream>
 
@@ -52,7 +53,7 @@ static void addParticles(const GameObjectEH& eh) {
 	Engine::renderSys.addLight(eh);
 }
 
-#ifdef particleTest
+#ifdef pbrTest
 int main(int argc, char* argv[]) {
     Engine::init();
 
@@ -84,6 +85,8 @@ int main(int argc, char* argv[]) {
 
 	for (const auto& eh : sponza->transform.findAll("firePos"))
 		addParticles(eh);
+
+	auto pbr = std::make_shared<PBRMaterial>();
 
 	auto skyTexture = Texture::loadCubemapFromFile({
 					{"front", "test_data/skybox/front.tga"},

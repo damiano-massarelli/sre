@@ -145,7 +145,7 @@ void WaterMaterial::use()
 	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getDiffuseBuffer().getId());
 
 	glActiveTexture(GL_TEXTURE6);
-	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getSpecularBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getAdditionalBuffer().getId());
 
 	glActiveTexture(GL_TEXTURE7);
 	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getNormalBuffer().getId());

@@ -130,7 +130,7 @@ void BlinnPhongMaterial::use()
     // disable backface culling
     if (isTwoSided) {
         glDepthMask(false);
-       glDisable(GL_CULL_FACE);
+        glDisable(GL_CULL_FACE);
     }
 }
 
@@ -170,11 +170,6 @@ float BlinnPhongMaterial::renderOrder(const glm::vec3& position)
         return position.z;
 }
 
-BlinnPhongMaterial::~BlinnPhongMaterial()
-{
-
-}
-
 std::size_t BlinnPhongMaterial::hash() const
 {
 	// this hash is far from being perfect but it is fast
@@ -204,4 +199,9 @@ bool BlinnPhongMaterial::equalsTo(const Material* rhs) const
 		&& diffuseColor == other->diffuseColor
 		&& specularColor == other->specularColor
 		&& opacity == other->opacity;
+}
+
+BlinnPhongMaterial::~BlinnPhongMaterial()
+{
+
 }
