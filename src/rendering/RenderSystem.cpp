@@ -429,7 +429,7 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 	// perform directional light pass (include shadows)
 	directionalLightPass();
 
-	// perform point light pass
+	// perform point light pass (include shadows)
 	pointLightPass();
 
 	// unbind textures
