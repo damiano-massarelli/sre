@@ -1,5 +1,4 @@
-/** This shader is used for sphere representing 
-  * the volume of influence of a point light in deferred rendering */
+/** Shader used for directional light pass in deferred rendering */
 layout (location = 0) in vec2 vPos;
 layout (location = 0) in vec2 vTexCoord;
 

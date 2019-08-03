@@ -10,13 +10,6 @@ layout (std140) uniform Camera {
     vec3 cameraDirection;
 };
 
-layout (std140) uniform CommonMat {
-    mat4 projection;
-    mat4 view;
-	mat4 projectionView;
-};
-
-
 vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float shininess, vec3 fragPosition, vec3 fragNormal, vec3 cameraPosition) {
     vec3 outcolor = vec3(0.0f);
 

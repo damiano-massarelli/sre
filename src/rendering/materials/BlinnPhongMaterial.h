@@ -6,6 +6,12 @@
 #include <memory>
 #include <SkeletralAnimationControllerComponent.h>
 
+/**
+ * Blinn-Phong Material.
+ * Blinn-Phong materials provide a good-enough visual appearance
+ * and are relatively efficient. However, PBRMaterial%s should be 
+ * preferred for more realistic renderings.
+ */
 class BlinnPhongMaterial : public Material
 {
 private:
@@ -90,9 +96,7 @@ public:
 
 	virtual std::size_t hash() const override;
 
-
 	virtual bool equalsTo(const Material* rhs) const override;
-
 };
 
 using BlinnPhongMaterialPtr = std::shared_ptr<BlinnPhongMaterial>;

@@ -17,6 +17,7 @@
 #include "PointLight.h"
 #include "RenderTarget.h"
 #include "PointShadowMaterial.h"
+#include "DeferredLightShader.h"
 #include <cstdint>
 #include <vector>
 #include <glad/glad.h>
@@ -31,6 +32,16 @@ class RenderSystem
 	friend class Engine;
 
 private:
+	/* PBR materials also store their data in the deferred renderer FBO.
+	 * However, since this data is different from that stored by Blinn-Phong
+	 * materials, two different shaders are used in the finalizeDeferredRendering.
+	 * to use the right shader in the right fragment the pbr pass and normal-deferred pass
+	 * store different values in the stencil buffer. The most significant bit is used to 
+	 * distinguish them. The following 1 is needed because during stencilPass values are added
+	 * or subtracted from this bits */
+	static constexpr GLuint DEFERRED_STENCIL_MARK = 0x40; // 0100 0000
+	static constexpr GLuint PBR_STENCIL_MARK      = 0xC0; // 1100 0000
+
 	SDL_Window* mWindow = nullptr;
 
 	glm::mat4 mProjection{ 1.0f };
@@ -58,16 +69,14 @@ private:
 	std::shared_ptr<PointShadowMaterial> mPointShadowMaterial;
 
 	/** Shaders used to render with deferred rendering */
-	Shader mDirectionalLightDeferred; // shader used to do directional lighting
-	std::uint32_t mDirectionalLightDeferredLightIndexLocation = 0;
+	DeferredLightShader mDirectionalLightDeferred;
 
 	Shader mPointLightDeferredStencil; // shader used for stencil pass of point lights
 	std::uint32_t mPointLightStencilLightIndexLocation = 0;
 	std::uint32_t mPointLightStencilScaleLocation = 0;
 	std::uint32_t mPointLightDeferredLightRadiusLocation = 0;
 
-	Shader mPointLightDeferred; // shader used to do point light
-	std::uint32_t mPointLightDeferredLightIndexLocation = 0;
+	DeferredLightShader mPointLightDeferred; // shader used to do point light
 
 	/** near and far clipping planes */
 	float mNearPlane = 0.0f;
@@ -108,9 +117,9 @@ private:
 
 	void stencilPass(int lightIndex, float radius);
 
-	void pointLightPass();
+	void pointLightPass(GLuint mark, DeferredLightShader& shaderWrapper);
 
-	void directionalLightPass();
+	void directionalLightPass(GLuint mark, DeferredLightShader& shaderWrapper);
 
 	/** Performs shadow mapping */
 	void renderShadows();

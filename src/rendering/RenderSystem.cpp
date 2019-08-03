@@ -138,22 +138,15 @@ void RenderSystem::initDeferredRendering()
 {
 	deferredRenderingFBO.init(getScreenWidth(), getScreenHeight());
 
-	mDirectionalLightDeferred = Shader::loadFromFile({ "shaders/deferred_rendering/directionalLightVS.glsl" },
-		std::vector<std::string>{},
-		{ "shaders/Light.glsl", "shaders/ShadowMappingCalculation.glsl", "shaders/deferred_rendering/directionalLightFS.glsl" });
+	mDirectionalLightDeferred.init({ "shaders/deferred_rendering/directionalLightVS.glsl" },
+		{ "shaders/Light.glsl", "shaders/ShadowMappingCalculation.glsl", "shaders/deferred_rendering/directionalLightFS.glsl" },
+		{ "DiffuseData", "SpecularData", "PositionData", "NormalData", "shadowMap" },
+		{
+			{ "Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX },
+			{ "Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX },
+			{ "ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX } 
+		});
 
-	mDirectionalLightDeferred.use();
-	mDirectionalLightDeferred.setInt("DiffuseData", 0);
-	mDirectionalLightDeferred.setInt("SpecularData", 1);
-	mDirectionalLightDeferred.setInt("PositionData", 2);
-	mDirectionalLightDeferred.setInt("NormalData", 3);
-	mDirectionalLightDeferred.setInt("shadowMap", 4);
-	mDirectionalLightDeferred.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
-	mDirectionalLightDeferred.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
-	mDirectionalLightDeferred.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
-	mDirectionalLightDeferred.bindUniformBlock("ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX);
-
-	mDirectionalLightDeferredLightIndexLocation = mDirectionalLightDeferred.getLocationOf("lightIndex");
 
 	MeshLoader loader;
 	float verts[]{ -1, -1, -1, 1, 1, 1, 1, -1 };
@@ -164,21 +157,14 @@ void RenderSystem::initDeferredRendering()
 	loader.loadData(indices, 6, 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 	mScreenMesh = loader.getMesh(0, 6);
 
+	mPointLightDeferred.init({ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightVS.glsl" },
+		{ "shaders/Light.glsl", "shaders/PointShadowCalculation.glsl", "shaders/deferred_rendering/pointLightFS.glsl" },
+		{ "DiffuseData", "SpecularData", "PositionData", "NormalData", "shadowCube" },
+		{
+			{ "Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX },
+			{ "Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX },
+		});
 
-	mPointLightDeferred = Shader::loadFromFile({ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightVS.glsl" },
-		std::vector<std::string>{},
-		{ "shaders/Light.glsl", "shaders/PointShadowCalculation.glsl", "shaders/deferred_rendering/pointLightFS.glsl" });
-
-	mPointLightDeferred.use();
-	mPointLightDeferred.setInt("DiffuseData", 0);
-	mPointLightDeferred.setInt("SpecularData", 1);
-	mPointLightDeferred.setInt("PositionData", 2);
-	mPointLightDeferred.setInt("NormalData", 3);
-	mPointLightDeferred.setInt("shadowCube", 4);
-	mPointLightDeferred.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
-	mPointLightDeferred.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
-	mPointLightDeferredLightIndexLocation = mPointLightDeferred.getLocationOf("lightIndex");
-	mPointLightDeferredLightRadiusLocation = mPointLightDeferred.getLocationOf("lightRadius");
 
 	mPointLightSphere = MeshCreator::sphere(1.0f, 10, 10, false, false);
 
@@ -324,7 +310,7 @@ void RenderSystem::prepareDeferredRendering()
 	// set up the stencil test so that only the parts affected by deferred rendering
 	// are actually lit in the deferred rendering directional light pass pass
 	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilFunc(GL_ALWAYS, 0x40, 0xFF);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilMask(0xFF);
 
@@ -426,17 +412,17 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getDiffuseBuffer().getId());
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getSpecularBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getAdditionalBuffer().getId());
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getPositionBuffer().getId());
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getNormalBuffer().getId());
 
 	// perform directional light pass (include shadows)
-	directionalLightPass();
+	directionalLightPass(DEFERRED_STENCIL_MARK, mDirectionalLightDeferred);
 
 	// perform point light pass (include shadows)
-	pointLightPass();
+	pointLightPass(DEFERRED_STENCIL_MARK, mPointLightDeferred);
 
 	// unbind textures
 	for (int i = 3; i >= 0; --i) {
@@ -448,14 +434,14 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 	glEnable(GL_DEPTH_TEST);
 }
 
-void RenderSystem::directionalLightPass()
+void RenderSystem::directionalLightPass(GLuint mark, DeferredLightShader& shaderWrapper)
 {
 	glBindVertexArray(mScreenMesh.mVao);
 
 	// enable stencil test so that this operation is only carried
 	// out for those pixels actually drawn during deferred rendering
 	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	glStencilFunc(GL_EQUAL, mark, 0xFF);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 	// for multiple lights
@@ -463,7 +449,7 @@ void RenderSystem::directionalLightPass()
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
 
-	mDirectionalLightDeferred.use();
+	shaderWrapper.shader.use();
 
 	for (std::size_t i = 0; i < mLights.size(); i++) {
 		const auto& light = mLights[i]->getComponent<Light>();
@@ -476,7 +462,7 @@ void RenderSystem::directionalLightPass()
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, directionalLight->getShadowMapTarget().getDepthBuffer().getId());
 
-		mDirectionalLightDeferred.setInt(mDirectionalLightDeferredLightIndexLocation, i);
+		shaderWrapper.setLightIndex(i);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -516,9 +502,12 @@ void RenderSystem::stencilPass(int lightIndex, float radius)
 	glEnable(GL_CULL_FACE);
 }
 
-void RenderSystem::pointLightPass()
+void RenderSystem::pointLightPass(GLuint mark, DeferredLightShader& shaderWrapper)
 {
-	glStencilMask(0xFF);
+	/* This mask prevents the two most significant bits from being deleted 
+	 * This mask is used so that the stencil buffer can be
+	 * cleared without losing the information on pbr vs. blinn-phong */
+	glStencilMask(0x3F);  
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_STENCIL_BUFFER_BIT);
 	glEnable(GL_STENCIL_TEST);
@@ -541,10 +530,13 @@ void RenderSystem::pointLightPass()
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, pointLight->getPointShadowTarget().getDepthBuffer().getId());
 
-		glStencilFunc(GL_EQUAL, 1, 0x01);
-		mPointLightDeferred.use();
-		mPointLightDeferred.setInt(mPointLightDeferredLightIndexLocation, i);
-		mPointLightDeferred.setFloat(mPointLightDeferredLightRadiusLocation, radius);
+		/* mark is used to shader only the pixel of this phase. +1 is needed to identify those pixels
+		   that are not inside a light sphere */
+		glStencilFunc(GL_EQUAL, mark + 1, 0xFF);
+		shaderWrapper.shader.use();
+
+		shaderWrapper.setLightIndex(i);
+		shaderWrapper.setLightRadius(radius);
 		glBindVertexArray(mScreenMesh.mVao);
 		glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
 
@@ -754,9 +746,9 @@ void RenderSystem::cleanUp()
 	effectManager.cleanUp();
 
 	// cleans shaders
-	mPointLightDeferred = Shader();
+	mPointLightDeferred.cleanUp();
 	mPointLightDeferredStencil = Shader();
-	mDirectionalLightDeferred = Shader();
+	mDirectionalLightDeferred.cleanUp();
 
 	// Destroys the window and quit SDL
 	SDL_DestroyWindow(mWindow);
