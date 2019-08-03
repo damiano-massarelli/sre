@@ -6,7 +6,7 @@
 #include "ShadowMapMaterial.h"
 #include "MeshCreator.h"
 #include "DirectionalLight.h"
-//#include "debug.h"
+#include "debug.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -66,12 +66,12 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 
 	initGL(width, height, fovy, nearPlane, farPlane);
 
-// 	if (DEBUG) {
-// 		glEnable(GL_DEBUG_OUTPUT);
-// 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-// 		glDebugMessageCallback(printGLError, nullptr);
-// 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-// 	}
+	if (DEBUG) {
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(glDebugOutput, nullptr);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	}
 
 	initDeferredRendering();
 	effectTarget.create(width, height);
@@ -306,7 +306,7 @@ const glm::mat4 RenderSystem::getProjectionMatrix() const
 	return mProjection;
 }
 
-void RenderSystem::prepareDeferredRendering(const RenderTarget* target)
+void RenderSystem::prepareRendering(const RenderTarget* target)
 {
 	if (shadowMappingSettings.getShadowStrength() != 0.0f)
 		renderShadows();
@@ -314,7 +314,10 @@ void RenderSystem::prepareDeferredRendering(const RenderTarget* target)
 	// view port might be changed during shadow rendering
 	glViewport(0, 0, target->getWidth(), target->getHeight());
 	glEnable(GL_DEPTH_TEST);
+}
 
+void RenderSystem::prepareDeferredRendering()
+{
 	// bind the deferred rendering frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, deferredRenderingFBO.getFBO());
 
@@ -324,6 +327,9 @@ void RenderSystem::prepareDeferredRendering(const RenderTarget* target)
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilMask(0xFF);
+
+	// blending is disabled
+	glDisable(GL_BLEND);
 
 	// clear all the buffers
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -350,18 +356,18 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
 		targetToUse = &effectTarget;
 
 	//nvtxRangePushA("Prepare deferred");
-	prepareDeferredRendering(targetToUse);
+	prepareRendering(targetToUse);
+
+	prepareDeferredRendering();
 	//nvtxRangePop();
 
 	//nvtxRangePushA("Render deferred");
-	glDisable(GL_BLEND);
 	render(RenderPhase::DEFERRED_RENDERING | phase);
 	//nvtxRangePop();
 
 	//nvtxRangePushA("finalize deferred");
 	finalizeDeferredRendering(targetToUse);
 	//nvtxRangePop();
-
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -480,33 +486,6 @@ void RenderSystem::directionalLightPass()
 	glDisable(GL_STENCIL_TEST);
 }
 
-void RenderSystem::finalizeRendering()
-{
-	effectManager.update();
-	effectManager.mPostProcessingShader.use();
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
-
-	glViewport(0, 0, getScreenWidth(), getScreenHeight());
-
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
-
-	glBindVertexArray(mScreenMesh.mVao);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, effectTarget.getColorBuffer().getId());
-
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, effectTarget.getDepthBuffer().getId());
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
-
-	glEnable(GL_DEPTH_TEST);
-
-	SDL_GL_SwapWindow(mWindow);
-}
-
 void RenderSystem::stencilPass(int lightIndex, float radius)
 {
 	// different for every sphere
@@ -517,11 +496,11 @@ void RenderSystem::stencilPass(int lightIndex, float radius)
 	// depth test must be enabled
 	glEnable(GL_DEPTH_TEST);
 
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilFunc(GL_ALWAYS, 0, 0x00);
 	// increment if back face of sphere is behind something
-	glStencilOpSeparate(GL_BACK, GL_REPLACE, GL_REPLACE, GL_KEEP);
+	glStencilOpSeparate(GL_BACK, GL_REPLACE, GL_INCR_WRAP, GL_KEEP);
 	// decrement if front face of sphere is before something
-	glStencilOpSeparate(GL_FRONT, GL_REPLACE, GL_REPLACE, GL_KEEP);
+	glStencilOpSeparate(GL_FRONT, GL_REPLACE, GL_DECR_WRAP, GL_KEEP);
 
 	// do not write this sphere on the color buffer
 	glDrawBuffer(GL_NONE);
@@ -562,7 +541,7 @@ void RenderSystem::pointLightPass()
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, pointLight->getPointShadowTarget().getDepthBuffer().getId());
 
-		glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
+		glStencilFunc(GL_EQUAL, 1, 0x01);
 		mPointLightDeferred.use();
 		mPointLightDeferred.setInt(mPointLightDeferredLightIndexLocation, i);
 		mPointLightDeferred.setFloat(mPointLightDeferredLightRadiusLocation, radius);
@@ -574,6 +553,33 @@ void RenderSystem::pointLightPass()
 
 	glDisable(GL_BLEND);
 	glDisable(GL_STENCIL_TEST);
+}
+
+void RenderSystem::finalizeRendering()
+{
+	effectManager.update();
+	effectManager.mPostProcessingShader.use();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
+
+	glViewport(0, 0, getScreenWidth(), getScreenHeight());
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+
+	glBindVertexArray(mScreenMesh.mVao);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, effectTarget.getColorBuffer().getId());
+
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, effectTarget.getDepthBuffer().getId());
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+
+	glEnable(GL_DEPTH_TEST);
+
+	SDL_GL_SwapWindow(mWindow);
 }
 
 void RenderSystem::renderShadows()

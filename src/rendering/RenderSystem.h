@@ -92,8 +92,11 @@ private:
 	/** Updates the common matrices ubo */
 	void updateMatrices(const glm::mat4* projection, const glm::mat4* view);
 
-	/** Performs all operations needed by rendering */
-	void prepareDeferredRendering(const RenderTarget* target);
+	/** Performs all the operations needed by all the rendering pipelines (deferred, pbr, ecc...) */
+	void prepareRendering(const RenderTarget* target);
+
+	/** Performs all operations needed by deferred rendering */
+	void prepareDeferredRendering();
 
 	/** Calls rendering submodules to perform rendering */
 	void render(int phase);
@@ -159,7 +162,6 @@ public:
 	/** The effect manager handles post processing effects */
 	EffectManager effectManager;
 
-public:
 	// Cannot copy this system, only the engine has an instance
 	RenderSystem(const RenderSystem& rs) = delete;
 	RenderSystem& operator=(const RenderSystem& rs) = delete;
@@ -170,7 +172,6 @@ public:
 	 * discarded.
 	 * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
 	 */
-
 	void addLight(const GameObjectEH& light);
 
 	/**
@@ -193,6 +194,9 @@ public:
 	 */
 	float getFarPlane() const;
 
+	/**
+	 * @return the vertical fov
+	 */
 	float getVerticalFov() const;
 
 	/**
@@ -220,10 +224,22 @@ public:
 	 */
 	const glm::mat4 getProjectionMatrix() const;
 
+	/**
+	 * Enables clip planes.
+	 * @see setClipPlane
+	 */
 	void enableClipPlane() const;
 
+	/**
+	 * Disables clip planes.
+	 * @see enableClipPlane
+	 */
 	void disableClipPlane() const;
 
+	/**
+	 * Sets the plane equation for the clip plane.
+	 * @param clipPlane the clip plane equation.
+	 */
 	void setClipPlane(const glm::vec4& clipPlane) const;
 
 	/**
