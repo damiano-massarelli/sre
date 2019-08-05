@@ -28,7 +28,7 @@ BlinnPhongMaterial::BlinnPhongMaterial(bool hasBumps, bool isAnimated, bool hasP
                getFragmentShaders(hasBumps, hasParallax)},
 	 mHasBumps{hasBumps}, mHasParallax{hasParallax}
 {
-	unSupportedRenderPhases |= RenderPhase::FORWARD_RENDERING;
+	unSupportedRenderPhases |= (RenderPhase::FORWARD_RENDERING | RenderPhase::PBR);
 
 	shader.use();
 

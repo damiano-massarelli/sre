@@ -254,11 +254,12 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
 	return loader.getMesh(0, indices.size());
 }
 
-Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stacks, bool includeTextureCoordinates, bool includeNormals)
+Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stacks, bool includeTextureCoordinates, bool includeNormals, bool includeTangent)
 {
 	std::vector<float> positions;
 	std::vector<float> normals;
 	std::vector<float> uvs;
+	std::vector<float> tangents;
 
 	std::vector<std::uint32_t> indices;
 
@@ -275,6 +276,15 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
 			positions.insert(positions.end(), { x, y, z });
 			normals.insert(normals.end(), { x, y, z });
 			uvs.insert(uvs.end(), { (float)j / sectors, (float)i / stacks });
+
+			if (includeTangent) {
+				float thetaNext = 2 * pi * ((float)(j + 1) / sectors);
+
+				float xNext = radius * std::cos(phi) * std::cos(thetaNext);
+				float zNext = radius * std::cos(phi) * std::sin(thetaNext);
+
+				tangents.insert(tangents.end(), { xNext - x, 0.0f, zNext - z });
+			}
 
 			if (i != stacks) {
 				indices.insert(indices.end(), {
@@ -298,6 +308,8 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
 		loader.loadData(normals.data(), normals.size(), 3);
 	if (includeTextureCoordinates)
 		loader.loadData(uvs.data(), uvs.size(), 2);
+	if (includeTangent)
+		loader.loadData(tangents.data(), tangents.size(), 3);
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
 	return loader.getMesh(0, indices.size());

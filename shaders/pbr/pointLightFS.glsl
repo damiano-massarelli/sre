@@ -12,6 +12,8 @@ layout (std140) uniform Camera {
 
 // This code is heavily based on learnopengl.com tutorials
 
+const float PI = 3.14159265359;
+
 vec3 fresnel(float HdotV, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(1.0 - HdotV, 5.0);
@@ -63,17 +65,17 @@ vec3 pbrComputeColor(Light light, vec3 albedo, float roughness, float metalness,
     L /= dist; // normalize wi
     float NdotL = max(0.0, dot(N, L));
     float NdotV = max(0.0, dot(N, V));
-    attenuation = 1.0 / (light.attenuations.x + dist * light.attenuations.y + dist * dist * light.attenuations.z);
+    float attenuation = 1.0 / (light.attenuations.x + dist * light.attenuations.y + dist * dist * light.attenuations.z);
 
     // half way vector
     vec3 H = normalize(V + L);
 
-    // basic reflectivity based on "metallic-workflow"
+    // basic reflectivity based on "metalness-workflow"
     vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+    F0 = mix(F0, albedo, metalness);
 
     // calculate reflectivity based on fresnel
-    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    vec3 F = fresnel(max(dot(H, V), 0.0), F0);
 
     // calculate normal distrubution and self-shadowing
     float NDF = normalDistribution(N, H, roughness);       
@@ -87,15 +89,15 @@ vec3 pbrComputeColor(Light light, vec3 albedo, float roughness, float metalness,
     // calculate lambert component of BRDF
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
-    kD *= (1.0 - metallic);	 // metallic (aka dialetric materials do not have refracted light)
+    kD *= (1.0 - metalness);	 // metal (aka dialetric materials do not have refracted light)
 
     // radiance
     vec3 radiance = light.diffuseColor * attenuation * NdotL;
 
     // calculate final radiance
-    vec3 Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
 
-    return light.ambientColor * ao + Lo;
+    return  Lo;
 }
 
 uniform sampler2D DiffuseData;
@@ -115,5 +117,5 @@ void main() {
 
     vec3 color = pbrComputeColor(lights[lightIndex], albedo, data.x, data.y, data.z, position, normal, cameraPosition);
 
-    FragColor = vec4(color, 1.0);
+    FragColor = vec4(albedo, 1.0);
 }
