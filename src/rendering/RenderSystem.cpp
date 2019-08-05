@@ -147,6 +147,7 @@ void RenderSystem::initDeferredRendering()
 			{ "ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX } 
 		});
 
+	// mDirectionalLightPBR.init()
 
 	MeshLoader loader;
 	float verts[]{ -1, -1, -1, 1, 1, 1, 1, -1 };
@@ -157,7 +158,7 @@ void RenderSystem::initDeferredRendering()
 	loader.loadData(indices, 6, 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 	mScreenMesh = loader.getMesh(0, 6);
 
-	mPointLightDeferred.init({ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightVS.glsl" },
+	mPointLightDeferred.init({ "shaders/deferred_rendering/pointLightVS.glsl" },
 		{ "shaders/Light.glsl", "shaders/PointShadowCalculation.glsl", "shaders/deferred_rendering/pointLightFS.glsl" },
 		{ "DiffuseData", "SpecularData", "PositionData", "NormalData", "shadowCube" },
 		{
@@ -165,6 +166,13 @@ void RenderSystem::initDeferredRendering()
 			{ "Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX },
 		});
 
+	mPointLightDeferredPBR.init({ "shaders/pbr/pointLightVS.glsl" },
+		{ "shaders/Light.glsl", "shaders/PointShadowCalculation.glsl", "shaders/pbr/pointLightFS.glsl" },
+		{ "DiffuseData", "PBRData", "PositionData", "NormalData", "shadowCube" }, 
+		{
+			{ "Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX },
+			{ "Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX },
+		});
 
 	mPointLightSphere = MeshCreator::sphere(1.0f, 10, 10, false, false);
 
@@ -300,26 +308,12 @@ void RenderSystem::prepareRendering(const RenderTarget* target)
 	// view port might be changed during shadow rendering
 	glViewport(0, 0, target->getWidth(), target->getHeight());
 	glEnable(GL_DEPTH_TEST);
-}
-
-void RenderSystem::prepareDeferredRendering()
-{
-	// bind the deferred rendering frame buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, deferredRenderingFBO.getFBO());
-
-	// set up the stencil test so that only the parts affected by deferred rendering
-	// are actually lit in the deferred rendering directional light pass pass
-	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_ALWAYS, 0x40, 0xFF);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-	glStencilMask(0xFF);
-
-	// blending is disabled
-	glDisable(GL_BLEND);
 
 	// clear all the buffers
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	// do not clear stencil buffer, we are just cleaning the screen now
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	/* Camera calculations */
 	glm::mat4 view = glm::mat4{ 1.0f };
@@ -331,6 +325,31 @@ void RenderSystem::prepareDeferredRendering()
 
 	updateLights();
 	updateCamera();
+}
+
+void RenderSystem::prepareDeferredRendering()
+{
+	// bind the deferred rendering frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, deferredRenderingFBO.getFBO());
+
+	// set up the stencil test so that only the parts affected by deferred rendering
+	// are actually lit in the deferred rendering directional light pass pass
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, DEFERRED_STENCIL_MARK, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilMask(0xFF);
+
+	// clean the buffers of the deferredRenderingFBO
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	// blending is disabled
+	glDisable(GL_BLEND);
+}
+
+void RenderSystem::preparePBRRendering()
+{
+	// sets the actual mark on the stencil buffer
+	glStencilFunc(GL_ALWAYS, PBR_STENCIL_MARK, 0xFF);
 }
 
 void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
@@ -350,6 +369,9 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
 	//nvtxRangePushA("Render deferred");
 	render(RenderPhase::DEFERRED_RENDERING | phase);
 	//nvtxRangePop();
+
+	preparePBRRendering();
+	render(RenderPhase::PBR | phase);
 
 	//nvtxRangePushA("finalize deferred");
 	finalizeDeferredRendering(targetToUse);
@@ -420,9 +442,11 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 
 	// perform directional light pass (include shadows)
 	directionalLightPass(DEFERRED_STENCIL_MARK, mDirectionalLightDeferred);
+	//directionalLightPass(PBR_STENCIL_MARK, mDirectionalLightPBR);
 
 	// perform point light pass (include shadows)
 	pointLightPass(DEFERRED_STENCIL_MARK, mPointLightDeferred);
+	pointLightPass(PBR_STENCIL_MARK, mPointLightDeferredPBR);
 
 	// unbind textures
 	for (int i = 3; i >= 0; --i) {

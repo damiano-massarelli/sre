@@ -68,15 +68,22 @@ private:
 	// used for rendering meshes with point lights
 	std::shared_ptr<PointShadowMaterial> mPointShadowMaterial;
 
-	/** Shaders used to render with deferred rendering */
+	/** Shader used to render DirectionalLight's light on normal materials using deferred rendering */
 	DeferredLightShader mDirectionalLightDeferred;
+
+	/** Shader used to render DirectionalLight's light on PBR materials using deferred rendering */
+	DeferredLightShader mDirectionalLightPBR;
 
 	Shader mPointLightDeferredStencil; // shader used for stencil pass of point lights
 	std::uint32_t mPointLightStencilLightIndexLocation = 0;
 	std::uint32_t mPointLightStencilScaleLocation = 0;
 	std::uint32_t mPointLightDeferredLightRadiusLocation = 0;
 
-	DeferredLightShader mPointLightDeferred; // shader used to do point light
+	/** Shader used to render PointLight's light on normal materials using deferred rendering */
+	DeferredLightShader mPointLightDeferred; 
+
+	/** Shader used to render PointLight's light on PBR materials using deferred rendering */
+	DeferredLightShader mPointLightDeferredPBR;
 
 	/** near and far clipping planes */
 	float mNearPlane = 0.0f;
@@ -106,6 +113,9 @@ private:
 
 	/** Performs all operations needed by deferred rendering */
 	void prepareDeferredRendering();
+
+	/** Performs all operations needed by PBR rendering */
+	void preparePBRRendering();
 
 	/** Calls rendering submodules to perform rendering */
 	void render(int phase);

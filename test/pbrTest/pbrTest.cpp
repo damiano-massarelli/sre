@@ -47,9 +47,9 @@ static void addParticles(const GameObjectEH& eh) {
 	eh->transform.moveBy(glm::vec3{ 0, 1.0f, 0 });
 	eh->addComponent(std::make_shared<PointLight>(eh));
 	eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
-	eh->getComponent<PointLight>()->ambientColor = glm::vec3{ 0.89f, 0.75f, 0.276f } / 5.0f;
-	eh->getComponent<PointLight>()->diffuseColor = glm::vec3{ 0.89f, 0.75f, 0.276f };
-	eh->getComponent<PointLight>()->specularColor = glm::vec3{ 0.89f, 0.75f, 0.276f };
+	eh->getComponent<PointLight>()->ambientColor = glm::vec3{ 1.0f } / 5.0f;
+	eh->getComponent<PointLight>()->diffuseColor = glm::vec3{ 1.0f } * 1.0f;
+	eh->getComponent<PointLight>()->specularColor = glm::vec3{ 1.0f };
 	Engine::renderSys.addLight(eh);
 }
 
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
 
 
- 	Engine::renderSys.effectManager.enableEffects();
+ 	//Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.shadowMappingSettings.useFastShader = true;
 	Engine::renderSys.shadowMappingSettings.width = 500;
 	Engine::renderSys.shadowMappingSettings.height = 500;
@@ -86,7 +86,22 @@ int main(int argc, char* argv[]) {
 	for (const auto& eh : sponza->transform.findAll("firePos"))
 		addParticles(eh);
 
-	auto pbr = std::make_shared<PBRMaterial>();
+	auto pbrMaterial = std::make_shared<PBRMaterial>();
+	pbrMaterial->setAlbedo(Texture::loadFromFile("test_data/pbr/albedo.png"));
+	pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness.png"));
+	pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal.png"));
+	pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
+	pbrMaterial->setAmbienOccludionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
+
+	auto blinnMaterial = BlinnPhongMaterialBuilder()
+		.setBumpMap(Texture::loadFromFile("test_data/pbr/normal.png"))
+		.setDiffuseMap(Texture::loadFromFile("test_data/pbr/albedo.png"))
+		.setSpecularMap(Texture::loadFromFile("test_data/pbr/roughness.png"))
+		.build();
+
+	auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 50, 50, true, true, true), pbrMaterial);
+	sphere->transform.scaleBy(glm::vec3{ 3.0f });
+	sphere->transform.moveBy(glm::vec3{ 35.0f, 10.0f, 0.0f });
 
 	auto skyTexture = Texture::loadCubemapFromFile({
 					{"front", "test_data/skybox/front.tga"},

@@ -1,10 +1,10 @@
 #include "PBRMaterial.h"
 
-
-
 PBRMaterial::PBRMaterial()
 	: Material{ {"shaders/bumpedPhongVS.glsl"}, {"shaders/pbrFS.glsl"} }
 {
+	unSupportedRenderPhases = (RenderPhase::FORWARD_RENDERING | RenderPhase::DEFERRED_RENDERING);
+
 	shader.use();
 
 	shader.setInt("material.albedo", 0);
@@ -12,7 +12,6 @@ PBRMaterial::PBRMaterial()
 	shader.setInt("material.roughness", 2);
 	shader.setInt("material.metalness", 3);
 	shader.setInt("material.ao", 4);
-
 }
 
 
@@ -51,10 +50,10 @@ void PBRMaterial::use()
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, mNormal.getId());
 
-	glActiveTexture(GL_TEXTURE3);
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, mRoughness.getId());
 
-	glActiveTexture(GL_TEXTURE2);
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, mMetalness.getId());
 
 	glActiveTexture(GL_TEXTURE4);
