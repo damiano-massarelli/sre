@@ -13,6 +13,8 @@ void main() {
 	float fogFactor = (position.y - lowerFogLimit) / (upperFogLimit - lowerFogLimit);
 	fogFactor = clamp(fogFactor, 0.0, 1.0);
 
-	
-	FragColor = vec4(mix(_fogColor, color, fogFactor), 1.0);
+	vec3 finalColor = mix(_fogColor, color, fogFactor);
+	finalColor = pow(finalColor, vec3(2.2));
+
+	FragColor = vec4(finalColor, 1.0);
 }

@@ -15,6 +15,10 @@ void main() {
 
     vec2 frameSizeInvY = vec2(frameSize.x, -frameSize.y);
     vec4 current = texture(atlas, offset + texCoord * frameSizeInvY);
+	current.rgb = pow(current.rgb, vec3(2.2));
+
     vec4 next = texture(atlas, nextOffset + texCoord * frameSizeInvY);
+	next.rgb = pow(next.rgb, vec3(2.2));
+
     FragColor = mix(current, next, blend);
 }

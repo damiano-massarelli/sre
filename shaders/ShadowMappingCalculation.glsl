@@ -19,7 +19,7 @@ const int SMOOTH_RANGE = 1;
   * @param the normal of the current fragment (world space)
   * @param distance the distance of the current fragment from the camera
   * @return 1 if in shadow, 0 otherwise */
-float shadowMapIsInShadow(vec4 lightSpacePos, vec3 lightDirection,  vec3 normal, float dist) {
+float shadowMapIsInShadow(vec4 lightSpacePos, vec3 lightDirection, vec3 normal, float dist) {
 	float shadowStrength = _shadowParams[2];
 	if (shadowStrength == 0.0)
 		return 0.0f;

@@ -147,7 +147,15 @@ void RenderSystem::initDeferredRendering()
 			{ "ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX } 
 		});
 
-	// mDirectionalLightPBR.init()
+	// ------------------------------------- TODO change to PBR -------------------------------------
+	mDirectionalLightDeferredPBR.init({ "shaders/deferred_rendering/directionalLightVS.glsl" },
+		{ "shaders/Light.glsl", "shaders/ShadowMappingCalculation.glsl", "shaders/deferred_rendering/directionalLightFS.glsl" },
+		{ "DiffuseData", "SpecularData", "PositionData", "NormalData", "shadowMap" },
+		{
+			{ "Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX },
+			{ "Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX },
+			{ "ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX }
+		});
 
 	MeshLoader loader;
 	float verts[]{ -1, -1, -1, 1, 1, 1, 1, -1 };
@@ -167,7 +175,7 @@ void RenderSystem::initDeferredRendering()
 		});
 
 	mPointLightDeferredPBR.init({ "shaders/pbr/pointLightVS.glsl" },
-		{ "shaders/Light.glsl", "shaders/PointShadowCalculation.glsl", "shaders/pbr/pointLightFS.glsl" },
+		{ "shaders/Light.glsl", "shaders/PointShadowCalculation.glsl", "shaders/pbr/PBRLightCalculation.glsl", "shaders/pbr/pointLightFS.glsl" },
 		{ "DiffuseData", "PBRData", "PositionData", "NormalData", "shadowCube" }, 
 		{
 			{ "Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX },
@@ -414,7 +422,7 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 		0, 0, deferredRenderingFBO.getWidth(), deferredRenderingFBO.getHeight(),
 		GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
 	);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, target->getFbo());
 
 	// clear the color buffer of the currently bound fbo (can be either effects fbo or default (0) fbo)

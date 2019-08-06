@@ -1,9 +1,9 @@
 #include "Bloom.h"
 #include "Engine.h"
 
-Bloom::Bloom() : Effect{ "bloom", "effects/bloom.glsl" }
+Bloom::Bloom() : Effect{ "bloom", "effects/bloom.glsl" }, mGaussianBlur{ 0.75f }
 {
-	mBloom = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_RGBA);
+	mBloom = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
 
 	mTarget.createWith(mBloom, Texture{});
 
