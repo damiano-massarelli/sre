@@ -28,6 +28,7 @@ void main() {
 	Normal = normal;
 
     Diffuse = texture(material.albedo, texCoord);
+    Diffuse.rgb = pow(Diffuse.rgb, vec3(2.2));
 
     PBRData.x = texture(material.roughness, texCoord).r;
 	PBRData.y = texture(material.metalness, texCoord).r;

@@ -56,8 +56,12 @@ void main() {
     vec2 texCoord = gl_FragCoord.xy / textureSize(DiffuseData, 0);
 
     vec3 diffuseColor = texture(DiffuseData, texCoord).rgb;
+	diffuseColor = pow(diffuseColor, vec3(2.2));
+
     vec4 specularSample = texture(SpecularData, texCoord);
     vec3 specularColor = specularSample.rgb;
+	specularColor = pow(specularColor, vec3(2.2));
+
     float shininess = specularSample.a;
     vec3 normal = texture(NormalData, texCoord).xyz;
     vec3 position = texture(PositionData, texCoord).xyz;

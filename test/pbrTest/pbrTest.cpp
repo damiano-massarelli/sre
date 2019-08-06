@@ -14,9 +14,9 @@
 #include "SkyboxMaterial.h"
 #include "MotionBlur.h"
 #include "PBRMaterial.h"
+#include "GammaCorrection.h"
 
 #include <iostream>
-
 
 static void addParticles(const GameObjectEH& eh) {
 	EmitterSettings settings;
@@ -45,11 +45,12 @@ static void addParticles(const GameObjectEH& eh) {
 	eh->getComponent<ParticleEmitter>()->settings = settings;
 
 	eh->transform.moveBy(glm::vec3{ 0, 1.0f, 0 });
+
 	eh->addComponent(std::make_shared<PointLight>(eh));
 	eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
-	eh->getComponent<PointLight>()->ambientColor = glm::vec3{ 1.0f } / 5.0f;
-	eh->getComponent<PointLight>()->diffuseColor = glm::vec3{ 1.0f } * 1.0f;
-	eh->getComponent<PointLight>()->specularColor = glm::vec3{ 1.0f };
+	eh->getComponent<PointLight>()->ambientColor = glm::vec3{ 0.89f, 0.75f, 0.276f } / 10.0f;
+	eh->getComponent<PointLight>()->diffuseColor = glm::vec3{ 0.89f, 0.75f, 0.276f } * 10.0f;
+	eh->getComponent<PointLight>()->specularColor = glm::vec3{ 0.89f, 0.75f, 0.276f } * 10.0f;
 	Engine::renderSys.addLight(eh);
 }
 
@@ -57,14 +58,17 @@ static void addParticles(const GameObjectEH& eh) {
 int main(int argc, char* argv[]) {
     Engine::init();
 
-	Engine::renderSys.createWindow(1280, 720);
+ 	Engine::renderSys.createWindow(1280, 720);
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
-
 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
+	auto gammaPost = std::make_shared<GammaCorrection>();
+	gammaPost->setGamma(2.2f);
+	gammaPost->setExposure(0.4f);
+	Engine::renderSys.effectManager.addEffect(gammaPost);
 
 
- 	//Engine::renderSys.effectManager.enableEffects();
+ 	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.shadowMappingSettings.useFastShader = true;
 	Engine::renderSys.shadowMappingSettings.width = 500;
 	Engine::renderSys.shadowMappingSettings.height = 500;
@@ -83,21 +87,16 @@ int main(int argc, char* argv[]) {
 	auto sponza = GameObjectLoader().fromFile("test_data/bloom/sponza.fbx");
 	sponza->transform.setScale(glm::vec3{ 0.1f });
 
+
 	for (const auto& eh : sponza->transform.findAll("firePos"))
 		addParticles(eh);
 
 	auto pbrMaterial = std::make_shared<PBRMaterial>();
-	pbrMaterial->setAlbedo(Texture::loadFromFile("test_data/pbr/albedo.png"));
-	pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness.png"));
-	pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal.png"));
-	pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
-	pbrMaterial->setAmbienOccludionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
-
-	auto blinnMaterial = BlinnPhongMaterialBuilder()
-		.setBumpMap(Texture::loadFromFile("test_data/pbr/normal.png"))
-		.setDiffuseMap(Texture::loadFromFile("test_data/pbr/albedo.png"))
-		.setSpecularMap(Texture::loadFromFile("test_data/pbr/roughness.png"))
-		.build();
+	pbrMaterial->setAlbedo(Texture::loadFromFile("test_data/pbr/albedo2.jpg"));
+	pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness2.jpg"));
+	pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal2.jpg"));
+	pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness2.jpg"));
+	pbrMaterial->setAmbienOccludionMap(Texture::loadFromFile("test_data/pbr/ao.jpg"));
 
 	auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 50, 50, true, true, true), pbrMaterial);
 	sphere->transform.scaleBy(glm::vec3{ 3.0f });
@@ -129,7 +128,7 @@ int main(int argc, char* argv[]) {
 	Engine::renderSys.addLight(sun);
 	sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
 	sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 15.0f;
-	sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f };
+	sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 5.0f;
 	sun->getComponent<Light>()->specularColor = glm::vec3{ .9f, .9f, .9f };
 	sun->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
 	sun->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), sun->transform.right()));
@@ -147,9 +146,9 @@ int main(int argc, char* argv[]) {
 	fakeSun->transform.setPosition(glm::vec3{ -10.0f, 105, 10.0f });
 	Engine::renderSys.addLight(fakeSun);
 	fakeSun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
-	fakeSun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 15.0f;
-	fakeSun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } / 10.0f;
-	fakeSun->getComponent<Light>()->specularColor = glm::vec3{ .9f, .9f, .9f } / 10.0f;
+	fakeSun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 25.0f;
+	fakeSun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } / 20.0f;
+	fakeSun->getComponent<Light>()->specularColor = glm::vec3{ .9f, .9f, .9f } / 20.0f;
 	fakeSun->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
 	fakeSun->transform.rotateBy(glm::angleAxis(glm::radians(155.0f), fakeSun->transform.right()));
 

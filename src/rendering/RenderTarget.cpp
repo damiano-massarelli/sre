@@ -8,7 +8,7 @@ void RenderTarget::create(std::uint32_t width, std::uint32_t height, bool wantCo
 	Texture depthBuffer;
 
 	if (wantColorBuffer)
-		colorBuffer = Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA);
+		colorBuffer = Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
 
 	if (wantDepthBuffer)
 		depthBuffer = Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, GL_DEPTH24_STENCIL8);

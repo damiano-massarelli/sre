@@ -6,8 +6,8 @@ void DeferredRenderingFBO::init(std::uint32_t width, std::uint32_t height)
 	mWidth = width;
 	mHeight = height;
 
-	mDiffuseBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA);
-	mAdditionalBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
+	mDiffuseBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
+	mAdditionalBuffer	= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
 	mPositionBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGB, GL_FLOAT, GL_RGB16F);
 	mNormalBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGB, GL_FLOAT, GL_RGB16F);
 	mDepthBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, GL_DEPTH24_STENCIL8);

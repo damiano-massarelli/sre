@@ -11,7 +11,6 @@
 #include "FogSettings.h"
 #include "ShadowMappingSettings.h"
 #include "DeferredRenderingFBO.h"
-#include "EffectsFBO.h"
 #include "Light.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
@@ -72,7 +71,7 @@ private:
 	DeferredLightShader mDirectionalLightDeferred;
 
 	/** Shader used to render DirectionalLight's light on PBR materials using deferred rendering */
-	DeferredLightShader mDirectionalLightPBR;
+	DeferredLightShader mDirectionalLightDeferredPBR;
 
 	Shader mPointLightDeferredStencil; // shader used for stencil pass of point lights
 	std::uint32_t mPointLightStencilLightIndexLocation = 0;
@@ -145,7 +144,7 @@ private:
 
 public:
 	/** Creates a new window */
-	void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 400.0f);
+	void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 1000.0f);
 
 	/** Maximum number of lights */
 	static constexpr std::size_t MAX_LIGHT_NUMBER = 32;
