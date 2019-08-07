@@ -27,13 +27,13 @@ void main() {
 
     Light light = lights[lightIndex];
 
-    vec3 L = light.position - position;
+    vec3 L = -light.direction;
+
     float inShadow = 0.0;
-
     if (light.castShadow)
-        inShadow = pointMapIsInShadow(position, light.position, cameraPosition);
+        inShadow = shadowMapIsInShadow(light.toLightSpace * vec4(position, 1.0), light.direction, normal, distance(cameraPosition, position));
 
-    vec3 color = pbrComputeColor(lights[lightIndex], L, -1.0, inShadow, albedo, data.x, data.y, data.z, position, normal, cameraPosition);
+    vec3 color = pbrComputeColor(light, L, 1.0, inShadow, albedo, data.x, data.y, data.z, position, normal, cameraPosition);
 
     FragColor = vec4(color, 1.0);
 }

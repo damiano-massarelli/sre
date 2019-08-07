@@ -9,6 +9,7 @@ class MotionBlur :
 private:
 	glm::mat4 mPrevProjViewMatrix;
 	std::int32_t mPrevProjViewMatrixLocation = 0;
+	std::int32_t mCurrentProjViewMatrixLocation = 0;
 
 	int mPositionTexture = -1;
 
