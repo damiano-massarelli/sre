@@ -45,7 +45,7 @@ vec3 fresnel(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }  
 
-vec3 pbrComputeColor(Light light, vec3 L, vec3 albedo, float roughness, float metalness, float ao, vec3 fragPosition, vec3 N, vec3 cameraPosition) 
+vec3 pbrComputeColor(Light light, vec3 L, float forceAttenuation, float inShadow, vec3 albedo, float roughness, float metalness, float ao, vec3 fragPosition, vec3 N, vec3 cameraPosition) 
 {
     vec3 V            = normalize(cameraPosition - fragPosition);
 
@@ -55,7 +55,9 @@ vec3 pbrComputeColor(Light light, vec3 L, vec3 albedo, float roughness, float me
     float dist        = length(L); 
     L                 /= dist; // normalize
     vec3 H            = normalize(V + L);
-    float attenuation = 1.0 / (light.attenuations.x + dist * light.attenuations.y + dist * dist * light.attenuations.z);
+    float attenuation = (1.0 / (light.attenuations.x + dist * light.attenuations.y + dist * dist * light.attenuations.z));
+    if (forceAttenuation >= 0)
+        attenuation = forceAttenuation;
     vec3 radiance     = light.diffuseColor * attenuation; 
 
     float NdotV       = max(dot(N, V), 0.0);
@@ -76,10 +78,6 @@ vec3 pbrComputeColor(Light light, vec3 L, vec3 albedo, float roughness, float me
         
     // add to outgoing radiance Lo
     vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
-
-    float inShadow = 0.0;
-    if (light.castShadow)
-        inShadow = pointMapIsInShadow(fragPosition, light.position, cameraPosition);
 
     return light.ambientColor * ao * attenuation + (1.0 - inShadow) * Lo;
 }

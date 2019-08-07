@@ -47,7 +47,7 @@ static void addParticles(const GameObjectEH& eh) {
 	eh->transform.moveBy(glm::vec3{ 0, 1.0f, 0 });
 
 	eh->addComponent(std::make_shared<PointLight>(eh));
-	eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
+	eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
 	eh->getComponent<PointLight>()->ambientColor = glm::vec3{ 0.89f, 0.75f, 0.276f } / 10.0f;
 	eh->getComponent<PointLight>()->diffuseColor = glm::vec3{ 0.89f, 0.75f, 0.276f } * 10.0f;
 	eh->getComponent<PointLight>()->specularColor = glm::vec3{ 0.89f, 0.75f, 0.276f } * 10.0f;
@@ -63,8 +63,8 @@ int main(int argc, char* argv[]) {
 	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
 	auto gammaPost = std::make_shared<GammaCorrection>();
-	gammaPost->setGamma(2.2f);
-	gammaPost->setExposure(0.4f);
+	gammaPost->setGamma(1.8f);
+	gammaPost->setExposure(1.0f);
 	Engine::renderSys.effectManager.addEffect(gammaPost);
 
 
@@ -92,15 +92,15 @@ int main(int argc, char* argv[]) {
 		addParticles(eh);
 
 	auto pbrMaterial = std::make_shared<PBRMaterial>();
-	pbrMaterial->setAlbedo(Texture::loadFromFile("test_data/pbr/albedo2.jpg"));
-	pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness2.jpg"));
-	pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal2.jpg"));
-	pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness2.jpg"));
-	pbrMaterial->setAmbienOccludionMap(Texture::loadFromFile("test_data/pbr/ao.jpg"));
+	pbrMaterial->setAlbedo(Texture::loadFromFile("test_data/pbr/albedo.png"));
+	pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness.png"));
+	pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal.png"));
+	pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
+	pbrMaterial->setAmbienOccludionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
 
 	auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 50, 50, true, true, true), pbrMaterial);
 	sphere->transform.scaleBy(glm::vec3{ 3.0f });
-	sphere->transform.moveBy(glm::vec3{ 35.0f, 10.0f, 0.0f });
+	sphere->transform.moveBy(glm::vec3{ 35.0f, 130.0f, 0.0f });
 
 	auto skyTexture = Texture::loadCubemapFromFile({
 					{"front", "test_data/skybox/front.tga"},

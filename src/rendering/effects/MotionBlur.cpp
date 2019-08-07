@@ -18,9 +18,11 @@ void MotionBlur::setBlurFactor(float blurFactor)
 
 void MotionBlur::onSetup(Shader& postProcessingShader)
 {
-	mPrevProjViewMatrixLocation = postProcessingShader.getLocationOf("_mbPrevProjView");
-	postProcessingShader.setInt("_mbPositionTexture", mPositionTexture);
+	mPrevProjViewMatrixLocation = postProcessingShader.getLocationOf("_mb_prevProjView");
+	mCurrentProjViewMatrixLocation = postProcessingShader.getLocationOf("_mb_currProjView");
+	postProcessingShader.setInt("_mb_positionTexture", mPositionTexture);
 }
+
 
 void MotionBlur::update(Shader& postProcessingShader)
 {
@@ -28,15 +30,18 @@ void MotionBlur::update(Shader& postProcessingShader)
 
 	if (mBlurNeedsUpdate) {
 		mBlurNeedsUpdate = false;
-		postProcessingShader.setFloat("_mbBlurFactor", mBlurFactor);
+		postProcessingShader.setFloat("_mb_blurFactor", mBlurFactor);
 	}
 
+	RenderSystem& rsys = Engine::renderSys;
+
+	glm::mat4 currProjViewMat = rsys.getProjectionMatrix() * rsys.getViewMatrix(rsys.camera->transform);
 	postProcessingShader.setMat4(mPrevProjViewMatrixLocation, mPrevProjViewMatrix);
+	postProcessingShader.setMat4(mCurrentProjViewMatrixLocation, currProjViewMat);
 	glActiveTexture(GL_TEXTURE0 + mPositionTexture);
 	glBindTexture(GL_TEXTURE_2D, Engine::renderSys.deferredRenderingFBO.getPositionBuffer().getId());
 
-	RenderSystem& rsys = Engine::renderSys;
-	mPrevProjViewMatrix = rsys.getProjectionMatrix() * rsys.getViewMatrix(rsys.camera->transform);
+	mPrevProjViewMatrix = currProjViewMat;
 }
 
 MotionBlur::~MotionBlur()

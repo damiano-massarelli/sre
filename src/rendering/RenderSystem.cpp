@@ -147,10 +147,9 @@ void RenderSystem::initDeferredRendering()
 			{ "ShadowMapParams", RenderSystem::SHADOWMAP_UNIFORM_BLOCK_INDEX } 
 		});
 
-	// ------------------------------------- TODO change to PBR -------------------------------------
-	mDirectionalLightDeferredPBR.init({ "shaders/deferred_rendering/directionalLightVS.glsl" },
-		{ "shaders/Light.glsl", "shaders/ShadowMappingCalculation.glsl", "shaders/deferred_rendering/directionalLightFS.glsl" },
-		{ "DiffuseData", "SpecularData", "PositionData", "NormalData", "shadowMap" },
+	mDirectionalLightDeferredPBR.init({ "shaders/pbr/directionalLightVS.glsl" },
+		{ "shaders/Light.glsl", "shaders/ShadowMappingCalculation.glsl", "shaders/pbr/PBRLightCalculation.glsl", "shaders/pbr/directionalLightFS.glsl" },
+		{ "DiffuseData", "PBRData", "PositionData", "NormalData", "shadowMap" },
 		{
 			{ "Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX },
 			{ "Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX },
@@ -450,7 +449,7 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 
 	// perform directional light pass (include shadows)
 	directionalLightPass(DEFERRED_STENCIL_MARK, mDirectionalLightDeferred);
-	//directionalLightPass(PBR_STENCIL_MARK, mDirectionalLightPBR);
+	directionalLightPass(PBR_STENCIL_MARK, mDirectionalLightDeferredPBR);
 
 	// perform point light pass (include shadows)
 	pointLightPass(DEFERRED_STENCIL_MARK, mPointLightDeferred);
@@ -612,8 +611,6 @@ void RenderSystem::renderShadows()
 		const auto& light = lightGO->getComponent<Light>();
 
 		if (light->getShadowCasterMode() == Light::ShadowCasterMode::NO_SHADOWS || !light->needsShadowUpdate())  continue;
-
-		std::cout << lightGO->name << "\n";
 
 		if (light->getType() == Light::Type::DIRECTIONAL)
 			renderDirectionalLightShadows(static_cast<const DirectionalLight*>(light.get()), lightGO->transform);
@@ -779,8 +776,10 @@ void RenderSystem::cleanUp()
 
 	// cleans shaders
 	mPointLightDeferred.cleanUp();
+	mPointLightDeferredPBR.cleanUp();
 	mPointLightDeferredStencil = Shader();
 	mDirectionalLightDeferred.cleanUp();
+	mDirectionalLightDeferredPBR.cleanUp();
 
 	// Destroys the window and quit SDL
 	SDL_DestroyWindow(mWindow);
