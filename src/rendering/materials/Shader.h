@@ -74,6 +74,10 @@ public:
 
 	void setMat4Array(std::int32_t location, const std::vector<glm::mat4>& array) const;
 
+	void setVec3Array(std::int32_t location, const std::vector<glm::vec3>& array) const;
+
+	void setVec3Array(const std::string& name, const std::vector<glm::vec3>& array) const;
+
 	void bindUniformBlock(const std::string& name, std::uint32_t bindingPoint);
 
 	void use() const;
