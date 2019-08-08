@@ -149,7 +149,8 @@ Texture Texture::loadCubemap(const std::map<std::string, void*>& data, int width
 	return t;
 }
 
-Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int wrapT, bool mipmap, int format, int type, int internalFormat)
+Texture Texture::load(void* data, int width, int height, int wrapS, int wrapT, bool mipmap, int format, int type, int internalFormat,
+	GLenum minFilter, GLenum magFilter)
 {
     std::uint32_t texture;
     glGenTextures(1, &texture);
@@ -158,13 +159,13 @@ Texture Texture::load(std::uint8_t* data, int width, int height, int wrapS, int 
 	if (internalFormat == GL_REPEAT) internalFormat = format;
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
 	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 	if (mipmap) {
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	}
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
 

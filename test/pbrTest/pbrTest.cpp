@@ -15,6 +15,7 @@
 #include "MotionBlur.h"
 #include "PBRMaterial.h"
 #include "GammaCorrection.h"
+#include "SSAO.h"
 
 #include <iostream>
 
@@ -66,7 +67,7 @@ int main(int argc, char* argv[]) {
 	gammaPost->setGamma(1.8f);
 	gammaPost->setExposure(1.0f);
 	Engine::renderSys.effectManager.addEffect(gammaPost);
-
+	Engine::renderSys.effectManager.addEffect(std::make_shared<SSAO>());
 
  	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.shadowMappingSettings.useFastShader = true;

@@ -71,8 +71,9 @@ class Texture {
 		 * @param type the type of data stored in the texture
 		 * @param internalFormat the format of the data stored in the texture (if GL_REPEAT then it will be the same as format)
 		 */
-		static Texture load(std::uint8_t* data, int width, int height,
-			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, bool mipmap = true, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE, int internalFormat = GL_REPEAT);
+		static Texture load(void* data, int width, int height,
+			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, bool mipmap = true, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE, int internalFormat = GL_REPEAT,
+			GLenum minFilter = GL_LINEAR, GLenum magFilter = GL_LINEAR);
 
         /**
           * Loads a cubemap from file.
