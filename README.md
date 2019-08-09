@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness.png"));
     pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal.png"));
     pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
-    pbrMaterial->setAmbienOccludionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
+    pbrMaterial->setAmbientOccludionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
 
     // Create a sphere and set its scale
     auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 50, 50, true, true, true), pbrMaterial);
@@ -101,6 +101,6 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-Result:
+Result (click on the image to see the full size version):
 
 <img src="readme/pbr_sphere.png" alt="pbr sphere" width="800"/>
