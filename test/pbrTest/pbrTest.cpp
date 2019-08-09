@@ -59,15 +59,15 @@ static void addParticles(const GameObjectEH& eh) {
 int main(int argc, char* argv[]) {
     Engine::init();
 
- 	Engine::renderSys.createWindow(1280, 720);
+ 	Engine::renderSys.createWindow(1920, 1080);
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
-	//Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
-	//Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
+	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
+	Engine::renderSys.effectManager.addEffect(std::make_shared<SSAO>());
+	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
 	auto gammaPost = std::make_shared<GammaCorrection>();
 	gammaPost->setGamma(1.8f);
 	gammaPost->setExposure(1.0f);
 	Engine::renderSys.effectManager.addEffect(gammaPost);
-	Engine::renderSys.effectManager.addEffect(std::make_shared<SSAO>());
 
  	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.shadowMappingSettings.useFastShader = true;

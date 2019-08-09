@@ -12,7 +12,7 @@ void main() {
 
 	for (int i = -5; i <= 5; i++) {
 		vec2 blurTexCoord = texCoord + direction * pixSize * i;
-		blurTexCoord = clamp(blurTexCoord, vec2(0.0001), vec2(0.9999));
+		blurTexCoord = clamp(blurTexCoord, vec2(0.001), vec2(0.999));
 		FragColor.rgb += texture(src, blurTexCoord).rgb * GAUSSIAN_WEIGHTS[i + 5];
 	}
 	
