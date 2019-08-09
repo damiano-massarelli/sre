@@ -763,6 +763,8 @@ void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, const Shad
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glEnable(GL_DEPTH_TEST);
+
+	glViewport(0, 0, getScreenWidth(), getScreenHeight());
 }
 
 void RenderSystem::cleanUp()

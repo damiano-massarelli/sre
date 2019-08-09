@@ -28,6 +28,7 @@ SSAO::SSAO()
 
 	mSSAOCreationShader.use();
 	mSSAOCreationShader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
+	mSSAOCreationShader.bindUniformBlock("Camera", Engine::renderSys.CAMERA_UNIFORM_BLOCK_INDEX);
 	mSSAOCreationShader.setVec3Array("samples", mSSAOSamples);
 	mSSAOCreationShader.setInt("NormalData", mNormalTextureIndex);
 	mSSAOCreationShader.setInt("noise", mNoiseTextureIndex);

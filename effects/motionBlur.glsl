@@ -25,7 +25,7 @@ vec4 motionBlur(vec4 color) {
 
     for (int i = -5; i <= 5; i++) {
         if (i != 0) {
-            vec2 sampleCoordinate = clamp(texCoord + direction * pixSize * i, vec2(0.0001), vec2(0.9999));
+            vec2 sampleCoordinate = clamp(texCoord + direction * pixSize * i, vec2(0.001), vec2(0.999));
             finalColor += texture(screenTexture, sampleCoordinate).rgb * _MB_GAUSSIAN_WEIGHTS[i + 5];
         }
     }
