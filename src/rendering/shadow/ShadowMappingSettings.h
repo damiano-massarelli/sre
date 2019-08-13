@@ -25,6 +25,8 @@ private:
 
 	void updateUbo();
 
+	bool mEnabled = true;
+
 public:
 	/** width of the shadow map texture */
 	std::int32_t mapWidth = 2048;
@@ -79,6 +81,12 @@ public:
 	 * @strength a value in [0, 1]
 	 */
 	void setShadowStrength(float stregth);
+
+	void disableShadowRendering();
+
+	void enableShadowRendering();
+
+	bool isShadowRenderingEnabled() const;
 
 	float getShadowStrength() const;
 

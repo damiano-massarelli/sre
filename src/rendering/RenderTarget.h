@@ -63,6 +63,11 @@ public:
 	 */
 	const Texture& getDepthBuffer() const;
 
+	/**
+	 * @return true if one of the color or depth buffer is valid
+	 */
+	bool isValid() const;
+
 	~RenderTarget();
 };
 

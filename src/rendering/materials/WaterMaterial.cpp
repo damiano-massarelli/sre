@@ -9,11 +9,18 @@ WaterMaterial::WaterMaterial(float waterY, const Texture& dudv, const Texture& n
 	: Material{"shaders/waterVS.glsl", "shaders/waterFS.glsl"}, mWaterY{ waterY }, mDuDvMap{ dudv },
 	mNormalMap { normalMap }
 {
-	mReflectionTarget.create(320, 180);
+	mEmptyReflectionTarget.create(320, 180, false, false);
 	mReflectionFbo.init(320, 180);
 
-	mRefractionTarget.create(1280, 720);
+	mEmptyRefractionTarget.create(1280, 720, false, false);
 	mRefractionFbo.init(1280, 720);
+
+	/**
+	 * This is a target whose initial color is the diffuse color added by the
+	 * deferred and pbr rendering. On top of that, the result of forward rendering
+	 * and particle rendering is added in another render pass (see renderRefraction)
+	 */
+	mReflectionRarget.createWith(mReflectionFbo.getDiffuseBuffer(), mReflectionFbo.getDepthBuffer());
 
 	mReflectionCamera = Engine::gameObjectManager.createGameObject();
 
@@ -27,9 +34,6 @@ WaterMaterial::WaterMaterial(float waterY, const Texture& dudv, const Texture& n
 	shader.setInt("dudvMap", 2);
 	shader.setInt("normalMap", 3);
 	shader.setInt("depthMap", 4);
-	shader.setInt("groundDiffuseMap", 5);
-	shader.setInt("groundSpecularMap", 6);
-	shader.setInt("groundNormalMap", 7);
 
 	shader.setFloat("near", Engine::renderSys.getNearPlane());
 	shader.setFloat("far", Engine::renderSys.getFarPlane());
@@ -48,8 +52,14 @@ void WaterMaterial::onEvent(SDL_Event e)
 
 	auto& renderSys = Engine::renderSys;
 
-	float oldShadowStrength = renderSys.shadowMappingSettings.getShadowStrength();
-	renderSys.shadowMappingSettings.setShadowStrength(0.0f);
+	/*
+	 * Do not render shadows now. Just use shadow maps from the last frame,
+	 * it should be good enough! What's more, shadows would not make sense since
+	 * the scene is split due to clipping planes.
+	 */
+	bool enabled = renderSys.shadowMappingSettings.isShadowRenderingEnabled();
+	if (enabled)
+		renderSys.shadowMappingSettings.disableShadowRendering();
 
 	auto oldDeferredFbo = renderSys.deferredRenderingFBO;
 	renderSys.enableClipPlane();
@@ -58,7 +68,8 @@ void WaterMaterial::onEvent(SDL_Event e)
 
 	renderReflection();
 
-	renderSys.shadowMappingSettings.setShadowStrength(oldShadowStrength);
+	if (enabled)
+		renderSys.shadowMappingSettings.enableShadowRendering();
 
 	renderSys.disableClipPlane();
 	renderSys.deferredRenderingFBO = oldDeferredFbo;
@@ -112,7 +123,16 @@ void WaterMaterial::renderReflection()
 	// render to reflection target
 	Engine::renderSys.deferredRenderingFBO = mReflectionFbo;
 	Engine::renderSys.setClipPlane(glm::vec4{ 0, 1, 0, -mWaterY });
-	Engine::renderSys.renderScene(&mReflectionTarget, RenderPhase::WATER);
+	Engine::renderSys.renderScene(&mEmptyReflectionTarget, RenderPhase::WATER);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, mReflectionRarget.getFbo());
+	Engine::renderSys.render(RenderPhase::FORWARD_RENDERING | RenderPhase::WATER);
+
+	Engine::particleRenderer.render();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// render particles
+	Engine::particleRenderer.render();
 
 	Engine::renderSys.camera = oldCamera;
 }
@@ -121,16 +141,16 @@ void WaterMaterial::renderRefraction()
 {
 	Engine::renderSys.deferredRenderingFBO = mRefractionFbo;
 	Engine::renderSys.setClipPlane(glm::vec4{ 0, -1, 0, mWaterY + 1 });
-	Engine::renderSys.renderScene(&mRefractionTarget, RenderPhase::WATER);
+	Engine::renderSys.renderScene(&mEmptyRefractionTarget, RenderPhase::WATER);
 }
 
 void WaterMaterial::use()
 {
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mReflectionTarget.getColorBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, mReflectionRarget.getColorBuffer().getId());
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mRefractionTarget.getColorBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getDiffuseBuffer().getId());
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, mDuDvMap.getId());
@@ -139,16 +159,8 @@ void WaterMaterial::use()
 	glBindTexture(GL_TEXTURE_2D, mNormalMap.getId());
 
 	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, mRefractionTarget.getDepthBuffer().getId());
+	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getDepthBuffer().getId());
 
-	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getDiffuseBuffer().getId());
-
-	glActiveTexture(GL_TEXTURE6);
-	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getAdditionalBuffer().getId());
-
-	glActiveTexture(GL_TEXTURE7);
-	glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getNormalBuffer().getId());
 
 	shader.use();
 	shader.setFloat(mMoveDuDvLocation, mMoveDuDv);
