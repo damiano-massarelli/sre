@@ -309,7 +309,7 @@ const glm::mat4 RenderSystem::getProjectionMatrix() const
 
 void RenderSystem::prepareRendering(const RenderTarget* target)
 {
-	if (shadowMappingSettings.getShadowStrength() != 0.0f)
+	if (shadowMappingSettings.isShadowRenderingEnabled())
 		renderShadows();
 
 	// view port might be changed during shadow rendering
@@ -320,7 +320,7 @@ void RenderSystem::prepareRendering(const RenderTarget* target)
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// do not clear stencil buffer, we are just cleaning the screen now
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	/* Camera calculations */
 	glm::mat4 view = glm::mat4{ 1.0f };
@@ -379,6 +379,9 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
 
 	preparePBRRendering();
 	render(RenderPhase::PBR | phase);
+
+	// no need to render lights and stuff if render target is not valid
+	if (!targetToUse->isValid()) return;
 
 	//nvtxRangePushA("finalize deferred");
 	finalizeDeferredRendering(targetToUse);

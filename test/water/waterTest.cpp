@@ -17,6 +17,7 @@
 #include "WaterMaterial.h"
 #include "PointLight.h"
 #include "runTest.h"
+#include "GammaCorrection.h"
 
 #include <iostream>
 #include <stdlib.h>
@@ -26,6 +27,11 @@ int main(int argc, char* argv[]) {
     Engine::init();
 
     Engine::renderSys.createWindow(1280, 720);
+
+	auto gammaPost = std::make_shared<GammaCorrection>();
+	gammaPost->setGamma(1.8f);
+	gammaPost->setExposure(1.0f);
+	Engine::renderSys.effectManager.addEffect(gammaPost);
 
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";

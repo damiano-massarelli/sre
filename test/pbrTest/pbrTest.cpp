@@ -17,6 +17,8 @@
 #include "GammaCorrection.h"
 #include "SSAO.h"
 
+#include "WaterMaterial.h"
+
 #include <iostream>
 
 static void addParticles(const GameObjectEH& eh) {
@@ -85,19 +87,30 @@ int main(int argc, char* argv[]) {
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
-	auto sponza = GameObjectLoader().fromFile("test_data/bloom/sponza.fbx");
+	auto sponza = GameObjectLoader().fromFile("test_data/bloom/sponza2.fbx");
 	sponza->transform.setScale(glm::vec3{ 0.1f });
 
+	for (const auto& eh : sponza->transform.findAll("vase"))
+		eh->getMaterials()[0]->unSupportedRenderPhases |= RenderPhase::SHADOW_MAPPING;
 
 	for (const auto& eh : sponza->transform.findAll("firePos"))
 		addParticles(eh);
+
+	auto water = Engine::gameObjectManager.createGameObject(MeshCreator::plane(),
+		std::make_shared<WaterMaterial>(5.0f, Texture::loadFromFile("test_data/water/dudv.png"),
+			Texture::loadFromFile("test_data/water/normal.png")));
+
+	water->transform.moveBy(glm::vec3{ 0.0f, 5.0f, 0.0f });
+	water->transform.rotateBy(glm::angleAxis(glm::radians(-90.0f), water->transform.right()));
+	water->transform.scaleBy(glm::vec3{ 290.0f, 140.0f, 1.0f });
+
 
 	auto pbrMaterial = std::make_shared<PBRMaterial>();
 	pbrMaterial->setAlbedo(Texture::loadFromFile("test_data/pbr/albedo.png"));
 	pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness.png"));
 	pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal.png"));
 	pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
-	pbrMaterial->setAmbienOccludionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
+	pbrMaterial->setAmbientOccludionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
 
 	auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 50, 50, true, true, true), pbrMaterial);
 	sphere->transform.scaleBy(glm::vec3{ 3.0f });

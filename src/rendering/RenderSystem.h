@@ -116,9 +116,6 @@ private:
 	/** Performs all operations needed by PBR rendering */
 	void preparePBRRendering();
 
-	/** Calls rendering submodules to perform rendering */
-	void render(int phase);
-
 	/** Performs all operations needed to finalize deferred rendering: combine g-buffer data */
 	void finalizeDeferredRendering(const RenderTarget* target);
 
@@ -229,6 +226,12 @@ public:
 	 * @param phase specifies which render phase to use
 	 */
 	void renderScene(const RenderTarget* target = nullptr, RenderPhase phase = RenderPhase::NONE);
+
+	/** 
+	  * Renders all the GameObject%s to the currently bound RenderTarget.
+	  * renderScene() should always be preferred except for particular cases
+	  * @param phase the rendering phase */
+	void render(int phase);
 
 	/**
 	 * Returns the view matrix for a certain transform.

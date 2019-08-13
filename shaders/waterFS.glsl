@@ -14,9 +14,6 @@ uniform sampler2D refraction;
 uniform sampler2D dudvMap;
 uniform sampler2D normalMap;
 uniform sampler2D depthMap;
-uniform sampler2D groundDiffuseMap;
-uniform sampler2D groundSpecularMap;
-uniform sampler2D groundNormalMap;
 
 uniform float far;
 uniform float near;
@@ -35,11 +32,6 @@ void main() {
 	vec2 ndcTexCoord = (clipSpaceCoord.xy / clipSpaceCoord.w) / 2 + 0.5;
 	vec2 reflectionTexCoord = vec2(ndcTexCoord.x, -ndcTexCoord.y);
 	vec2 refractionTexCoord = ndcTexCoord;
-
-	// get color, specular and normal of the underlying ground (will be mixed with those of the water)
-	vec3 groundNormal = texture(groundNormalMap, ndcTexCoord).rgb;
-	vec4 groundSpecular = texture(groundSpecularMap, ndcTexCoord);
-	vec4  groundDiffuse = texture(groundDiffuseMap, ndcTexCoord);
 
 	// get ground and water height and compute the depth of the water
 	float height = texture(depthMap, ndcTexCoord).r;
@@ -75,20 +67,18 @@ void main() {
 	// compute diffuse color and mix it with ground diffuse
     Diffuse = mix(reflectionColor, refractionColor, fresnelFactor);
 	Diffuse = mix(Diffuse, vec4(0.0, 0.3, 0.3, 1.0), 0.2); // add blue-ish tint
-	Diffuse = mix(groundDiffuse, Diffuse, waterDepth);
+	Diffuse = mix(refractionColor, Diffuse, waterDepth);
 
 	// compute specular color and mix it with ground specular
-	Specular = vec4(vec3(0.5) * waterDepth, 128.0);
-	Specular = mix(groundSpecular, Specular, waterDepth);
-	Specular.a *= float(groundSpecular.a != 0 || waterDepth == 1.0); // if the ground is a lambert keep it that way
+	Specular = vec4(vec3(1.0) * waterDepth, 128.0);
 
 	// compute normal and mix it with that of the ground
 	vec4 sampledNormal = texture(normalMap, distortedTexCoords);
 	// the z component is rotated into the y component
-	vec3 normal = vec3(sampledNormal.r * 2 - 1, sampledNormal.b, (sampledNormal.g * 2 - 1));
+	vec3 normal = vec3(sampledNormal.r * 2 - 1, sampledNormal.b, (sampledNormal.g * 2.0 - 1.0));
 	normal = normalize(normal + vec3(0, 5, 0));
 
-	Normal = mix(groundNormal, normal, waterDepth);
+	Normal = normal;
 
 	// position is not mixed with that of the ground since it is not
 	// beneficial

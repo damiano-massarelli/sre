@@ -13,14 +13,24 @@ void RenderTarget::create(std::uint32_t width, std::uint32_t height, bool wantCo
 	if (wantDepthBuffer)
 		depthBuffer = Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, GL_DEPTH24_STENCIL8);
 
-
-	createWith(colorBuffer, depthBuffer);
+	if (colorBuffer || depthBuffer)
+		createWith(colorBuffer, depthBuffer);
+	
+	// update anyway
+	mWidth = width;
+	mHeight = height;
 }
 
 void RenderTarget::createWith(const Texture& colorBuffer, const Texture& depthBuffer)
 {
-	mWidth = colorBuffer.getWidth();
-	mHeight = colorBuffer.getHeight();
+	if (colorBuffer) {
+		mWidth = colorBuffer.getWidth();
+		mHeight = colorBuffer.getHeight();
+	}
+	else if (depthBuffer) {
+		mWidth = depthBuffer.getWidth();
+		mHeight = depthBuffer.getHeight();
+	}
 
 	mColorBuffer = colorBuffer;
 	mDepthBuffer = depthBuffer;
@@ -73,6 +83,11 @@ const Texture& RenderTarget::getColorBuffer() const
 const Texture& RenderTarget::getDepthBuffer() const
 {
 	return mDepthBuffer;
+}
+
+bool RenderTarget::isValid() const
+{
+	return mColorBuffer.isValid() || mDepthBuffer.isValid();
 }
 
 RenderTarget::~RenderTarget()

@@ -21,8 +21,6 @@ out vec3 position;
 out vec3 normal;
 
 void main() {
-	gl_ClipDistance[0] = dot(vec4(position, 1.0), clipPlane);
-
     texCoord = vTexCoord;
 	mat4 boneTransform = bones[vBones[0]] * vWeights[0] +
 						 bones[vBones[1]] * vWeights[1]	+
@@ -31,6 +29,8 @@ void main() {
 
 
     position = (model * boneTransform * vec4(vPos, 1.0f)).xyz;
+
+	gl_ClipDistance[0] = dot(vec4(position, 1.0), clipPlane);
     normal = normalize(normalModel * vNorm);
 
     gl_Position = projectionView * vec4(position, 1.0f);

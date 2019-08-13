@@ -13,7 +13,7 @@ vec4 ssao(vec4 color) {
     ao /= (4.0 * 4.0);
 
     float aoFactor = (1.0 - ao);
-    aoFactor = pow(aoFactor, 2.0);
+    aoFactor = pow(aoFactor, 3.0);
 
     return vec4(color.rgb * aoFactor, 1.0);
 }

@@ -74,13 +74,21 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
 
 void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int meshNumber, aiMesh* mesh, const aiScene* scene)
 {
+	// builds the parents name
+	std::string parents;
+	aiNode* current = node;
+	while (current != nullptr) {
+		parents += current->mName.C_Str();
+		current = current->mParent;
+	}
+
 	// creates the cache name for this mesh
-	std::string cacheName = mFilePath + std::string{ node->mName.C_Str() } +std::string{ mesh->mName.C_Str() } + std::to_string(meshNumber);
+	std::string cacheName = mFilePath + parents + std::string{ mesh->mName.C_Str() } + std::to_string(meshNumber);
 
 	// loads material
 	MaterialPtr loadedMaterial = processMaterial(mesh, scene, cacheName);
 	if (loadedMaterial == nullptr) {
-		std::cerr << "Mesh " << mesh->mName.C_Str() << "does not have a corresponding material, discarded\n";
+		std::cerr << "Mesh " << mesh->mName.C_Str() << " does not have a corresponding material, discarded\n";
 		return;
 	}
 

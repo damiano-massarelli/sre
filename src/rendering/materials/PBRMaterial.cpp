@@ -35,7 +35,7 @@ void PBRMaterial::setRoughnessMap(const Texture& roughness)
 	mRoughness = roughness;
 }
 
-void PBRMaterial::setAmbienOccludionMap(const Texture& ao)
+void PBRMaterial::setAmbientOccludionMap(const Texture& ao)
 {
 	mAO = ao;
 }

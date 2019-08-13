@@ -23,11 +23,16 @@ class WaterMaterial :
 	public Material, public EventListener
 {
 private:
-	RenderTarget mReflectionTarget;
+	// invalid render target so that lights lights calculations are not carried out (see RenderSystem::renderScene)
+	RenderTarget mEmptyReflectionTarget;
 	DeferredRenderingFBO mReflectionFbo;
 
-	RenderTarget mRefractionTarget;
+	// invalid render target so that lights lights calculations are not carried out
+	RenderTarget mEmptyRefractionTarget;
 	DeferredRenderingFBO mRefractionFbo;
+
+	// render target for forward and particles
+	RenderTarget mReflectionRarget;
 
 	GameObjectEH mReflectionCamera;
 
