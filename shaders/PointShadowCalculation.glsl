@@ -4,7 +4,7 @@
 uniform samplerCube shadowCube;
 uniform float lightRadius;
 
-const float BIAS = 0.07;
+const float BIAS = 0.1;
 
 vec3 sampleOffsetDirections[20] = vec3[]
 (

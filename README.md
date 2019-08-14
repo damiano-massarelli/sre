@@ -104,3 +104,9 @@ int main(int argc, char* argv[]) {
 Result (click on the image to see the full size version):
 
 <img src="readme/pbr_sphere.png" alt="pbr sphere" width="800"/>
+
+## Fancier renderings
+
+<img src="readme/sponza.png" alt="sponza" width="800"/>
+<img src="readme/sponza_water.png" alt="sponza" width="800"/>
+<img src="readme/sponza_water2.png" alt="sponza" width="800"/>

@@ -87,6 +87,13 @@ void SSAO::onSetup(Shader& postProcessingShader)
 
 void SSAO::update(Shader& postProcessingShader)
 {
+	if (mNeedsUpdate) {
+		mNeedsUpdate = false;
+		postProcessingShader.use();
+		postProcessingShader.setFloat("_ssao_darkenFactor", mDarkenFactor);
+		postProcessingShader.setInt("_ssao_blurSize", mBlurSize);
+	}
+
 	RenderSystem& rsys = Engine::renderSys;
 
 	glActiveTexture(GL_TEXTURE0 + mNormalTextureIndex);
@@ -106,6 +113,54 @@ void SSAO::update(Shader& postProcessingShader)
 	// bind the ssao texture
 	glActiveTexture(GL_TEXTURE0 + mSSAOTextureIndex);
 	glBindTexture(GL_TEXTURE_2D, mSSAOCreationTarget.getColorBuffer().getId());
+}
+
+void SSAO::setKernelSize(int size)
+{
+	if (size > 64) size = 64;
+
+	mKernelSize = size;
+	mSSAOCreationShader.use();
+	mSSAOCreationShader.setInt("kernelSize", size);
+}
+
+int SSAO::getKernelSize() const
+{
+	return mKernelSize;
+}
+
+void SSAO::setRadius(float radius)
+{
+	mRadius = radius;
+	mSSAOCreationShader.use();
+	mSSAOCreationShader.setFloat("radius", radius);
+}
+
+float SSAO::getRadius() const
+{
+	return mRadius;
+}
+
+void SSAO::setDarkenFactor(float factor)
+{
+	mDarkenFactor = factor;
+	mNeedsUpdate = true;
+}
+
+float SSAO::getDarkenFactor() const
+{
+	return mDarkenFactor;
+}
+
+void SSAO::setBlurSize(int size)
+{
+	mBlurSize = size;
+	mNeedsUpdate = true;
+}
+
+int SSAO::getBlurSize() const
+{
+	return mBlurSize;
 }
 
 SSAO::~SSAO()

@@ -1,7 +1,7 @@
 #include "Bloom.h"
 #include "Engine.h"
 
-Bloom::Bloom() : Effect{ "bloom", "effects/bloom.glsl" }, mGaussianBlur{ 0.75f }
+Bloom::Bloom(float scaleFactor) : Effect{ "bloom", "effects/bloom.glsl" }, mGaussianBlur{ scaleFactor }
 {
 	mBloom = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
 
@@ -19,6 +19,11 @@ void Bloom::onSetup(Shader& postProcessingShader)
 
 void Bloom::update(Shader& postProcessingShader)
 {
+	if (mNeedsUpdate) {
+		postProcessingShader.use();
+		postProcessingShader.setFloat("_bloom_bloomFactor", mBloomFactor);
+		mNeedsUpdate = false;
+	}
 	RenderSystem& rsys = Engine::renderSys;
 
  	Engine::renderSys.copyTexture(rsys.effectTarget.getColorBuffer(), mTarget, mBloomExtractor);
@@ -27,6 +32,17 @@ void Bloom::update(Shader& postProcessingShader)
 
 	glActiveTexture(GL_TEXTURE0 + mBlurredTexture);
 	glBindTexture(GL_TEXTURE_2D, blurred.getId());
+}
+
+void Bloom::setBloomFactor(float bloomFactor)
+{
+	mNeedsUpdate = true;
+	mBloomFactor = bloomFactor;
+}
+
+float Bloom::getBloomFactor() const
+{
+	return mBloomFactor;
 }
 
 Bloom::~Bloom()

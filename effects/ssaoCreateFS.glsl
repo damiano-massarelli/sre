@@ -2,9 +2,10 @@
 in vec2 texCoord;
 out float FragColor;
 
+uniform int kernelSize = 12;
+uniform float radius = 2.5;
+
 const float noiseResolution = 4.0f; // see res in SSAO::createNoise
-const int kernelSize = 12;
-const float radius = 2.5;
 const float minBias = 0.05;
 const float maxBias = 0.2;
 
