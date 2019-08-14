@@ -3,7 +3,7 @@ sre is a simple game engine based on OpenGL and SDL2.
 
 ![sre logo](readme/logo.png "sre logo")
 
-sre currenly supports:
+sre currently supports:
 - Game Objects and Components
 - Model loading (through Assimp)
 - Scene Graph
