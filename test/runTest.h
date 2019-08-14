@@ -18,5 +18,5 @@
 //#define waterTest 
 //#define bloomTest 
 //#define particleTest 
-#define pbrTest 
-//#define gitDemo
+//#define pbrTest 
+#define complexScene
