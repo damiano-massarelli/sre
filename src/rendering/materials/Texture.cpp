@@ -192,6 +192,14 @@ Texture::Texture(std::uint32_t id) : mTextureId{id}
 
 }
 
+void Texture::cleanUpIfNeeded()
+{
+	if (refCount.shouldCleanUp() && mTextureId != 0) {
+		glDeleteTextures(1, &mTextureId);
+		mTextureId = 0;
+	}
+}
+
 uint32_t Texture::getId() const
 {
     return mTextureId;
@@ -222,10 +230,23 @@ Texture::operator bool() const
     return isValid();
 }
 
+Texture& Texture::operator=(const Texture& rhs)
+{
+	if (mTextureId == rhs.mTextureId) return *this;
+
+	cleanUpIfNeeded();
+
+	mTextureId = rhs.mTextureId;
+	mWidth = rhs.mWidth;
+	mHeight = rhs.mHeight;
+	mIsCubeMap = rhs.mIsCubeMap;
+
+	refCount = rhs.refCount;
+
+	return *this;
+}
+
 Texture::~Texture()
 {
-	if (refCount.shouldCleanUp() && mTextureId != 0) {
-		glDeleteTextures(1, &mTextureId);
-		mTextureId = 0;
-	}
+	cleanUpIfNeeded();
 }

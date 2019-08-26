@@ -21,6 +21,8 @@ private:
 
 	RefCount mRefCount;
 
+	void cleanUpIfNeeded();
+
 public:
 	DeferredRenderingFBO() = default;
 
@@ -81,6 +83,8 @@ public:
 	 * @return the height of this FBO
 	 */
 	std::uint32_t getHeight() const;
+
+	DeferredRenderingFBO& operator=(const DeferredRenderingFBO& rhs);
 
 	~DeferredRenderingFBO();
 };

@@ -28,6 +28,8 @@ private:
 
 	static void writeDebugShaderToFile(const std::string& source);
 
+	void cleanUpIfNeeded();
+
 	Shader(std::uint32_t programId);
 
 public:
@@ -43,6 +45,8 @@ public:
 	static Shader fromCode(const std::vector<std::string>& vertexCode, const std::vector<std::string>& geometryCode, const std::vector<std::string>& fragmentCode);
 
 	Shader();
+
+	Shader& operator=(const Shader& rhs);
 
 	std::int32_t getLocationOf(const std::string& name, bool warning = true) const;
 

@@ -16,14 +16,42 @@ bool Mesh::hasVertexData() const
     return mHasVertexData;
 }
 
-void Mesh::cleanUp()
+Mesh& Mesh::operator=(const Mesh& rhs)
 {
-    for (auto& buffer : mBuffers)
-        glDeleteBuffers(1, &buffer);
-	mBuffers.clear();
+	if (mVao == rhs.mVao) return *this;
 
-    glDeleteVertexArrays(1, &mVao);
-    mVao = 0;
+	cleanUpIfNeeded();
+
+	mVao = rhs.mVao;
+	mBuffers = rhs.mBuffers;
+
+	mEbo = rhs.mEbo;
+
+	mUsesIndices = rhs.mUsesIndices;
+
+	mDrawMode = rhs.mDrawMode;
+
+	mHasVertexData = rhs.mHasVertexData;
+	mVertexData = rhs.mVertexData;
+
+	mVertexNumber = rhs.mVertexNumber;
+	mIndicesNumber = rhs.mIndicesNumber;
+
+	refCount = rhs.refCount;
+
+	return *this;
+}
+
+void Mesh::cleanUpIfNeeded()
+{
+	if (refCount.shouldCleanUp()) {
+		for (auto& buffer : mBuffers)
+			glDeleteBuffers(1, &buffer);
+		mBuffers.clear();
+
+		glDeleteVertexArrays(1, &mVao);
+		mVao = 0;
+	}
 }
 
 std::uint32_t Mesh::getVao() const
@@ -38,6 +66,5 @@ std::uint32_t Mesh::getEbo() const
 
 Mesh::~Mesh()
 {
-	if (refCount.shouldCleanUp())
-		cleanUp();
+	cleanUpIfNeeded();
 }

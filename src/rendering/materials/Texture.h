@@ -25,6 +25,8 @@ class Texture {
 
 		bool mIsCubeMap = false;
 
+		void cleanUpIfNeeded();
+
     public:
         /**
           * Creates an invalid texture.
@@ -129,6 +131,8 @@ class Texture {
           * @return whether the texture is valid or not.
           * @sa isValid */
         operator bool() const;
+
+		Texture& operator=(const Texture& rhs);
 
 		virtual ~Texture();
 };

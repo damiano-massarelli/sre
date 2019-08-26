@@ -77,9 +77,35 @@ std::uint32_t DeferredRenderingFBO::getHeight() const
 	return mHeight;
 }
 
-DeferredRenderingFBO::~DeferredRenderingFBO()
+DeferredRenderingFBO& DeferredRenderingFBO::operator=(const DeferredRenderingFBO& rhs)
+{
+	if (mFbo == rhs.mFbo) return *this;
+
+	cleanUpIfNeeded();
+
+	mFbo = rhs.mFbo;
+	mDiffuseBuffer = rhs.mDiffuseBuffer;
+	mAdditionalBuffer = rhs.mAdditionalBuffer;
+	mPositionBuffer = rhs.mPositionBuffer;
+	mNormalBuffer = rhs.mNormalBuffer;
+	mDepthBuffer = rhs.mDepthBuffer;
+
+	mWidth = rhs.mWidth;
+	mHeight = rhs.mHeight;
+
+	mRefCount = rhs.mRefCount;
+
+	return *this;
+}
+
+void DeferredRenderingFBO::cleanUpIfNeeded()
 {
 	if (mRefCount.shouldCleanUp() && mFbo != 0)
 		glDeleteFramebuffers(1, &mFbo);
+}
+
+DeferredRenderingFBO::~DeferredRenderingFBO()
+{
+	cleanUpIfNeeded();
 }
 

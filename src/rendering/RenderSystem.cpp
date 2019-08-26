@@ -776,6 +776,7 @@ void RenderSystem::cleanUp()
 	glDeleteBuffers(1, &mUboCommonMat);
 	glDeleteBuffers(1, &mUboLights);
 	mShadowMapMaterial = nullptr;
+	mPointShadowMaterial = nullptr;
 
 	effectManager.cleanUp();
 

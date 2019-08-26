@@ -19,6 +19,9 @@ private:
 
 	RefCount mRefCoutner;
 
+private:
+	void cleanUpIfNeeded();
+
 public:
 	RenderTarget() = default;
 
@@ -67,6 +70,8 @@ public:
 	 * @return true if one of the color or depth buffer is valid
 	 */
 	bool isValid() const;
+
+	RenderTarget& operator=(const RenderTarget& rhs);
 
 	~RenderTarget();
 };

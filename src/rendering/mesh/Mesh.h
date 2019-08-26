@@ -50,7 +50,7 @@ class Mesh
 
 		/**
 		  * Frees the memory held by this mesh */
-		void cleanUp();
+		void cleanUpIfNeeded();
 
     public:
         Mesh() = default;
@@ -77,6 +77,8 @@ class Mesh
           * Checks whether this mesh has vertex data.
           * @return true if vertex data is stored in this mesh, false otherwise. */
         bool hasVertexData() const;
+
+		Mesh& operator=(const Mesh& rhs);
 
 		virtual ~Mesh();
 };

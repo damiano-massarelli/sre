@@ -90,8 +90,31 @@ bool RenderTarget::isValid() const
 	return mColorBuffer.isValid() || mDepthBuffer.isValid();
 }
 
-RenderTarget::~RenderTarget()
+RenderTarget& RenderTarget::operator=(const RenderTarget& rhs)
+{
+	if (mFbo == rhs.mFbo) return *this;
+
+	cleanUpIfNeeded();
+
+	mFbo = rhs.mFbo;
+	mColorBuffer = rhs.mColorBuffer;
+	mDepthBuffer = rhs.mDepthBuffer;
+
+	mWidth = rhs.mWidth;
+	mHeight = rhs.mHeight;
+
+	mRefCoutner = rhs.mRefCoutner;
+
+	return *this;
+}
+
+void RenderTarget::cleanUpIfNeeded()
 {
 	if (mRefCoutner.shouldCleanUp() && mFbo != 0)
 		glDeleteFramebuffers(1, &mFbo);
+}
+
+RenderTarget::~RenderTarget()
+{
+	cleanUpIfNeeded();
 }

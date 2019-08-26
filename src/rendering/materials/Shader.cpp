@@ -114,6 +114,18 @@ Shader::Shader(std::uint32_t programId) : mProgramId{programId}
 {
 }
 
+Shader& Shader::operator=(const Shader& rhs)
+{
+	if (rhs.mProgramId == mProgramId) return *this;
+
+	cleanUpIfNeeded();
+
+	mProgramId = rhs.mProgramId;
+	refCount = rhs.refCount;
+
+	return *this;
+}
+
 std::string Shader::sourceFromFile(const std::string& path)
 {
     std::ifstream inputSource;
@@ -140,6 +152,12 @@ void Shader::writeDebugShaderToFile(const std::string& source)
     debugFile << source;
 
     debugFile.close();
+}
+
+void Shader::cleanUpIfNeeded()
+{
+	if (refCount.shouldCleanUp() && mProgramId != 0)
+		glDeleteProgram(mProgramId);
 }
 
 std::uint32_t Shader::createShaderFromFiles(const std::vector<std::string>& paths, GLenum type, bool addVersion)
@@ -336,7 +354,6 @@ Shader::operator bool() const {
 
 Shader::~Shader()
 {
-	if (refCount.shouldCleanUp() && mProgramId != 0)
-		glDeleteProgram(mProgramId);
+	cleanUpIfNeeded();
 }
 
