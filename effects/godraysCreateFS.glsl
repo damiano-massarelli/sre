@@ -4,21 +4,26 @@ out vec4 FragColor;
 
 uniform sampler2D src;
 
-float radius = 0.1;
-uniform vec2 lightScreenPos = vec2(0.5, 0.5);
+uniform float radius = 0.05;
 
-uniform int samples = 20;
+uniform vec3 lightScreenPos;
+
+uniform vec4 lightColor = vec4(1.0);
+
+uniform vec4 bgColor = vec4(0.0);
 
 void main() {
-	vec2 deltaTexCoord = texCoord - lightScreenPos;
-	deltaTexCoord *= 1.0 / float(samples);
+	vec2 size = textureSize(src, 0);
+	vec2 projectedLightPos = lightScreenPos.xy * 0.5 + 0.5;
+	float projectedLightZ = lightScreenPos.z * 0.5 + 0.5;
 
-	const float radius2 = radius * radius;
+	float depth = texture(src, texCoord).r;
 
-	for (int i = 0; i < samples; i++) {
-		vec2 coord = texCoord - deltaTexCoord * i;
+	vec2 dist = texCoord - projectedLightPos;
+	dist.x *= size.x / size.y;
 
-		float depth = texture(src, coord).r;
-		 
-	}
+	if (length(dist) <= radius) 
+		FragColor = lightColor * float(depth > projectedLightZ);
+	else
+		FragColor = bgColor;
 }
