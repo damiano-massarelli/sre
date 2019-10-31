@@ -3,7 +3,7 @@
 
 Bloom::Bloom(float scaleFactor) : Effect{ "bloom", "effects/bloom.glsl" }, mGaussianBlur{ scaleFactor }
 {
-	mBloom = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
+	mBloom = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGB16F);
 
 	mTarget.createWith(mBloom, Texture{});
 

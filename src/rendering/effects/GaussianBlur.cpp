@@ -5,7 +5,7 @@ GaussianBlur::GaussianBlur(float scaleFactor)
 {
 	auto width = Engine::renderSys.getScreenWidth() * scaleFactor;
 	auto height = Engine::renderSys.getScreenHeight() * scaleFactor;
-	mBlurred = Texture::load(nullptr, static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height), GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
+	mBlurred = Texture::load(nullptr, static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height), GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, false, GL_RGBA, GL_FLOAT, GL_RGB16F);
 	mTarget.createWith(mBlurred, Texture{});
 
 	hBlur = Shader::loadFromFile(std::vector<std::string>{ "effects/gaussianBlurVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);

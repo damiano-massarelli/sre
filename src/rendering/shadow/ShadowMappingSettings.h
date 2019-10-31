@@ -29,10 +29,10 @@ private:
 
 public:
 	/** width of the shadow map texture */
-	std::int32_t mapWidth = 2048;
+	std::int32_t mapWidth = 1024;
 
 	/** height of the shadow map texture */
-	std::int32_t mapHeight = 2048;
+	std::int32_t mapHeight = 1024;
 
 	/** width of the shadow box */
 	float width = 75.0f;

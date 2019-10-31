@@ -41,16 +41,16 @@ static void addParticles(const GameObjectEH& eh) {
 	settings.finalGravityScaleMax = -1.9f;
 	settings.dfactor = GL_ONE;
 
-	eh->addComponent(std::make_shared<ParticleEmitter>(eh, 500));
-
-	eh->getComponent<ParticleEmitter>()->setTextureAtlas(Texture::loadFromFile("test_data/particle/fire.png"), 25, 5, 5);
-	eh->getComponent<ParticleEmitter>()->start(300.0f);
-	eh->getComponent<ParticleEmitter>()->settings = settings;
-
-	eh->transform.moveBy(glm::vec3{ 0, 1.0f, 0 });
-
+// 	eh->addComponent(std::make_shared<ParticleEmitter>(eh, 500));
+// 
+// 	eh->getComponent<ParticleEmitter>()->setTextureAtlas(Texture::loadFromFile("test_data/particle/fire.png"), 25, 5, 5);
+// 	eh->getComponent<ParticleEmitter>()->start(300.0f);
+// 	eh->getComponent<ParticleEmitter>()->settings = settings;
+// 
+// 	eh->transform.moveBy(glm::vec3{ 0, 1.0f, 0 });
+// 
 	eh->addComponent(std::make_shared<PointLight>(eh));
-	eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
+	eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
 	eh->getComponent<PointLight>()->ambientColor = glm::vec3{ 0.89f, 0.75f, 0.276f } / 10.0f;
 	eh->getComponent<PointLight>()->diffuseColor = glm::vec3{ 0.89f, 0.75f, 0.276f } * 10.0f;
 	eh->getComponent<PointLight>()->specularColor = glm::vec3{ 0.89f, 0.75f, 0.276f } * 10.0f;
@@ -61,15 +61,15 @@ static void addParticles(const GameObjectEH& eh) {
 int main(int argc, char* argv[]) {
     Engine::init();
 
- 	Engine::renderSys.createWindow(1920, 1080);
-	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
-	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
-	Engine::renderSys.effectManager.addEffect(std::make_shared<SSAO>());
-	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
-	auto gammaPost = std::make_shared<GammaCorrection>();
-	gammaPost->setGamma(1.8f);
-	gammaPost->setExposure(1.0f);
-	Engine::renderSys.effectManager.addEffect(gammaPost);
+ 	Engine::renderSys.createWindow(1280, 720);
+// 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
+// 	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
+// 	Engine::renderSys.effectManager.addEffect(std::make_shared<SSAO>());
+ 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
+// 	auto gammaPost = std::make_shared<GammaCorrection>();
+// 	gammaPost->setGamma(1.8f);
+// 	gammaPost->setExposure(1.0f);
+// 	Engine::renderSys.effectManager.addEffect(gammaPost);
 
  	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.shadowMappingSettings.useFastShader = true;
@@ -96,13 +96,13 @@ int main(int argc, char* argv[]) {
 	for (const auto& eh : sponza->transform.findAll("firePos"))
 		addParticles(eh);
 
-	auto water = Engine::gameObjectManager.createGameObject(MeshCreator::plane(),
-		std::make_shared<WaterMaterial>(5.0f, Texture::loadFromFile("test_data/water/dudv.png"),
-			Texture::loadFromFile("test_data/water/normal.png")));
-
-	water->transform.moveBy(glm::vec3{ 0.0f, 5.0f, 0.0f });
-	water->transform.rotateBy(glm::angleAxis(glm::radians(-90.0f), water->transform.right()));
-	water->transform.scaleBy(glm::vec3{ 290.0f, 140.0f, 1.0f });
+// 	auto water = Engine::gameObjectManager.createGameObject(MeshCreator::plane(),
+// 		std::make_shared<WaterMaterial>(5.0f, Texture::loadFromFile("test_data/water/dudv.png"),
+// 			Texture::loadFromFile("test_data/water/normal.png")));
+// 
+// 	water->transform.moveBy(glm::vec3{ 0.0f, 5.0f, 0.0f });
+// 	water->transform.rotateBy(glm::angleAxis(glm::radians(-90.0f), water->transform.right()));
+// 	water->transform.scaleBy(glm::vec3{ 290.0f, 140.0f, 1.0f });
 
 
 	auto pbrMaterial = std::make_shared<PBRMaterial>();
@@ -127,14 +127,6 @@ int main(int argc, char* argv[]) {
 	auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
 	auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
-// 	auto human = GameObjectLoader().fromFile("C:/Users/damia/Desktop/warrior_idle.dae");
-// 	auto animationController = human->getCompont<SkeletralAnimationControllerComponent>();
-// 	animationController->playAnimation("default");
-// 	auto animation = animationController->getAnimation("default");
-// 	animation->loopDirection = SkeletalAnimation::LoopDirection::REPEAT;
-// 
-// 	human->transform.scaleBy(glm::vec3{ 10.0f });
-// 	human->transform.rotateBy(glm::angleAxis(glm::radians(90.0f), human->transform.up()));
 
 	auto sun = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
 	sun->name = "sun";

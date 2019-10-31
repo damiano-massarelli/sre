@@ -19,5 +19,5 @@
 //#define bloomTest 
 //#define particleTest 
 //#define pbrTest 
-//#define complexScene
-#define godRaysTest
+#define complexScene
+//#define godRaysTest
