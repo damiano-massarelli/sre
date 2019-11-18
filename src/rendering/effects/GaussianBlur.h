@@ -1,8 +1,8 @@
 #pragma once
 
-#include "RenderTarget.h"
-#include "Texture.h"
-#include "Shader.h"
+#include "rendering/RenderTarget.h"
+#include "rendering/materials/Texture.h"
+#include "rendering/materials/Shader.h"
 
 /**
  * Performs a Gaussian blur on a Texture.

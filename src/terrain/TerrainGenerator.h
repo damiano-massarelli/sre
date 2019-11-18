@@ -1,9 +1,9 @@
 #ifndef TERRAINGENERATOR_H
 #define TERRAINGENERATOR_H
-#include "GameObjectEH.h"
-#include "Mesh.h"
-#include "TerrainHeightProvider.h"
-#include "GeoMipMappingComponent.h"
+#include "gameobject/GameObjectEH.h"
+#include "rendering/mesh/Mesh.h"
+#include "terrain/TerrainHeightProvider.h"
+#include "terrain/GeoMipMappingComponent.h"
 #include <cstdint>
 
 /** Generates Mesh%es that can be used as terrain.

@@ -1,6 +1,6 @@
-#include "GameObjectRenderer.h"
-#include "Mesh.h"
-#include "Material.h"
+#include "rendering/GameObjectRenderer.h"
+#include "rendering/mesh/Mesh.h"
+#include "rendering/materials/Material.h"
 #include "Engine.h"
 #include <map>
 #include <tuple>

@@ -1,4 +1,4 @@
-#include "PointShadowMaterial.h"
+#include "rendering/materials/PointShadowMaterial.h"
 #include "Engine.h"
 
 PointShadowMaterial::PointShadowMaterial()

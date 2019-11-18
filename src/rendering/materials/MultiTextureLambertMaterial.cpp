@@ -1,5 +1,5 @@
-#include "MultiTextureLambertMaterial.h"
-#include "RenderSystem.h"
+#include "rendering/materials/MultiTextureLambertMaterial.h"
+#include "rendering/RenderSystem.h"
 
 MultiTextureLambertMaterial::MultiTextureLambertMaterial(Texture base, Texture red, Texture green, Texture blue, Texture blend, float horizontalTiles, float verticalTiles)
 	: Material{ "shaders/phongVS.glsl",

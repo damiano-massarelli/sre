@@ -1,14 +1,14 @@
 #include "Engine.h"
-#include "MeshLoader.h"
-#include "BlinnPhongMaterial.h"
-#include "PropMaterial.h"
+#include "rendering/mesh/MeshLoader.h"
+#include "rendering/materials/BlinnPhongMaterial.h"
+#include "rendering/materials/PropMaterial.h"
 
-#include "FreeCameraComponent.h"
-#include "Light.h"
-#include "MeshCreator.h"
-#include "GameObjectLoader.h"
+#include "cameras/FreeCameraComponent.h"
+#include "rendering/light/Light.h"
+#include "rendering/mesh/MeshCreator.h"
+#include "gameobject/GameObjectLoader.h"
 
-#include <runTest.h>
+#include "../test/runTest.h"
 
 #include <iostream>
 

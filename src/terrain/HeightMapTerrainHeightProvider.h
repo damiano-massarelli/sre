@@ -1,6 +1,6 @@
 #ifndef HEIGHTMAPTERRAINHEIGHTPROVIDER_H
 #define HEIGHTMAPTERRAINHEIGHTPROVIDER_H
-#include "TerrainHeightProvider.h"
+#include "terrain/TerrainHeightProvider.h"
 #include <cstdint>
 #include <string>
 #include <glm/vec3.hpp>

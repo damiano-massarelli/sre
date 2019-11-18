@@ -1,5 +1,5 @@
-#include "GameObjectEH.h"
-#include "GameObject.h"
+#include "gameobject/GameObjectEH.h"
+#include "gameobject/GameObject.h"
 
 GameObjectEH::GameObjectEH(HandleList<GameObject>* handleList, std::uint32_t index, std::uint32_t generation) : ExternalHandle{index, generation}, mHandleList{handleList} {
     /* Transform component hold a reference to the game object they belong to.

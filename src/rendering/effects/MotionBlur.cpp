@@ -1,4 +1,4 @@
-#include "MotionBlur.h"
+#include "rendering/effects/MotionBlur.h"
 #include "Engine.h"
 
 MotionBlur::MotionBlur()

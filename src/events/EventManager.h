@@ -4,8 +4,8 @@
 #include <vector>
 #include <SDL.h>
 #include <memory>
-#include "EventListener.h"
-#include "EventListenerCrumb.h"
+#include "events/EventListener.h"
+#include "events/EventListenerCrumb.h"
 
 class EventManager
 {

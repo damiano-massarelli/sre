@@ -1,4 +1,4 @@
-#include "BlinnPhongMaterial.h"
+#include "rendering/materials/BlinnPhongMaterial.h"
 #include "Engine.h"
 #include <iostream>
 #include <vector>

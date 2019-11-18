@@ -1,6 +1,6 @@
 #ifndef GAMEOBJECTEH_H
 #define GAMEOBJECTEH_H
-#include "HandleList.h"
+#include "components/HandleList.h"
 
 class GameObject;
 

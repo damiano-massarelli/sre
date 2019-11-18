@@ -1,9 +1,9 @@
 #ifndef GAMEOBJECT_H
 #define GAMEOBJECT_H
-#include "HandleList.h"
-#include "Transform.h"
-#include "Mesh.h"
-#include "Material.h"
+#include "components/HandleList.h"
+#include "gameobject/Transform.h"
+#include "rendering/mesh/Mesh.h"
+#include "rendering/materials/Material.h"
 #include <cstdint>
 #include <vector>
 #include <memory>

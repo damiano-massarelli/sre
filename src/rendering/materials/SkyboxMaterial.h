@@ -1,7 +1,7 @@
 #ifndef SKYBOXMATERIAL_H
 #define SKYBOXMATERIAL_H
-#include <Material.h>
-#include <Texture.h>
+#include "rendering/materials/Material.h"
+#include "rendering/materials/Texture.h"
 #include <glm/common.hpp>
 
 /**

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Effect.h"
+#include "rendering/effects/Effect.h"
 
 class FXAA : public Effect
 {

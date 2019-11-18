@@ -1,4 +1,4 @@
-#include "GammaCorrection.h"
+#include "rendering/effects/GammaCorrection.h"
 
 GammaCorrection::GammaCorrection() : Effect{"gammaCorrection", "effects/gammaCorrection.glsl"}
 {

@@ -1,5 +1,5 @@
-#include "PointLight.h"
-#include "Texture.h"
+#include "rendering/light/PointLight.h"
+#include "rendering/materials/Texture.h"
 #include <algorithm>
 
 PointLight::PointLight(const GameObjectEH& go)

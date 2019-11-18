@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Component.h"
-#include "GameObjectEH.h"
-#include "EventListener.h"
+#include "components/Component.h"
+#include "gameobject/GameObjectEH.h"
+#include "events/EventListener.h"
 #include <cstdint>
 #include <vector>
 #include <glm/glm.hpp>

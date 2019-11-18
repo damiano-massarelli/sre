@@ -1,6 +1,6 @@
-#include "FreeCameraComponent.h"
+#include "cameras/FreeCameraComponent.h"
 #include "Engine.h"
-#include "EventManager.h"
+#include "events/EventManager.h"
 
 FreeCameraComponent::FreeCameraComponent(const GameObjectEH& go) : Component(go)
 {

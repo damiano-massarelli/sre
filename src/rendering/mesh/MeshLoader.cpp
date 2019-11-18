@@ -1,4 +1,4 @@
-#include "MeshLoader.h"
+#include "rendering/mesh/MeshLoader.h"
 #include <glad/glad.h>
 
 MeshLoader::MeshLoader(int drawMode) : mDrawMode{drawMode}

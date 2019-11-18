@@ -1,4 +1,4 @@
-#include "LineMaterial.h"
+#include "rendering/materials/LineMaterial.h"
 
 LineMaterial::LineMaterial() : Material{"shaders/lineVS.glsl", "shaders/lineFS.glsl"}
 {

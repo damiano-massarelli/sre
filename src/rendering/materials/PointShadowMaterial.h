@@ -1,5 +1,5 @@
 #pragma once
-#include "Material.h"
+#include "rendering/materials/Material.h"
 #include <vector>
 #include <glm/glm.hpp>
 #include <cstdint>

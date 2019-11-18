@@ -1,4 +1,4 @@
-#include "EffectManager.h"
+#include "rendering/effects/EffectManager.h"
 #include <algorithm>
 #include <sstream>
 

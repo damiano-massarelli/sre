@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Bone.h"
+#include "skeletalAnimation/Bone.h"
 #include <vector>
 #include <glm/glm.hpp>
 #include<glm/gtx/quaternion.hpp>

@@ -1,8 +1,8 @@
 #ifndef FREECAMERACOMPONENT_H
 #define FREECAMERACOMPONENT_H
-#include "EventManager.h"
-#include "GameObject.h"
-#include "Component.h"
+#include "events/EventManager.h"
+#include "gameobject/GameObject.h"
+#include "components/Component.h"
 
 /**
   * A free camera can be moved around freely using WASD and rotated around

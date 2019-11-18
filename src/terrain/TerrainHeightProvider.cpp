@@ -1,4 +1,4 @@
-#include "TerrainHeightProvider.h"
+#include "terrain/TerrainHeightProvider.h"
 
 TerrainHeightProvider::TerrainHeightProvider()
 {

@@ -1,10 +1,10 @@
 #ifndef PHONGMATERIAL_H
 #define PHONGMATERIAL_H
-#include "Material.h"
-#include "Texture.h"
+#include "rendering/materials/Material.h"
+#include "rendering/materials/Texture.h"
 #include <glm/common.hpp>
 #include <memory>
-#include <SkeletralAnimationControllerComponent.h>
+#include "skeletalAnimation/SkeletralAnimationControllerComponent.h"
 
 /**
  * Blinn-Phong Material.

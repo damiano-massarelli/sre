@@ -1,4 +1,4 @@
-#include "Material.h"
+#include "rendering/materials/Material.h"
 #include <functional>
 
 Material::Material(const std::string& vertexShader, const std::string& fragmentShader) 

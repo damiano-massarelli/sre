@@ -1,4 +1,4 @@
-#include "PBRMaterial.h"
+#include "rendering/materials/PBRMaterial.h"
 
 PBRMaterial::PBRMaterial()
 	: Material{ {"shaders/bumpedPhongVS.glsl"}, {"shaders/pbrFS.glsl"} }

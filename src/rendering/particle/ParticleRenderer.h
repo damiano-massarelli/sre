@@ -1,8 +1,8 @@
 #pragma once
 #include "ParticleEmitter.h"
 #include "Particle.h"
-#include "Shader.h"
-#include "Mesh.h"
+#include "rendering/materials/Shader.h"
+#include "rendering/mesh/Mesh.h"
 #include <vector>
 #include <cstdint>
 #include <glm/glm.hpp>

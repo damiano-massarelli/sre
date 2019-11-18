@@ -1,10 +1,10 @@
 #pragma once
-#include "Effect.h"
-#include "GameObjectEH.h"
-#include "RenderTarget.h"
-#include "Shader.h"
+#include "rendering/effects/Effect.h"
+#include "gameobject/GameObjectEH.h"
+#include "rendering/RenderTarget.h"
+#include "rendering/materials/Shader.h"
 
-#include "GaussianBlur.h"
+#include "rendering/effects/GaussianBlur.h"
 
 /**
  * Good rays effect.

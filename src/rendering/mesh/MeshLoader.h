@@ -1,6 +1,6 @@
 #ifndef MESHLOADER_H
 #define MESHLOADER_H
-#include "Mesh.h"
+#include "rendering/mesh/Mesh.h"
 #include <cstdint>
 #include <vector>
 #include <glad/glad.h>

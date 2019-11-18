@@ -1,8 +1,8 @@
 #pragma once
-#include "Effect.h"
-#include "Texture.h"
-#include "RenderTarget.h"
-#include "GaussianBlur.h"
+#include "rendering/effects/Effect.h"
+#include "rendering/materials/Texture.h"
+#include "rendering/RenderTarget.h"
+#include "rendering/effects/GaussianBlur.h"
 
 /**
  * Bloom effect.

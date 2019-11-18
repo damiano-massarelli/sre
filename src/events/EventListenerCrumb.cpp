@@ -1,5 +1,5 @@
-#include "EventListenerCrumb.h"
-#include "EventManager.h"
+#include "events/EventListenerCrumb.h"
+#include "events/EventManager.h"
 #include "Engine.h"
 
 EventListenerCrumb::EventListenerCrumb(SDL_EventType eventType, EventListener* listener) : m_eventTypes{eventType}, m_listener{listener}

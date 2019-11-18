@@ -1,7 +1,7 @@
 #pragma once
-#include "Light.h"
-#include "GameObjectEH.h"
-#include "RenderTarget.h"
+#include "rendering/light/Light.h"
+#include "gameobject/GameObjectEH.h"
+#include "rendering/RenderTarget.h"
 
 class PointLight :
 	public Light

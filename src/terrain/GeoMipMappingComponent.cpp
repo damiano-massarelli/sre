@@ -1,6 +1,6 @@
-#include "GeoMipMappingComponent.h"
+#include "terrain/GeoMipMappingComponent.h"
 #include "Engine.h"
-#include "EventManager.h"
+#include "events/EventManager.h"
 #include <future>
 
 

@@ -1,5 +1,5 @@
-#include "MultiTextureBlinnPhongMaterial.h"
-#include "RenderSystem.h"
+#include "rendering/materials/MultiTextureBlinnPhongMaterial.h"
+#include "rendering/RenderSystem.h"
 
 MultiTextureBlinnPhongMaterial::MultiTextureBlinnPhongMaterial() :
 	Material{"shaders/bumpedPhongVS.glsl",

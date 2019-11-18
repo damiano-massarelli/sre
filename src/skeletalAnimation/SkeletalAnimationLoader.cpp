@@ -1,4 +1,4 @@
-#include "SkeletalAnimationLoader.h"
+#include "skeletalAnimation/SkeletalAnimationLoader.h"
 #include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>

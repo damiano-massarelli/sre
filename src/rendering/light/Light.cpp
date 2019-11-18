@@ -1,6 +1,6 @@
-#include "Light.h"
+#include "rendering/light/Light.h"
 #include "Engine.h"
-#include "RenderSystem.h"
+#include "rendering/RenderSystem.h"
 
 Light::Light(const GameObjectEH& go, Light::Type lightType) : Component{ go }, mType{ lightType }
 {

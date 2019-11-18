@@ -1,10 +1,10 @@
-#include "GameObjectLoader.h"
+#include "gameobject/GameObjectLoader.h"
 #include "Engine.h"
-#include "MeshLoader.h"
-#include "BlinnPhongMaterial.h"
-#include "Transform.h"
-#include "SkeletralAnimationControllerComponent.h"
-#include "SkeletalAnimationLoader.h"
+#include "rendering/mesh/MeshLoader.h"
+#include "rendering/materials/BlinnPhongMaterial.h"
+#include "gameobject/Transform.h"
+#include "skeletalAnimation/SkeletralAnimationControllerComponent.h"
+#include "skeletalAnimation/SkeletalAnimationLoader.h"
 #include <iostream>
 #include <cstdint>
 #include <cstdlib>

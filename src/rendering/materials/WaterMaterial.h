@@ -1,11 +1,11 @@
 #pragma once
-#include "Material.h"
-#include "RenderTarget.h"
-#include "EventListener.h"
-#include "EventListenerCrumb.h"
-#include "GameObjectEH.h"
-#include "DeferredRenderingFBO.h"
-#include "Texture.h"
+#include "rendering/materials/Material.h"
+#include "rendering/RenderTarget.h"
+#include "events/EventListener.h"
+#include "events/EventListenerCrumb.h"
+#include "gameobject/GameObjectEH.h"
+#include "rendering/deferredRendering/DeferredRenderingFBO.h"
+#include "rendering/materials/Texture.h"
 
 /**
  * Material for water rendering.

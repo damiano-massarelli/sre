@@ -1,8 +1,8 @@
 #ifndef LIGHT_H
 #define LIGHT_H
-#include "Component.h"
-#include "Shader.h"
-#include "RenderTarget.h"
+#include "components/Component.h"
+#include "rendering/materials/Shader.h"
+#include "rendering/RenderTarget.h"
 #include <glm/common.hpp>
 #include <cstdint>
 #include <memory>

@@ -1,4 +1,4 @@
-#include "SkeletalAnimation.h"
+#include "skeletalAnimation/SkeletalAnimation.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
 

@@ -1,4 +1,4 @@
-#include "DeferredRenderingFBO.h"
+#include "rendering/deferredRendering/DeferredRenderingFBO.h"
 #include <iostream>
 
 void DeferredRenderingFBO::init(std::uint32_t width, std::uint32_t height)

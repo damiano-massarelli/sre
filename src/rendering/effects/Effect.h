@@ -1,5 +1,5 @@
 #pragma once
-#include "Shader.h"
+#include "rendering/materials/Shader.h"
 #include <string>
 
 class Effect

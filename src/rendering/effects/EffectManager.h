@@ -1,6 +1,6 @@
 #pragma once
-#include "Effect.h"
-#include "Shader.h"
+#include "rendering/effects/Effect.h"
+#include "rendering/materials/Shader.h"
 #include <vector>
 #include <utility>
 #include <string.h>

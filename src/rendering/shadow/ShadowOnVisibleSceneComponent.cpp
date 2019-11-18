@@ -1,4 +1,4 @@
-#include "ShadowOnVisibleSceneComponent.h"
+#include "rendering/shadow/ShadowOnVisibleSceneComponent.h"
 #include "Engine.h"
 #include <cmath>
 #include <algorithm>

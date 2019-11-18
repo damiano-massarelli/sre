@@ -1,4 +1,4 @@
-#include "GameObject.h"
+#include "gameobject/GameObject.h"
 #include "Engine.h"
 
 GameObject::GameObject(const Mesh& mesh, MaterialPtr material)

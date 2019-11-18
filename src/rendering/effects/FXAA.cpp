@@ -1,4 +1,4 @@
-#include "FXAA.h"
+#include "rendering/effects/FXAA.h"
 #include "Engine.h"
 #include <glm/glm.hpp>
 

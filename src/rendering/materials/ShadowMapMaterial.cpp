@@ -1,4 +1,4 @@
-#include "ShadowMapMaterial.h"
+#include "rendering/materials/ShadowMapMaterial.h"
 #include "Engine.h" 
 
 ShadowMapMaterial::ShadowMapMaterial() : Material{"shaders/shadowMapVS.glsl", "shaders/shadowMapFS.glsl"}

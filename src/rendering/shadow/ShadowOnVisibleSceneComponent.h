@@ -1,11 +1,11 @@
 #pragma once
-#include "Component.h"
-#include "GameObjectEH.h"
-#include "EventListener.h"
-#include "EventListenerCrumb.h"
+#include "components/Component.h"
+#include "gameobject/GameObjectEH.h"
+#include "events/EventListener.h"
+#include "events/EventListenerCrumb.h"
 #include <array>
 #include <glm/glm.hpp>
-#include "EventManager.h"
+#include "events/EventManager.h"
 /**
  * Moves the light attached to this component
  * so that the scene framed by the camera always has

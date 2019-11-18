@@ -1,4 +1,4 @@
-#include "Mesh.h"
+#include "rendering/mesh/Mesh.h"
 #include <glad/glad.h>
 
 Mesh::Mesh(std::uint32_t vao) : mVao{vao}

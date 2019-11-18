@@ -1,4 +1,4 @@
-#include "DeferredLightShader.h"
+#include "rendering/deferredRendering/DeferredLightShader.h"
 
 void DeferredLightShader::init(const std::vector<std::string>& vertexShaders,
 	const std::vector<std::string>& fragmentShaders,

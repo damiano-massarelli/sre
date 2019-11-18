@@ -1,6 +1,6 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
-#include "GameObjectEH.h"
+#include "gameobject/GameObjectEH.h"
 #include <vector>
 #include <glm/glm.hpp>
 #include<glm/gtc/quaternion.hpp>

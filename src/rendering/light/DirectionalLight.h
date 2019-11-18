@@ -1,6 +1,6 @@
 #pragma once
-#include "Light.h"
-#include "RenderTarget.h"
+#include "rendering/light/Light.h"
+#include "rendering/RenderTarget.h"
 
 class DirectionalLight
 	: public Light

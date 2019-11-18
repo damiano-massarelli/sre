@@ -1,6 +1,6 @@
 #include "ParticleEmitter.h"
 #include "Engine.h"
-#include "EventManager.h"
+#include "events/EventManager.h"
 #include "Engine.h"
 #include <glm/common.hpp>
 

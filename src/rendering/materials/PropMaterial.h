@@ -1,6 +1,6 @@
 #ifndef LIGHTMATERIAL_H
 #define LIGHTMATERIAL_H
-#include "Material.h"
+#include "rendering/materials/Material.h"
 #include <glm/common.hpp>
 
 /** Material used by lights and props.

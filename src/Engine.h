@@ -1,11 +1,11 @@
 #ifndef ENGINE_H
 #define ENGINE_H
-#include "RenderSystem.h"
-#include "EventManager.h"
-#include "EventListener.h"
-#include "GameObjectManager.h"
-#include "GameObjectRenderer.h"
-#include "ParticleRenderer.h"
+#include "rendering/RenderSystem.h"
+#include "events/EventManager.h"
+#include "events/EventListener.h"
+#include "gameobject/GameObjectManager.h"
+#include "rendering/GameObjectRenderer.h"
+#include "rendering/particle/ParticleRenderer.h"
 #include "SDL.h"
 #include <cstdint>
 #include <memory>

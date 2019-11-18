@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SkeletalAnimation.h"
+#include "skeletalAnimation/SkeletalAnimation.h"
 #include <assimp/scene.h>
 #include <map>
 #include <cstdint>

@@ -1,7 +1,7 @@
-#include "WaterMaterial.h"
-#include "RenderSystem.h"
+#include "rendering/materials/WaterMaterial.h"
+#include "rendering/RenderSystem.h"
 #include "Engine.h"
-#include "RenderPhase.h"
+#include "rendering/RenderPhase.h"
 #include <glm/glm.hpp>
 #include <cmath>
 

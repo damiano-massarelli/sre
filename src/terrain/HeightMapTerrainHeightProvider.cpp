@@ -1,4 +1,4 @@
-#include "HeightMapTerrainHeightProvider.h"
+#include "terrain/HeightMapTerrainHeightProvider.h"
 #include <stb_image.h>
 #include <iostream>
 #include <glm/glm.hpp>

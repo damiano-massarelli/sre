@@ -1,7 +1,7 @@
 #ifndef GAMEOBJECTRENDERER_H
 #define GAMEOBJECTRENDERER_H
-#include "GameObject.h"
-#include "Material.h"
+#include "gameobject/GameObject.h"
+#include "rendering/materials/Material.h"
 
 /*
 * Add hash and equal to so that they can be

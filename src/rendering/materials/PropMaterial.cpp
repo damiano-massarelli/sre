@@ -1,4 +1,4 @@
-#include "PropMaterial.h"
+#include "rendering/materials/PropMaterial.h"
 #include "Engine.h"
 #include <glm/gtx/hash.hpp>
 

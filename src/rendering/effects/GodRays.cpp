@@ -1,4 +1,4 @@
-#include "GodRays.h"
+#include "rendering/effects/GodRays.h"
 #include "Engine.h"
 
 GodRays::GodRays(float scaleFactor) : Effect{ "godRays", "effects/godRays.glsl" }

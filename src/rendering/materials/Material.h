@@ -1,7 +1,7 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
-#include "Shader.h"
-#include "RenderPhase.h"
+#include "rendering/materials/Shader.h"
+#include "rendering/RenderPhase.h"
 #include <string>
 #include <memory>
 #include <vector>

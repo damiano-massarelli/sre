@@ -1,7 +1,7 @@
-#include "ParticleRenderer.h"
+#include "rendering/particle/ParticleRenderer.h"
 #include "Engine.h"
-#include "MeshLoader.h"
-#include "MeshCreator.h"
+#include "rendering/mesh/MeshLoader.h"
+#include "rendering/mesh/MeshCreator.h"
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

@@ -1,9 +1,9 @@
 #pragma once
-#include "Component.h"
+#include "components/Component.h"
 #include "Particle.h"
-#include "EventListener.h"
-#include "EventListenerCrumb.h"
-#include "Texture.h"
+#include "events/EventListener.h"
+#include "events/EventListenerCrumb.h"
+#include "rendering/materials/Texture.h"
 #include "EmitterSettings.h"
 #include <vector>
 #include <cstdint>

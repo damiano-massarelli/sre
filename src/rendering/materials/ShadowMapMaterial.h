@@ -1,5 +1,5 @@
 #pragma once
-#include "Material.h"
+#include "rendering/materials/Material.h"
 
 /**
  * Material used when rendering for Shadow Mapping

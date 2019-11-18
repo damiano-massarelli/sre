@@ -1,8 +1,8 @@
 #ifndef GAMEOBJECTMANAGER_H
 #define GAMEOBJECTMANAGER_H
-#include "GameObject.h"
-#include "HandleList.h"
-#include "GameObjectEH.h"
+#include "gameobject/GameObject.h"
+#include "components/HandleList.h"
+#include "gameobject/GameObjectEH.h"
 
 class GameObjectManager
 {

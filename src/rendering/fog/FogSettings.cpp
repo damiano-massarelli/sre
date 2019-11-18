@@ -1,6 +1,6 @@
-#include "FogSettings.h"
+#include "rendering/fog/FogSettings.h"
 #include <glad/glad.h>
-#include "RenderSystem.h"
+#include "rendering/RenderSystem.h"
 #include <glm/gtc/type_ptr.hpp>
 
 void FogSettings::setFogColor(const glm::vec3& fogColor)

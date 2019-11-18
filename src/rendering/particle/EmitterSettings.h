@@ -1,6 +1,6 @@
 #pragma once
 #include "Particle.h"
-#include "GameObjectEH.h"
+#include "gameobject/GameObjectEH.h"
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 

@@ -1,6 +1,6 @@
-#include "MeshCreator.h"
-#include "MeshLoader.h"
-#include "LineMaterial.h"
+#include "rendering/mesh/MeshCreator.h"
+#include "rendering/mesh/MeshLoader.h"
+#include "rendering/materials/LineMaterial.h"
 #include "Engine.h"
 #include <memory>
 #include <cstdint>

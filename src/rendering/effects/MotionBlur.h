@@ -1,5 +1,5 @@
 #pragma once
-#include "Effect.h"
+#include "rendering/effects/Effect.h"
 #include <glm/glm.hpp>
 #include <cstdint>
 

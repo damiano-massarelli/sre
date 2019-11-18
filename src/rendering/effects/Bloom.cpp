@@ -1,4 +1,4 @@
-#include "Bloom.h"
+#include "rendering/effects/Bloom.h"
 #include "Engine.h"
 
 Bloom::Bloom(float scaleFactor) : Effect{ "bloom", "effects/bloom.glsl" }, mGaussianBlur{ scaleFactor }

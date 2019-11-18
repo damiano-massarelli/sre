@@ -1,5 +1,5 @@
 #pragma once
-#include "Effect.h"
+#include "rendering/effects/Effect.h"
 
 /**
  * Performs gamma correction and tone mapping.

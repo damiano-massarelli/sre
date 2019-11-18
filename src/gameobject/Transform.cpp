@@ -1,5 +1,5 @@
-#include "Transform.h"
-#include "GameObject.h"
+#include "gameobject/Transform.h"
+#include "gameobject/GameObject.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <algorithm>

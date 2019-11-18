@@ -1,5 +1,5 @@
-#include "ShadowMappingSettings.h"
-#include "RenderSystem.h"
+#include "rendering/shadow/ShadowMappingSettings.h"
+#include "rendering/RenderSystem.h"
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 

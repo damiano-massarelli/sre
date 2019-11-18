@@ -1,7 +1,7 @@
 #ifndef MESHCREATOR_H
 #define MESHCREATOR_H
-#include "Mesh.h"
-#include "GameObjectEH.h"
+#include "rendering/mesh/Mesh.h"
+#include "gameobject/GameObjectEH.h"
 #include <cstdint>
 
 class MeshCreator

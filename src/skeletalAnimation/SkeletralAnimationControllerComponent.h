@@ -1,8 +1,8 @@
 #pragma once
-#include "Component.h"
-#include "Bone.h"
-#include "Timer.h"
-#include "SkeletalAnimation.h"
+#include "components/Component.h"
+#include "skeletalAnimation/Bone.h"
+#include "timer/Timer.h"
+#include "skeletalAnimation/SkeletalAnimation.h"
 #include <vector>
 #include <map>
 #include <cstdint>

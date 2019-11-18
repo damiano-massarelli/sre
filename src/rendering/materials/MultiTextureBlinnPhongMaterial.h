@@ -1,6 +1,6 @@
 #pragma once
-#include "Material.h"
-#include "Texture.h"
+#include "rendering/materials/Material.h"
+#include "rendering/materials/Texture.h"
 #include <cstdint>
 
 /**

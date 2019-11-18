@@ -1,4 +1,4 @@
-#include "SkyboxMaterial.h"
+#include "rendering/materials/SkyboxMaterial.h"
 #include "Engine.h"
 #include <limits>
 

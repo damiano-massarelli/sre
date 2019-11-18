@@ -1,4 +1,4 @@
-#include "GaussianBlur.h"
+#include "rendering/effects/GaussianBlur.h"
 #include "Engine.h"
 
 GaussianBlur::GaussianBlur(float scaleFactor)

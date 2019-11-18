@@ -1,6 +1,6 @@
-#include "DirectionalLight.h"
+#include "rendering/light/DirectionalLight.h"
 #include "Engine.h"
-#include "ShadowMappingSettings.h"
+#include "rendering/shadow/ShadowMappingSettings.h"
 
 DirectionalLight::DirectionalLight(const GameObjectEH& go)
 	: Light{ go, Light::Type::DIRECTIONAL }

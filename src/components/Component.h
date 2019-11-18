@@ -1,6 +1,6 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
-#include "GameObject.h"
+#include "gameobject/GameObject.h"
 #include <memory>
 
 class Component

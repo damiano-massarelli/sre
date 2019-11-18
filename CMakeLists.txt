@@ -11,7 +11,6 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
 endif(MSVC)
 
-#message("Project source dir: ${PROJECT_SOURCE_DIR}")
 #message("Cmake home dir: ${CMAKE_HOME_DIRECTORY}")
 
 # Searching files
@@ -22,44 +21,28 @@ file(GLOB INCLUDE_FILES
     ${PROJECT_SOURCE_DIR}/src/rendering/*/*.h
 )
 file(GLOB SRC_FILES
+    ${PROJECT_SOURCE_DIR}/main.cpp
     ${PROJECT_SOURCE_DIR}/test/*.cpp
     ${PROJECT_SOURCE_DIR}/test/*/*.cpp
-    #${PROJECT_SOURCE_DIR}/main.cpp
     ${PROJECT_SOURCE_DIR}/src/Engine.cpp
     ${PROJECT_SOURCE_DIR}/src/*/*.cpp
     ${PROJECT_SOURCE_DIR}/src/rendering/*/*.cpp
 )
 
-MACRO(HEADER_DIRECTORIES return_list)
-    FILE(GLOB_RECURSE new_list *.h)
-    SET(dir_list "")
-    FOREACH(file_path ${new_list})
-        GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
-        SET(dir_list ${dir_list} ${dir_path})
-    ENDFOREACH()
-    LIST(REMOVE_DUPLICATES dir_list)
-    SET(${return_list} ${dir_list})
-ENDMACRO()
-
-HEADER_DIRECTORIES(HEADER_DIRS)
-
-set(OTHER_LIBS_DIR "D:/software")
-set(SRE_LIBS_DIR "D:/software/sre_libs")
-
 include_directories(
-    ${HEADER_DIRS}
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/external
+    ${PROJECT_SOURCE_DIR}/external/KHR
+    ${PROJECT_SOURCE_DIR}/external/glm
     ${PROJECT_SOURCE_DIR}/external/nvToolsExt
     ${PROJECT_SOURCE_DIR}/external/stb_image
-    ${SRE_LIBS_DIR}
-    ${SRE_LIBS_DIR}/SDL2/include
-    ${OTHER_LIBS_DIR}/Assimp/include
+    ${PROJECT_SOURCE_DIR}/external/SDL2/include
+    ${PROJECT_SOURCE_DIR}/external/assimp/include
 )
 
 # Setup dependencies
 link_directories(
-    ${PROJECT_SOURCE_DIR}/external/SDL2/lib
+    ${PROJECT_SOURCE_DIR}/external/SDL2/lib/x64
     ${PROJECT_SOURCE_DIR}/external/assimp/lib
 )
 

@@ -1,5 +1,5 @@
-#include "TerrainGenerator.h"
-#include "MeshLoader.h"
+#include "terrain/TerrainGenerator.h"
+#include "rendering/mesh/MeshLoader.h"
 #include <vector>
 #include <glm/common.hpp>
 #include <memory.h>

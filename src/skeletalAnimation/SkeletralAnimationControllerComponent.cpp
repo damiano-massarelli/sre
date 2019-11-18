@@ -1,4 +1,4 @@
-#include "SkeletralAnimationControllerComponent.h"
+#include "skeletalAnimation/SkeletralAnimationControllerComponent.h"
 #include "Engine.h"
 
 SkeletralAnimationControllerComponent::SkeletralAnimationControllerComponent(const GameObjectEH& go, const std::vector<Bone>& skeleton,

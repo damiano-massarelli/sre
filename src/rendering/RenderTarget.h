@@ -1,6 +1,6 @@
 #pragma once
-#include "Texture.h"
-#include "RefCount.h"
+#include "rendering/materials/Texture.h"
+#include "resourceManagment/RefCount.h"
 #include <cstdint>
 /**
  * A RenderTarget is basically a wrapper for an FBO.

@@ -1,6 +1,6 @@
 #include "EmitterSettings.h"
-#include "Transform.h"
-#include "GameObject.h"
+#include "gameobject/Transform.h"
+#include "gameobject/GameObject.h"
 #include <cstdlib>
 
 float EmitterSettings::randVal(float min, float max)

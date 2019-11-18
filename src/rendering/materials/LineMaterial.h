@@ -1,6 +1,6 @@
 #ifndef LINEMATERIAL_H
 #define LINEMATERIAL_H
-#include "Material.h"
+#include "rendering/materials/Material.h"
 
 class LineMaterial : public Material
 {
