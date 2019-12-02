@@ -5,6 +5,7 @@
 #include "Transform.h"
 #include "SkeletralAnimationControllerComponent.h"
 #include "SkeletalAnimationLoader.h"
+#include "BoundingBox.h"
 #include <iostream>
 #include <cstdint>
 #include <cstdlib>
@@ -31,6 +32,8 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
 {
     GameObjectEH go = Engine::gameObjectManager.createGameObject();
     go->name = std::string{node->mName.C_Str()};
+
+	std::cout << go->name << "\n";
 
     //std::cout << "at node " << node->mName.C_Str() << "\n";
     for (std::uint32_t i = 0; i < node->mNumMeshes; ++i) {
@@ -118,6 +121,7 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 	std::vector<float> boneWeights;
 
     std::vector<Vertex> vertices;
+	std::vector<glm::vec3> positionsForBoundingBox;
     std::vector<std::uint32_t> indices;
 
     // Load vertex data
@@ -158,6 +162,7 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 		}
 
         vertices.push_back(v);
+		positionsForBoundingBox.push_back(v.position);
     }
 
     // Load indices
@@ -187,6 +192,7 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
     loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
     Mesh loadedMesh = loader.getMesh(vertices.size(), indices.size());
+	loadedMesh.boundingBox = BoundingBox{ positionsForBoundingBox };
 
 	loadedMesh.refCount.onRemove = [cacheName]() { GameObjectLoader::mMeshCache.erase(cacheName); };
 	mMeshCache[cacheName] = loadedMesh;

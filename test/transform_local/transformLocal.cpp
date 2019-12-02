@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-
+#ifdef transformLocal
 struct MoveComponent : public Component, public EventListener {
 
     MoveComponent(const GameObjectEH& eh) : Component{eh} {
@@ -33,7 +33,6 @@ struct MoveComponent : public Component, public EventListener {
 
 };
 
-#ifdef transformLocal
 int main(int argc, char* argv[]) {
     Engine::init();
 

@@ -103,6 +103,27 @@ void Transform::scaleBy(const glm::vec3& amount, const glm::vec3& pivot)
     setScale(mScale * amount, pivot);
 }
 
+BoundingBox Transform::getBoundingBox(bool transformed) const
+{
+	BoundingBox bb;
+
+	//todo this could be cached
+	for (const Mesh& mesh : gameObject->getMeshes()) {
+		bb.extend(mesh.boundingBox);
+	}
+
+	for (const GameObjectEH& go : getChildren()) {
+		bb.extend(go->transform.getBoundingBox(false));
+	}
+
+	if (transformed) {
+		BoundingBox nbb = bb.transformed(modelToWorld());
+		return nbb;
+	}
+	
+	return bb;
+}
+
 void Transform::lookAt(const glm::vec3& position)
 {
 	glm::vec3 dir = glm::normalize(position - getPosition());
@@ -254,12 +275,12 @@ void Transform::removeParent()
         mParent->transform.removeChild(gameObject);
 }
 
-const std::vector<GameObjectEH>& Transform::getChildren()
+const std::vector<GameObjectEH>& Transform::getChildren() const
 {
     return mChildren;
 }
 
-std::vector<GameObjectEH> Transform::findAll(const std::string& name)
+std::vector<GameObjectEH> Transform::findAll(const std::string& name) const
 {
 	std::vector<GameObjectEH> found;
 
@@ -280,12 +301,12 @@ std::vector<GameObjectEH> Transform::findAll(const std::string& name)
 	return found;
 }
 
-GameObjectEH Transform::find(const std::filesystem::path& path)
+GameObjectEH Transform::find(const std::filesystem::path& path) const
 {
 	return find(path.begin(), path.end());
 }
 
-GameObjectEH Transform::find(std::filesystem::path::iterator it, std::filesystem::path::iterator end)
+GameObjectEH Transform::find(std::filesystem::path::iterator it, std::filesystem::path::iterator end) const
 {
 	if (it == end)
 		return gameObject;

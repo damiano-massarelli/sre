@@ -11,12 +11,16 @@ class PropMaterial : public Material
 private:
 	std::uint32_t mColorLocation = 0;
 
+	bool mWireframe = false;
+
 public:
 	glm::vec3 color{ 1.0f, 1.0f, 1.0f };
 
-	PropMaterial(bool showNormals = false);
+	PropMaterial(bool wireframe = false, bool showNormals = false);
 
 	virtual void use() override;
+
+	virtual void after() override;
 
 	virtual std::size_t hash() const override;
 

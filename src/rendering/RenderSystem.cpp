@@ -417,7 +417,7 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 	/* Depth and stencil information is needed in the forward rendering pass (see renderScene).
 	 * Therefore, we need to copy the depth and stencil information created during the deferred
 	 * shader pass into the currently bound fbo. */
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, deferredRenderingFBO.getFBO());
+	//glBindFramebuffer(GL_READ_FRAMEBUFFER, deferredRenderingFBO.getFBO());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->getFbo());
 	glBlitFramebuffer(
 		0, 0, deferredRenderingFBO.getWidth(), deferredRenderingFBO.getHeight(),
