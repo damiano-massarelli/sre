@@ -1,16 +1,13 @@
 #include "GameObject.h"
 #include "Engine.h"
 
-GameObject::GameObject(const Mesh& mesh, MaterialPtr material)
-{
-    mMeshes.push_back(mesh);
-    mMaterials.push_back(material);
-}
-
 void GameObject::addMesh(const Mesh& mesh, const MaterialPtr& material)
 {
     mMeshes.push_back(mesh);
     mMaterials.push_back(material);
+
+	// new mesh added, we need to update the bb
+	//transform.updateBoundingBox();
 }
 
 const std::vector<Mesh>& GameObject::getMeshes() const

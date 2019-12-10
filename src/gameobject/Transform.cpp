@@ -103,6 +103,7 @@ void Transform::scaleBy(const glm::vec3& amount, const glm::vec3& pivot)
     setScale(mScale * amount, pivot);
 }
 
+#include <iostream>
 BoundingBox Transform::getBoundingBox(bool transformed) const
 {
 	BoundingBox bb;
@@ -112,15 +113,12 @@ BoundingBox Transform::getBoundingBox(bool transformed) const
 		bb.extend(mesh.boundingBox);
 	}
 
+	bb = bb.transformed(modelToWorld());
+
 	for (const GameObjectEH& go : getChildren()) {
 		bb.extend(go->transform.getBoundingBox(false));
 	}
 
-	if (transformed) {
-		BoundingBox nbb = bb.transformed(modelToWorld());
-		return nbb;
-	}
-	
 	return bb;
 }
 

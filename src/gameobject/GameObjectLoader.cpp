@@ -33,8 +33,6 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     GameObjectEH go = Engine::gameObjectManager.createGameObject();
     go->name = std::string{node->mName.C_Str()};
 
-	std::cout << go->name << "\n";
-
     //std::cout << "at node " << node->mName.C_Str() << "\n";
     for (std::uint32_t i = 0; i < node->mNumMeshes; ++i) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
@@ -72,6 +70,7 @@ GameObjectEH GameObjectLoader::processNode(aiNode* node, const aiScene* scene)
     go->transform.setPosition(position);
     go->transform.setRotation(rotation);
     go->transform.setScale(scale);
+
     return go;
 }
 

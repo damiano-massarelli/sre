@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 
 	auto godRays = std::make_shared<GodRays>();
 
-	Engine::renderSys.effectManager.addEffect(godRays);
+	//Engine::renderSys.effectManager.addEffect(godRays);
 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
 
     auto camera = Engine::gameObjectManager.createGameObject();

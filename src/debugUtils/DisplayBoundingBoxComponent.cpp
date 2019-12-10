@@ -20,6 +20,8 @@ DisplayBoundingBoxComponent::DisplayBoundingBoxComponent(const GameObjectEH& go,
 
 void DisplayBoundingBoxComponent::onEvent(SDL_Event e)
 {
+	auto bb = gameObject->transform.getBoundingBox();
+
 	mBoundingBox->transform.setPosition(gameObject->transform.getBoundingBox().getCenter());
 	mBoundingBox->transform.setScale(gameObject->transform.getBoundingBox().getExtent() / 2.0f);
 }

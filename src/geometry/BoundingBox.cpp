@@ -1,4 +1,7 @@
 #include "BoundingBox.h"
+#include <iostream>
+#include <glm/gtx/string_cast.hpp>
+#include <cmath>
 
 void BoundingBox::updateMinMax(const glm::vec3 & newPoint)
 {
@@ -69,11 +72,55 @@ void BoundingBox::extend(const BoundingBox& boundingBox)
 	mMax = glm::max(mMax, boundingBox.getMax());
 }
 
+bool BoundingBox::isValid() const
+{
+	for (int i = 0; i < 3; i++) {
+		if (std::isinf(mMin[i])) {
+			return false;
+		}
+	}
+
+	for (int i = 0; i < 3; i++) {
+		if (std::isinf(mMax[i])) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 BoundingBox BoundingBox::transformed(const glm::mat4& transformationMatrix) const
 {
-	glm::vec3 transformedMin = glm::vec3(transformationMatrix * glm::vec4{ mMin, 1.0f });
-	glm::vec3 transformedMax = glm::vec3(transformationMatrix * glm::vec4{ mMax, 1.0f });
+	// transforming an invalid bb would result in nans
+	if (!isValid()) {
+		return *this;
+	}
 
-	// todo this could be optimized
-	return BoundingBox(transformedMin, transformedMax);
+	glm::vec3 translation = glm::vec3(transformationMatrix[3]);
+	glm::mat3 transform = glm::mat3(transformationMatrix);
+
+	glm::vec3 transformedMin{ 0.0f, 0.0f, 0.0f };
+	glm::vec3 transformedMax{ 0.0f, 0.0f, 0.0f };
+
+	for (std::uint32_t col = 0; col < 3; ++col) {
+		for (std::uint32_t row = 0; row < 3; ++row) {
+			const float currentElement = transform[col][row];
+			if (currentElement >= 0.0f) {
+				transformedMax[row] += mMax[col] * currentElement;
+				transformedMin[row] += mMin[col] * currentElement;
+			}
+			else {
+				transformedMax[row] += mMin[col] * currentElement;
+				transformedMin[row] += mMax[col] * currentElement;
+			}
+		}
+	}
+
+	return BoundingBox(transformedMin + translation, transformedMax + translation);
+}
+
+std::ostream& operator<<(std::ostream& out, const BoundingBox& bb)
+{
+	std::cout << "BoundingBox(" << glm::to_string(bb.getMin()) << ", " << glm::to_string(bb.getMax()) << ")";
+	return out;
 }

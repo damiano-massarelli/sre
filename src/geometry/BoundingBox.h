@@ -40,6 +40,9 @@ public:
 
 	void extend(const BoundingBox& boundingBox);
 
+	bool isValid() const;
+
 	BoundingBox transformed(const glm::mat4& transformationMatrix) const;
 };
 
+std::ostream& operator<<(std::ostream& out, const BoundingBox& bb);

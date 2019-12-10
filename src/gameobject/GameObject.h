@@ -27,8 +27,6 @@ class GameObject
 		/** the name of this GameObject */
         std::string name = "gameobject";
 
-        GameObject(const Mesh& mesh, MaterialPtr material);
-
         GameObject() = default;
 
         void addMesh(const Mesh& mesh, const MaterialPtr& material);
