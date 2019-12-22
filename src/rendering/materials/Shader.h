@@ -12,6 +12,7 @@ class Shader
 {
 public:
 	RefCount refCount;
+    static const char* GLSL_VERSION_STRING;
 
 private:
 	static std::map<std::string, Shader> mShaderCache;

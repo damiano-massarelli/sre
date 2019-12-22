@@ -6,6 +6,7 @@
 #include "gameobject/GameObjectManager.h"
 #include "rendering/GameObjectRenderer.h"
 #include "rendering/particle/ParticleRenderer.h"
+#include "rendering/UIRenderer.h"
 #include "SDL.h"
 #include <cstdint>
 #include <memory>
@@ -37,6 +38,9 @@ class Engine : public EventListener
 
 		/** Renderer for Particle%s */
 		static ParticleRenderer particleRenderer;
+
+        /** Renderer for UI */
+        static UIRenderer uiRenderer;
 
         /**
           * Initializes the engine.

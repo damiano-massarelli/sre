@@ -1,6 +1,7 @@
 .vs
 bin/
 vsbuild/
+imgui.ini
 
 *.dll
 *.o

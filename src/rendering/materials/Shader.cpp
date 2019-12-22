@@ -9,6 +9,8 @@
 std::map<std::string, Shader> Shader::mShaderCache;
 std::uint32_t Shader::mInUse = 0;
 
+const char* Shader::GLSL_VERSION_STRING = "#version 420 core";
+
 // to print path vectors easily
 std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec) {
     out << "[";
@@ -185,7 +187,7 @@ std::uint32_t Shader::createShader(const std::vector<std::string>& code, GLenum 
 
     std::stringstream source;
     if (addVersion)
-        source << "#version 420 core\n";
+        source << GLSL_VERSION_STRING << "\n";
 
     for (std::size_t i = 0; i < code.size(); ++i)
         source << "#line 1 " << i << "\n" << code[i];

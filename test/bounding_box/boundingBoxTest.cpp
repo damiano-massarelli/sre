@@ -18,6 +18,8 @@
 #include "debugUtils/DisplayCameraFrustumComponent.h"
 #include "cameras/CameraComponent.h"
 
+#include <imgui/imgui.h>
+
 #include <iostream>
 
 #ifdef boundingBox
@@ -41,7 +43,7 @@ struct MoveComponent : public Component, public EventListener {
 	}
 };
 
-#include "Intersections.h"
+#include "geometry/Intersections.h"
 struct ControllerComponent : public Component, public EventListener {
 
 	ControllerComponent(const GameObjectEH& eh) : Component{ eh } {
@@ -65,6 +67,30 @@ struct ControllerComponent : public Component, public EventListener {
 	}
 };
 
+void drawUI() {
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    static float f = 0.0f;
+    static int counter = 0;
+    bool asd;
+
+    ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+    ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+    ImGui::Checkbox("Demo Window", &asd);      // Edit bools storing our window open/close state
+    ImGui::Checkbox("Another Window", &asd);
+
+    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+    ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+    if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+        counter++;
+    ImGui::SameLine();
+    ImGui::Text("counter = %d", counter);
+
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::End();
+}
+
 int main(int argc, char* argv[]) {
 	Engine::init(); // init engine
 
@@ -72,7 +98,7 @@ int main(int argc, char* argv[]) {
 
 	// add effects
 	Engine::renderSys.effectManager.enableEffects();
-	// 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
+	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
 	auto gammaPost = std::make_shared<GammaCorrection>();
 	gammaPost->setGamma(1.8f);
@@ -93,13 +119,30 @@ int main(int argc, char* argv[]) {
 
 	Engine::renderSys.setCamera(camera);
 
-
 	// Create a sphere and set its scale
 	auto scene = GameObjectLoader{}.fromFile("test_data/bounding_box/spheres.fbx");
 
 	auto cube = scene->transform.findAll("pCube1")[0];
 	auto sphere = scene->transform.findAll("pSphere1")[0];
 	auto torus = scene->transform.findAll("pTorus1")[0];
+
+    Engine::uiRenderer.setDebugUIDrawer([cube]() {
+        auto material = dynamic_cast<BlinnPhongMaterial*>((cube->getMaterials()[0]).get());
+        glm::vec3 diffuse = material->diffuseColor;
+        ImVec4 clear_color = ImVec4(diffuse.r, diffuse.g, diffuse.b, 1.00f);
+
+
+        ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+
+        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+        material->diffuseColor = glm::vec3{ clear_color.x, clear_color.y, clear_color.z };
+
+        ImGui::End();
+    });
+
 
 	auto gizmo = MeshCreator::axisGizmo();
 	gizmo->transform.scaleBy(glm::vec3{ 10.0f });

@@ -141,6 +141,8 @@ public:
 	/** Creates a new window */
 	void createWindow(std::uint32_t width, std::uint32_t height);
 
+    SDL_Window* getWindow() const { return mWindow; }
+
 	/** Maximum number of lights */
 	static constexpr std::size_t MAX_LIGHT_NUMBER = 32;
 

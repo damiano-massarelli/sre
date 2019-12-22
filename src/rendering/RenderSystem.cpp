@@ -81,6 +81,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height)
 	shadowMappingSettings.init();
 
 	Engine::particleRenderer.init();
+    Engine::uiRenderer.init();
 
 	// simple shader for shadow mapping
 	mShadowMapMaterial = std::make_shared<ShadowMapMaterial>();
@@ -404,6 +405,8 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
 	if (target == nullptr) {
 		//nvtxRangePushA("finalize rendering");
 		finalizeRendering();
+        
+        Engine::uiRenderer.render();
 
         SDL_GL_SwapWindow(mWindow);
 
