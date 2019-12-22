@@ -84,11 +84,6 @@ private:
 	/** Shader used to render PointLight's light on PBR materials using deferred rendering */
 	DeferredLightShader mPointLightDeferredPBR;
 
-	/** near and far clipping planes */
-	float mNearPlane = 0.0f;
-	float mFarPlane = 0.0f;
-	float mVerticalFov = 0.0f;
-
 	/** The camera used for rendering */
 	GameObjectEH mCamera;
 
@@ -97,7 +92,7 @@ private:
 	/** Current rendering phase */
 	int mRenderPhase;
 
-	void initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane);
+	void initGL(std::uint32_t width, std::uint32_t height);
 
 	void initDeferredRendering();
 
@@ -144,7 +139,7 @@ private:
 
 public:
 	/** Creates a new window */
-	void createWindow(std::uint32_t width, std::uint32_t height, float fovy = 0.785f, float nearPlane = 0.1, float farPlane = 1000.0f);
+	void createWindow(std::uint32_t width, std::uint32_t height);
 
 	/** Maximum number of lights */
 	static constexpr std::size_t MAX_LIGHT_NUMBER = 32;
@@ -209,21 +204,6 @@ public:
 	 * @return the height of the current window
 	 */
 	std::int32_t getScreenHeight() const;
-
-	/**
-	 * @return the near clipping plane distance
-	 */
-	float getNearPlane() const;
-
-	/**
-	 * @return the far clipping plane distance
-	 */
-	float getFarPlane() const;
-
-	/**
-	 * @return the vertical fov
-	 */
-	float getVerticalFov() const;
 
 	/**
 	 * @return the current rendering phase

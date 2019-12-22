@@ -28,7 +28,7 @@ RenderSystem::RenderSystem()
 
 }
 
-void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
+void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height)
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		std::cout << "Cannot init SDL " << SDL_GetError() << "\n";
@@ -65,7 +65,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 		std::terminate();
 	}
 
-	initGL(width, height, fovy, nearPlane, farPlane);
+	initGL(width, height);
 
 	if (DEBUG) {
 		glEnable(GL_DEBUG_OUTPUT);
@@ -73,9 +73,6 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 		glDebugMessageCallback(glDebugOutput, nullptr);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	}
-
-	mProjection = glm::perspective(fovy, static_cast<float>(width) / height,
-		nearPlane, farPlane);
 
 	initDeferredRendering();
 	effectTarget.create(width, height);
@@ -98,12 +95,8 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 	setCamera(defaultCamera);
 }
 
-void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
+void RenderSystem::initGL(std::uint32_t width, std::uint32_t height)
 {
-	mNearPlane = nearPlane;
-	mFarPlane = farPlane;
-	mVerticalFov = fovy;
-
 	mInvertView = glm::mat4{
 			glm::vec4{ -1, 0, 0, 0 },
 			glm::vec4{ 0, 1, 0, 0 },
@@ -411,6 +404,9 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
 	if (target == nullptr) {
 		//nvtxRangePushA("finalize rendering");
 		finalizeRendering();
+
+        SDL_GL_SwapWindow(mWindow);
+
 		//nvtxRangePop();
 	}
 
@@ -615,8 +611,6 @@ void RenderSystem::finalizeRendering()
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 
 	glEnable(GL_DEPTH_TEST);
-
-	SDL_GL_SwapWindow(mWindow);
 }
 
 void RenderSystem::renderShadows()
@@ -737,7 +731,7 @@ std::int32_t RenderSystem::getScreenHeight() const
 	SDL_GetWindowSize(mWindow, nullptr, &h);
 	return h;
 }
-
+/*
 float RenderSystem::getNearPlane() const
 {
 	return mNearPlane;
@@ -751,7 +745,7 @@ float RenderSystem::getFarPlane() const
 float RenderSystem::getVerticalFov() const
 {
 	return mVerticalFov;
-}
+}*/
 
 int RenderSystem::getRenderPhase() const
 {

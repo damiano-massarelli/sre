@@ -12,19 +12,19 @@ ShadowOnVisibleSceneComponent::ShadowOnVisibleSceneComponent(const GameObjectEH&
 
 void ShadowOnVisibleSceneComponent::computeWidthsAndHeights()
 {
-	float aspectRatio = Engine::renderSys.getScreenWidth() / (float)Engine::renderSys.getScreenHeight();
+	/*float aspectRatio = Engine::renderSys.getScreenWidth() / (float)Engine::renderSys.getScreenHeight();
 
 	float fovy = Engine::renderSys.getVerticalFov() / 2;
 	nearHeight = std::tan(fovy) * Engine::renderSys.getNearPlane();
 	farHeight = std::tan(fovy) * Engine::renderSys.getFarPlane() * shadowDistance;
 
 	farWidth = farHeight * aspectRatio;
-	nearWidth = nearHeight * aspectRatio;
+	nearWidth = nearHeight * aspectRatio;*/
 }
 
 void ShadowOnVisibleSceneComponent::onEvent(SDL_Event e)
 {
-	auto& renderSys = Engine::renderSys;
+	/*auto& renderSys = Engine::renderSys;
 	auto& cameraTransform = renderSys.getCamera()->transform;
 
 	// find center for far and near plane
@@ -53,7 +53,7 @@ void ShadowOnVisibleSceneComponent::onEvent(SDL_Event e)
 	renderSys.shadowMappingSettings.height = bb.y;
  
 	glm::mat3 view = glm::mat3{ Engine::renderSys.getViewMatrix(gameObject->transform) };
-	gameObject->transform.setPosition(glm::inverse(view) * center);
+	gameObject->transform.setPosition(glm::inverse(view) * center);*/
 }
 
 std::array<glm::vec3, 8> ShadowOnVisibleSceneComponent::calculateFrustumVertices(const glm::vec3& up, const glm::vec3& right, const glm::vec3& centerNear, glm::vec3& centerFar)

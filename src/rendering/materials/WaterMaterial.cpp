@@ -2,6 +2,7 @@
 #include "rendering/RenderSystem.h"
 #include "Engine.h"
 #include "rendering/RenderPhase.h"
+#include "cameras/CameraComponent.h"
 #include <glm/glm.hpp>
 #include <cmath>
 
@@ -35,8 +36,8 @@ WaterMaterial::WaterMaterial(float waterY, const Texture& dudv, const Texture& n
 	shader.setInt("normalMap", 3);
 	shader.setInt("depthMap", 4);
 
-	shader.setFloat("near", Engine::renderSys.getNearPlane());
-	shader.setFloat("far", Engine::renderSys.getFarPlane());
+	shader.setFloat("near", Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getNearPlaneDistance());
+	shader.setFloat("far", Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getFarPlaneDistance());
 
 	shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
 	shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
