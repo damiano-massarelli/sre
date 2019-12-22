@@ -2,10 +2,11 @@
 #include "Engine.h"
 #include <glm/gtx/hash.hpp>
 
-PropMaterial::PropMaterial(bool showNormals)
+PropMaterial::PropMaterial(bool wireframe, bool showNormals)
     : Material{{"shaders/propVS.glsl"},
      (showNormals ? std::vector<std::string>{"shaders/propGS.glsl"} : std::vector<std::string>{}),
-     {"shaders/propFS.glsl"}}
+     {"shaders/propFS.glsl"}},
+	mWireframe{ wireframe }
 {
 	unSupportedRenderPhases = RenderPhase::ALL & ~RenderPhase::FORWARD_RENDERING;
 
@@ -16,13 +17,26 @@ PropMaterial::PropMaterial(bool showNormals)
 
 void PropMaterial::use()
 {
+	if (mWireframe) {
+		glDisable(GL_CULL_FACE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
     shader.use();
     shader.setVec3(mColorLocation, color);
 }
 
+void PropMaterial::after()
+{
+	if (mWireframe) {
+		glEnable(GL_CULL_FACE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+}
+
 std::size_t PropMaterial::hash() const
 {
-	return std::hash<glm::vec3>{}(color);
+	return std::hash<glm::vec3>{}(color)
+		+ static_cast<std::int32_t>(mWireframe);
 }
 
 bool PropMaterial::equalsTo(const Material* rhs) const
@@ -33,5 +47,6 @@ bool PropMaterial::equalsTo(const Material* rhs) const
 	auto other = static_cast<const PropMaterial*>(rhs);
 	
 	return Material::equalsTo(rhs)
-		&& color == other->color;
+		&& color == other->color
+		&& mWireframe == other->mWireframe;
 }

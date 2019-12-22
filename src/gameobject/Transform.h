@@ -1,6 +1,7 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 #include "gameobject/GameObjectEH.h"
+#include "geometry/BoundingBox.h"
 #include <vector>
 #include <glm/glm.hpp>
 #include<glm/gtc/quaternion.hpp>
@@ -20,9 +21,39 @@ private:
 	bool mModelWorldNormalCacheValid = false;
 	glm::mat4 mCacheModelToWorldNormal;
 
+	/**
+	 * This is the bb taking into account the GameObject
+	 * meshes it gets updated if the number of meshes changes.
+	 */
+	bool mShouldUpdateMeshBoundingBox = true;
+	BoundingBox mCachedMeshesBoundingBox;
+
+	/**
+	 * The mesh bb transformed according to this transform's transformation
+	 * matrix
+	 */
+	bool mShouldUpdateTransformedBoundingBox = true;
+	BoundingBox mCachedTransformedBoundingBox;
+
+	/**
+	 * The bb of all the children of this GameObject
+	 */
+	bool mShouldUpdateChildrenBoundingBox = true;
+	BoundingBox mCachedChildrenBoundingBox;
+
+	/**
+	 * A bb comprising all the previous bbs
+	 */
+	BoundingBox mCachedBoundingBox;
+
     GameObjectEH gameObject;
     GameObjectEH mParent;
     std::vector<GameObjectEH> mChildren;
+
+	/**
+	 * Should be called by other transform when their bb changes.
+	 */
+	void askParentToUpdateBoundingBox();
 
 public:
     /**
@@ -78,6 +109,18 @@ public:
         * @param amount how much is the transform scaled
         * @param pivot the center of scaling */
     void scaleBy(const glm::vec3& amount, const glm::vec3& pivot);
+
+	/**
+	 * Returns the bounding box for this GameObject.
+	 * The bounding box is created taking into account all the children GameObject%s.
+	 * @returns the BoundingBox for the GameObject of this Transform.
+	 */
+	BoundingBox getBoundingBox();
+
+	/**
+	 * Called when the a Mesh is added or removed.
+	 */
+	void updateMeshBoundingBox();
 
 	/**
 		* Rotates this transform by a certain amount.
@@ -203,14 +246,14 @@ public:
 
     /**
       * @return this Transform%'s children */
-    const std::vector<GameObjectEH>& getChildren();
+    const std::vector<GameObjectEH>& getChildren() const;
 
 	/**
 	 * Finds all the children of this GameObject with the specified name.
 	 * @param name the name to find
 	 * @return all children GameObject%s with that name
 	 */
-	std::vector<GameObjectEH> findAll(const std::string& name);
+	std::vector<GameObjectEH> findAll(const std::string& name) const;
 
 	/**
 	 * Finds a GameObject given its path starting from the current GameObject.
@@ -218,7 +261,7 @@ public:
 	 * @param a relative path starting from the current node
 	 * @return a GameObjectEH to the found GameObject (invalid if no GameObject is found)
 	 */
-	GameObjectEH find(const std::filesystem::path& path);
+	GameObjectEH find(const std::filesystem::path& path) const;
 
 	/**
 	* Finds a GameObject given its path starting from the current GameObject.
@@ -227,7 +270,7 @@ public:
 	* @param the past last iterator for the path
 	* @return a GameObjectEH to the found GameObject (invalid if no GameObject is found)
 	*/
-	GameObjectEH find(std::filesystem::path::iterator it, std::filesystem::path::iterator end);
+	GameObjectEH find(std::filesystem::path::iterator it, std::filesystem::path::iterator end) const;
 };
 
 #endif // TRANSFORM_H

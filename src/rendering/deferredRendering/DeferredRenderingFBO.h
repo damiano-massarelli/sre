@@ -2,6 +2,7 @@
 #include "rendering/materials/Texture.h"
 #include "resourceManagment/RefCount.h"
 #include <cstdint>
+
 /**
  * Manages the deferred rendering FBO and the Texture%s used
  * as render targets.

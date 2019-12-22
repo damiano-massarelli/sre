@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <glad/glad.h>
+#include <type_traits>
 
 /**
   * Creates a new Mesh given the data for its vertices.
@@ -37,7 +38,7 @@ class MeshLoader
           * @param dataType the type of the data to load (GL_FLOAT, GL_UNSIGNED_INT, etc).
 		  * @param addToAttribPointer if true an attrib pointer is created for the data provided 
 		  * @param usage the usage (static, stream, etc) */
-        template <typename T>
+        template <typename T, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
         std::uint32_t loadData(const T* data, std::uint32_t size, int dataPerVertex,
 			GLenum bufferType = GL_ARRAY_BUFFER, GLenum dataType = GL_FLOAT, bool addToAttribPointer = true, GLenum usage = GL_STATIC_DRAW) {
 
@@ -63,7 +64,7 @@ class MeshLoader
 
 		// template specialization for ints. They should use glVertexAttrib * I * Pointer
 		template <>
-		std::uint32_t loadData<std::int32_t>(const std::int32_t* data, std::uint32_t size, int dataPerVertex,
+		std::uint32_t loadData<std::int32_t, nullptr>(const std::int32_t* data, std::uint32_t size, int dataPerVertex,
 			GLenum bufferType, GLenum dataType, bool addToAttribPointer, GLenum usage) {
 
 			std::uint32_t bo;

@@ -22,35 +22,35 @@
 #include <iostream>
 
 static void addParticles(const GameObjectEH& eh) {
-	EmitterSettings settings;
-	settings.velocityMin = glm::vec3{ 0.0f, -1.0f, 0.0f };
-	settings.velocityMax = glm::vec3{ 0.0f, 0.0f, 0.0f };
-	settings.positionOffsetMin = -glm::vec3{ 1.0f, 0.0f, 1.0f };
-	settings.positionOffsetMax = glm::vec3{ 1.0f, 0.5f, 1.0f };
-	settings.minDuration = 500.0f;
-	settings.maxDuration = 1500.0f;
-	settings.finalScaleMin = 0.0f;
-	settings.finalScaleMax = 0.1f;
-	settings.initialRotationMin = glm::radians(-30.0f);
-	settings.initialRotationMax = glm::radians(30.0f);
-	settings.finalRotationMin = glm::radians(-30.0f);
-	settings.finalRotationMax = glm::radians(30.0f);
-	settings.initialGravityScaleMin = -0.3f;
-	settings.initialGravityScaleMax = -1.0f;
-	settings.finalGravityScaleMin = -1.3f;
-	settings.finalGravityScaleMax = -1.9f;
-	settings.dfactor = GL_ONE;
+	//EmitterSettings settings;
+	//settings.velocityMin = glm::vec3{ 0.0f, -1.0f, 0.0f };
+	//settings.velocityMax = glm::vec3{ 0.0f, 0.0f, 0.0f };
+	//settings.positionOffsetMin = -glm::vec3{ 1.0f, 0.0f, 1.0f };
+	//settings.positionOffsetMax = glm::vec3{ 1.0f, 0.5f, 1.0f };
+	//settings.minDuration = 500.0f;
+	//settings.maxDuration = 1500.0f;
+	//settings.finalScaleMin = 0.0f;
+	//settings.finalScaleMax = 0.1f;
+	//settings.initialRotationMin = glm::radians(-30.0f);
+	//settings.initialRotationMax = glm::radians(30.0f);
+	//settings.finalRotationMin = glm::radians(-30.0f);
+	//settings.finalRotationMax = glm::radians(30.0f);
+	//settings.initialGravityScaleMin = -0.3f;
+	//settings.initialGravityScaleMax = -1.0f;
+	//settings.finalGravityScaleMin = -1.3f;
+	//settings.finalGravityScaleMax = -1.9f;
+	//settings.dfactor = GL_ONE;
 
-// 	eh->addComponent(std::make_shared<ParticleEmitter>(eh, 500));
-// 
-// 	eh->getComponent<ParticleEmitter>()->setTextureAtlas(Texture::loadFromFile("test_data/particle/fire.png"), 25, 5, 5);
-// 	eh->getComponent<ParticleEmitter>()->start(300.0f);
-// 	eh->getComponent<ParticleEmitter>()->settings = settings;
-// 
-// 	eh->transform.moveBy(glm::vec3{ 0, 1.0f, 0 });
-// 
+	//eh->addComponent(std::make_shared<ParticleEmitter>(eh, 500));
+
+	//eh->getComponent<ParticleEmitter>()->setTextureAtlas(Texture::loadFromFile("test_data/particle/fire.png"), 25, 5, 5);
+	//eh->getComponent<ParticleEmitter>()->start(300.0f);
+	//eh->getComponent<ParticleEmitter>()->settings = settings;
+
+	eh->transform.moveBy(glm::vec3{ 0, 1.0f, 0 });
+
 	eh->addComponent(std::make_shared<PointLight>(eh));
-	eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
+	eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
 	eh->getComponent<PointLight>()->ambientColor = glm::vec3{ 0.89f, 0.75f, 0.276f } / 10.0f;
 	eh->getComponent<PointLight>()->diffuseColor = glm::vec3{ 0.89f, 0.75f, 0.276f } * 10.0f;
 	eh->getComponent<PointLight>()->specularColor = glm::vec3{ 0.89f, 0.75f, 0.276f } * 10.0f;
@@ -81,11 +81,13 @@ int main(int argc, char* argv[]) {
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
     camera->transform.moveBy(glm::vec3{0.0f, 0.0f, 30.0f});
-    Engine::renderSys.camera = camera;
 
     auto cam = std::make_shared<FreeCameraComponent>(camera);
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
+
+	Engine::renderSys.setCamera(camera);
+
 
 	auto sponza = GameObjectLoader().fromFile("test_data/bloom/sponza.fbx");
 	sponza->transform.setScale(glm::vec3{ 0.1f });
@@ -96,13 +98,13 @@ int main(int argc, char* argv[]) {
 	for (const auto& eh : sponza->transform.findAll("firePos"))
 		addParticles(eh);
 
-// 	auto water = Engine::gameObjectManager.createGameObject(MeshCreator::plane(),
-// 		std::make_shared<WaterMaterial>(5.0f, Texture::loadFromFile("test_data/water/dudv.png"),
-// 			Texture::loadFromFile("test_data/water/normal.png")));
-// 
-// 	water->transform.moveBy(glm::vec3{ 0.0f, 5.0f, 0.0f });
-// 	water->transform.rotateBy(glm::angleAxis(glm::radians(-90.0f), water->transform.right()));
-// 	water->transform.scaleBy(glm::vec3{ 290.0f, 140.0f, 1.0f });
+	//auto water = Engine::gameObjectManager.createGameObject(MeshCreator::plane(),
+	//	std::make_shared<WaterMaterial>(5.0f, Texture::loadFromFile("test_data/water/dudv.png"),
+	//		Texture::loadFromFile("test_data/water/normal.png")));
+
+	//water->transform.moveBy(glm::vec3{ 0.0f, 5.0f, 0.0f });
+	//water->transform.rotateBy(glm::angleAxis(glm::radians(-90.0f), water->transform.right()));
+	//water->transform.scaleBy(glm::vec3{ 290.0f, 140.0f, 1.0f });
 
 
 	auto pbrMaterial = std::make_shared<PBRMaterial>();

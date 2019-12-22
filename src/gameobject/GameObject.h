@@ -27,8 +27,6 @@ class GameObject
 		/** the name of this GameObject */
         std::string name = "gameobject";
 
-        GameObject(const Mesh& mesh, MaterialPtr material);
-
         GameObject() = default;
 
         void addMesh(const Mesh& mesh, const MaterialPtr& material);
@@ -42,6 +40,11 @@ class GameObject
 		 * @return the materials used by this GameObject
 		 */
 		const std::vector<MaterialPtr>& getMaterials() const;
+
+		/**
+		 * Removes all the Mesh%es of this GameObject;
+		 */
+		void removeAllMeshes();
 
         /**
           * Adds a component to this game object.

@@ -9,8 +9,10 @@ GameObjectManager::GameObjectManager() : mGameObjectsHL{mGameObjects}
 GameObjectEH GameObjectManager::createGameObject(const Mesh& mesh, MaterialPtr material)
 {
     std::uint32_t index, gen;
-    mGameObjectsHL.add(GameObject(mesh, material), index, gen);
-    return GameObjectEH(&mGameObjectsHL, index, gen);
+    mGameObjectsHL.add(GameObject(), index, gen);
+    GameObjectEH eh = GameObjectEH(&mGameObjectsHL, index, gen);
+	eh->addMesh(mesh, material);
+	return eh;
 }
 
 GameObjectEH GameObjectManager::createGameObject()

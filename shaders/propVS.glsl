@@ -2,7 +2,6 @@
   * that should be rendered using a single color not affected by lights */
 layout (location = 0) in vec3 vPos;
 layout (location = 1) in vec3 vNorm;
-layout (location = 2) in vec2 vTexCoord;
 
 uniform mat4 model;
 layout (std140) uniform CommonMat {

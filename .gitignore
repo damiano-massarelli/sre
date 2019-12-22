@@ -3,3 +3,13 @@ bin/
 vsbuild/
 
 *.dll
+*.o
+*.cbp
+*.depend
+*.layout
+debug.glsl
+data
+docs
+Debug
+Release
+*.vcxproj*

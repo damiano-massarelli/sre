@@ -2,6 +2,7 @@
 #include "rendering/mesh/MeshLoader.h"
 #include "rendering/materials/LineMaterial.h"
 #include "Engine.h"
+#include "geometry/BoundingBox.h"
 #include <memory>
 #include <cstdint>
 #include <cmath>
@@ -81,7 +82,8 @@ GameObjectEH MeshCreator::axisGizmo()
 
 Mesh MeshCreator::cube()
 {
-	return MeshLoader::createMesh(vertices, 36, nullptr, 0);
+	Mesh cubeMesh = MeshLoader::createMesh(vertices, 36, nullptr, 0);
+	return cubeMesh;
 }
 
 Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)

@@ -1,6 +1,7 @@
 #ifndef MESH_H
 #define MESH_H
 #include "resourceManagment/RefCount.h"
+#include "geometry/BoundingBox.h"
 #include <cstdint>
 #include <glm/glm.hpp>
 #include <glad/glad.h>
@@ -27,6 +28,11 @@ class Mesh
 
 	public:
 		RefCount refCount;
+
+		/**
+		 * This mesh's bounding box
+		 */
+		BoundingBox boundingBox;
 
     private:
         std::uint32_t mVao = 0;
