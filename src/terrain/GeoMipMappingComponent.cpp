@@ -24,7 +24,7 @@ GeoMipMappingComponent::GeoMipMappingComponent(const GameObjectEH& go, float wid
 
 void GeoMipMappingComponent::compute(std::vector<std::uint32_t>& indices, std::uint32_t h, std::uint32_t v, std::uint32_t hOff, std::uint32_t vOff)
 {
-	auto pos3D = Engine::renderSys.camera->transform.getPosition();
+	auto pos3D = Engine::renderSys.getCamera()->transform.getPosition();
 
 	glm::vec2 camPos = glm::vec2{ pos3D.x, pos3D.z };
 	glm::vec2 topLeft = getPosition(h, v);

@@ -89,6 +89,9 @@ private:
 	float mFarPlane = 0.0f;
 	float mVerticalFov = 0.0f;
 
+	/** The camera used for rendering */
+	GameObjectEH mCamera;
+
 	std::vector<GameObjectEH> mLights;
 
 	/** Current rendering phase */
@@ -171,9 +174,6 @@ public:
 	/** settings for fog */
 	FogSettings fogSettings;
 
-	/** The camera used for rendering */
-	GameObjectEH camera;
-
 	/** The effect manager handles post processing effects */
 	EffectManager effectManager;
 
@@ -193,6 +193,17 @@ public:
 	 * @return the width of the current window
 	 */
 	std::int32_t getScreenWidth() const;
+
+	/**
+	 * Sets the camera used for rendering.
+	 * @param camera the camera to use (it must contain a CameraComponent)
+	 */
+	void setCamera(const GameObjectEH& camera);
+
+	/**
+	 * @returns the current camera.
+	 */
+	GameObjectEH getCamera() const;
 
 	/**
 	 * @return the height of the current window

@@ -73,7 +73,7 @@ void ParticleRenderer::updateParticleVBO(const std::vector<float>& data)
 
 void ParticleRenderer::computeInverseViewMatrix()
 {
-	glm::mat4 viewMatrix = Engine::renderSys.getViewMatrix(Engine::renderSys.camera->transform);
+	glm::mat4 viewMatrix = Engine::renderSys.getViewMatrix(Engine::renderSys.getCamera()->transform);
 
 	glm::mat3 counterRotation = glm::transpose(glm::mat3{ viewMatrix });
 
@@ -176,7 +176,7 @@ void ParticleRenderer::renderParticles(ParticleEmitter* emitter)
 {
 	std::vector<Particle>& particles = emitter->getParticles();
 
-	const glm::vec3& camPosition = Engine::renderSys.camera->transform.getPosition();
+	const glm::vec3& camPosition = Engine::renderSys.getCamera()->transform.getPosition();
 
 	insertionSort(particles.begin(), particles.end(), [&camPosition](const auto& p, const auto& p2) {
 		return glm::distance2(p.position, camPosition) < glm::distance2(p2.position, camPosition);

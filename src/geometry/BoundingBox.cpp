@@ -55,6 +55,11 @@ const glm::vec3 BoundingBox::getExtent() const
 	return mMax - mMin;
 }
 
+const glm::vec3 BoundingBox::getDiagonal() const
+{
+	return (mMax - mMin) / 2.0f;
+}
+
 const glm::vec3 BoundingBox::getCenter() const
 {
 	return (mMax + mMin) / 2.0f;

@@ -7,7 +7,7 @@ void GameObject::addMesh(const Mesh& mesh, const MaterialPtr& material)
     mMaterials.push_back(material);
 
 	// new mesh added, we need to update the bb
-	//transform.updateBoundingBox();
+	transform.updateMeshBoundingBox();
 }
 
 const std::vector<Mesh>& GameObject::getMeshes() const
@@ -18,6 +18,13 @@ const std::vector<Mesh>& GameObject::getMeshes() const
 const std::vector<MaterialPtr>& GameObject::getMaterials() const
 {
 	return mMaterials;
+}
+
+void GameObject::removeAllMeshes()
+{
+	mMeshes.clear();
+	mMaterials.clear();
+	transform.updateMeshBoundingBox();
 }
 
 void GameObject::addComponent(const std::shared_ptr<Component>& component)

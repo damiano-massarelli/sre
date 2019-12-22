@@ -2,6 +2,10 @@
 #include "Mesh.h"
 #include "Material.h"
 #include "Engine.h"
+#include "BoundingBox.h"
+#include "Frustum.h"
+#include "CameraComponent.h"
+#include "Intersections.h"
 #include <map>
 #include <tuple>
 #include <glad/glad.h>
@@ -58,7 +62,13 @@ void GameObjectRenderer::render()
 
 	std::unordered_map<Material*, std::vector<DrawData>> material2mesh;
 
+	const Frustum cameraFrustum = Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getViewFrutsum();
 	for (auto& go : Engine::gameObjectManager.mGameObjects) {
+		const BoundingBox goBB = go.transform.getBoundingBox();
+		if (goBB.isValid() && boxFrustumIntersection(goBB, cameraFrustum) == IntersectionTestResult::OUTSIDE) {
+			continue;
+		}
+
 		for (std::size_t meshIndex = 0; meshIndex < go.mMeshes.size(); meshIndex++) {
 
 			Material* meshMaterial = go.mMaterials[meshIndex].get();

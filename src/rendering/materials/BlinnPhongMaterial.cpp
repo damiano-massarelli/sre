@@ -163,7 +163,7 @@ bool BlinnPhongMaterial::needsOrderedRendering()
 
 float BlinnPhongMaterial::renderOrder(const glm::vec3& position)
 {
-    auto cam = Engine::renderSys.camera;
+    auto cam = Engine::renderSys.getCamera();
     if (cam)
         return glm::distance2(position, cam->transform.getPosition());
     else

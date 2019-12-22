@@ -6,6 +6,7 @@
 #include "ShadowMapMaterial.h"
 #include "MeshCreator.h"
 #include "DirectionalLight.h"
+#include "CameraComponent.h"
 #include "debug.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -14,17 +15,17 @@
 #include <exception>
 #include <algorithm>
 #include <iostream>
+#include <memory>
 #include <map>
 
 #include <nvToolsExt.h>
 
 // is openGL debug enabled
-bool DEBUG = true;
+bool DEBUG = false;
 
 RenderSystem::RenderSystem()
 {
-	camera = Engine::gameObjectManager.createGameObject();
-	camera->name = "defaultCamera";
+
 }
 
 void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
@@ -73,6 +74,9 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	}
 
+	mProjection = glm::perspective(fovy, static_cast<float>(width) / height,
+		nearPlane, farPlane);
+
 	initDeferredRendering();
 	effectTarget.create(width, height);
 	effectManager.init();
@@ -84,11 +88,18 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height, float
 	// simple shader for shadow mapping
 	mShadowMapMaterial = std::make_shared<ShadowMapMaterial>();
 	mPointShadowMaterial = std::make_shared<PointShadowMaterial>();
+
+	// create a default camera
+	GameObjectEH defaultCamera = Engine::gameObjectManager.createGameObject();
+	std::shared_ptr<CameraComponent> cameraComponent = std::make_shared<CameraComponent>(defaultCamera, 0.785f, 0.1f, 1000.0f);
+	defaultCamera->addComponent(cameraComponent);
+
+	defaultCamera->name = "defaultCamera";
+	setCamera(defaultCamera);
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height, float fovy, float nearPlane, float farPlane)
 {
-	mProjection = glm::perspective(fovy, static_cast<float>(width) / height, nearPlane, farPlane);
 	mNearPlane = nearPlane;
 	mFarPlane = farPlane;
 	mVerticalFov = fovy;
@@ -269,9 +280,9 @@ void RenderSystem::updateCamera()
 {
 	glm::vec3 cameraPosition{ 0.0f };
 	glm::vec3 cameraDirection{ 0.0f, 0.0f, 1.0f };
-	if (camera) {
-		cameraPosition = camera->transform.getPosition();
-		cameraDirection = camera->transform.forward();
+	if (mCamera) {
+		cameraPosition = mCamera->transform.getPosition();
+		cameraDirection = mCamera->transform.forward();
 	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
@@ -324,8 +335,8 @@ void RenderSystem::prepareRendering(const RenderTarget* target)
 
 	/* Camera calculations */
 	glm::mat4 view = glm::mat4{ 1.0f };
-	if (camera)
-		view = getViewMatrix(camera->transform);
+	if (mCamera)
+		view = getViewMatrix(mCamera->transform);
 
 	/* Sets the camera matrix to a UBO so that it is shared */
 	updateMatrices(&mProjection, &view);
@@ -698,6 +709,26 @@ std::int32_t RenderSystem::getScreenWidth() const
 	std::int32_t w;
 	SDL_GetWindowSize(mWindow, &w, nullptr);
 	return w;
+}
+
+void RenderSystem::setCamera(const GameObjectEH& camera)
+{
+	std::shared_ptr<CameraComponent> cameraComponent = camera->getComponent<CameraComponent>();
+	if (!camera || !camera->getComponent<CameraComponent>()) {
+		std::cerr << "Setting a camera without a CameraComponent, discarded\n";
+		return;
+	}
+
+	mCamera = camera;
+
+	// re-compute the projection matrix
+	mProjection = glm::perspective(cameraComponent->getFOV(), static_cast<float>(getScreenWidth()) / getScreenHeight(),
+		cameraComponent->getNearPlaneDistance(), cameraComponent->getFarPlaneDistance());
+}
+
+GameObjectEH RenderSystem::getCamera() const
+{
+	return mCamera;
 }
 
 std::int32_t RenderSystem::getScreenHeight() const

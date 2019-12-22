@@ -100,11 +100,11 @@ bool WaterMaterial::equalsTo(const Material* rhs) const
 
 void WaterMaterial::renderReflection()
 {
-	GameObjectEH oldCamera = Engine::renderSys.camera;
+	GameObjectEH oldCamera = Engine::renderSys.getCamera();
 	mReflectionCamera->transform = oldCamera->transform;
 
 	// temp camera for this stage
-	Engine::renderSys.camera = mReflectionCamera;
+	Engine::renderSys.setCamera(mReflectionCamera);
 
 	Transform& camTransform = mReflectionCamera->transform;
 
@@ -134,7 +134,7 @@ void WaterMaterial::renderReflection()
 	// render particles
 	Engine::particleRenderer.render();
 
-	Engine::renderSys.camera = oldCamera;
+	Engine::renderSys.setCamera(oldCamera);
 }
 
 void WaterMaterial::renderRefraction()

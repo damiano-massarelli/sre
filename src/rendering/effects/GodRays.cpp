@@ -67,7 +67,7 @@ void GodRays::update(Shader& postProcessingShader)
 
 	// calculate screen-space light position
 	auto& lightPosition = light->transform.getPosition();
-	auto& cameraTransform = rsys.camera->transform;
+	auto& cameraTransform = rsys.getCamera()->transform;
 
 	glm::vec4 transformedPosition = rsys.getProjectionMatrix() * rsys.getViewMatrix(cameraTransform) * glm::vec4{ lightPosition, 1.0f };
 	glm::vec3 projectedPos = glm::vec3{ transformedPosition } / transformedPosition.w;

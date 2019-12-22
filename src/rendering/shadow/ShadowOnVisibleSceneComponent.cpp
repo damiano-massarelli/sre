@@ -10,7 +10,6 @@ ShadowOnVisibleSceneComponent::ShadowOnVisibleSceneComponent(const GameObjectEH&
 	computeWidthsAndHeights();
 }
 
-#include <iostream>
 void ShadowOnVisibleSceneComponent::computeWidthsAndHeights()
 {
 	float aspectRatio = Engine::renderSys.getScreenWidth() / (float)Engine::renderSys.getScreenHeight();
@@ -26,7 +25,7 @@ void ShadowOnVisibleSceneComponent::computeWidthsAndHeights()
 void ShadowOnVisibleSceneComponent::onEvent(SDL_Event e)
 {
 	auto& renderSys = Engine::renderSys;
-	auto& cameraTransform = renderSys.camera->transform;
+	auto& cameraTransform = renderSys.getCamera()->transform;
 
 	// find center for far and near plane
 	glm::vec3 toNear = cameraTransform.forward() * renderSys.getNearPlane();

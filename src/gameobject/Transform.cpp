@@ -26,8 +26,20 @@ glm::mat4 Transform::modelToWorld()
 	return mCacheModelToWorld;
 }
 
+void Transform::askParentToUpdateBoundingBox()
+{
+	if (mParent) {
+		std::string name = gameObject->name;
+		Transform& parentTransform = mParent->transform;
+		parentTransform.mShouldUpdateChildrenBoundingBox = true;
+		parentTransform.askParentToUpdateBoundingBox(); // recursive call
+	}
+}
+
 void Transform::setPosition(const glm::vec3& position)
 {
+	askParentToUpdateBoundingBox();
+	mShouldUpdateTransformedBoundingBox = true;
 	mModelWorldCacheValid = false;
 	mModelWorldNormalCacheValid = false;
     glm::vec3 diff = position - mPosition;
@@ -48,6 +60,8 @@ void Transform::setRotation(const glm::quat& rotation)
 
 void Transform::setRotation(const glm::quat& rotation, const glm::vec3& pivot)
 {
+	askParentToUpdateBoundingBox();
+	mShouldUpdateTransformedBoundingBox = true;
 	mModelWorldCacheValid = false;
 	mModelWorldNormalCacheValid = false;
 
@@ -79,6 +93,8 @@ void Transform::setScale(const glm::vec3& scale)
 
 void Transform::setScale(const glm::vec3& scale, const glm::vec3& pivot)
 {
+	askParentToUpdateBoundingBox();
+	mShouldUpdateTransformedBoundingBox = true;
 	mModelWorldCacheValid = false;
 	mModelWorldNormalCacheValid = false;
 
@@ -103,23 +119,52 @@ void Transform::scaleBy(const glm::vec3& amount, const glm::vec3& pivot)
     setScale(mScale * amount, pivot);
 }
 
-#include <iostream>
-BoundingBox Transform::getBoundingBox(bool transformed) const
+BoundingBox Transform::getBoundingBox()
 {
-	BoundingBox bb;
-
-	//todo this could be cached
-	for (const Mesh& mesh : gameObject->getMeshes()) {
-		bb.extend(mesh.boundingBox);
+	if (!mShouldUpdateMeshBoundingBox &&
+		!mShouldUpdateChildrenBoundingBox &&
+		!mShouldUpdateTransformedBoundingBox) {
+		
+		return mCachedBoundingBox;
 	}
 
-	bb = bb.transformed(modelToWorld());
+	/* if the number of meshes changed we need to update the bb */
+	if (mShouldUpdateMeshBoundingBox) {
+		mCachedMeshesBoundingBox = BoundingBox();
+		for (const Mesh& mesh : gameObject->getMeshes()) {
+			mCachedMeshesBoundingBox.extend(mesh.boundingBox);
+		}
 
-	for (const GameObjectEH& go : getChildren()) {
-		bb.extend(go->transform.getBoundingBox(false));
+		mShouldUpdateMeshBoundingBox = false;
+		
+		// also update the transformed bb
+		mShouldUpdateTransformedBoundingBox = true;
 	}
 
-	return bb;
+	if (mShouldUpdateTransformedBoundingBox) {
+		mCachedTransformedBoundingBox = mCachedMeshesBoundingBox.transformed(modelToWorld());
+		mShouldUpdateTransformedBoundingBox = false;
+	}
+
+	if (mShouldUpdateChildrenBoundingBox) {
+		mCachedChildrenBoundingBox = BoundingBox();
+		for (const GameObjectEH& go : getChildren()) {
+			mCachedChildrenBoundingBox.extend(go->transform.getBoundingBox());
+		}
+		mShouldUpdateChildrenBoundingBox = false;
+	}
+
+	mCachedBoundingBox = BoundingBox();
+	mCachedBoundingBox.extend(mCachedTransformedBoundingBox);
+	mCachedBoundingBox.extend(mCachedChildrenBoundingBox);
+
+	return mCachedBoundingBox;
+}
+
+void Transform::updateMeshBoundingBox()
+{
+	mShouldUpdateMeshBoundingBox = true;
+	askParentToUpdateBoundingBox();
 }
 
 void Transform::lookAt(const glm::vec3& position)
@@ -258,6 +303,10 @@ void Transform::addChild(const GameObjectEH& child)
 
         childTransform.mParent = gameObject;
         mChildren.push_back(child);
+
+		// new child bb should be updated
+		askParentToUpdateBoundingBox();
+		mShouldUpdateChildrenBoundingBox = true;
     }
 }
 
@@ -265,6 +314,9 @@ void Transform::removeChild(const GameObjectEH& child)
 {
     child->transform.mParent = GameObjectEH(); // invalid eh means no parent
     mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), child), mChildren.end());
+
+	askParentToUpdateBoundingBox();
+	mShouldUpdateChildrenBoundingBox = true;
 }
 
 void Transform::removeParent()

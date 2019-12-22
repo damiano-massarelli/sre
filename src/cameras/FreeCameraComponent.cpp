@@ -1,6 +1,7 @@
 #include "FreeCameraComponent.h"
 #include "Engine.h"
 #include "EventManager.h"
+#include "CameraComponent.h"
 
 FreeCameraComponent::FreeCameraComponent(const GameObjectEH& go) : Component(go)
 {
@@ -11,6 +12,12 @@ FreeCameraComponent::FreeCameraComponent(const GameObjectEH& go) : Component(go)
     SDL_SetRelativeMouseMode(SDL_TRUE);
 	
 	syncWithTransform();
+
+	/* Adds the camera component if this go does not have one */
+	if (!go->getComponent<CameraComponent>()) {
+		std::shared_ptr<CameraComponent> cameraComponent = std::make_shared<CameraComponent>(go, 0.785f, 0.1f, 1000.0f);
+		go->addComponent(cameraComponent);
+	}
 }
 
 

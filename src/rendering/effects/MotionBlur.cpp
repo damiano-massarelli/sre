@@ -5,7 +5,7 @@ MotionBlur::MotionBlur()
 	: Effect{"motionBlur", "effects/motionBlur.glsl"}
 {
 	RenderSystem& rsys = Engine::renderSys;
-	mPrevProjViewMatrix = rsys.getProjectionMatrix() * rsys.getViewMatrix(rsys.camera->transform);
+	mPrevProjViewMatrix = rsys.getProjectionMatrix() * rsys.getViewMatrix(rsys.getCamera()->transform);
 
 	mPositionTexture = Engine::renderSys.effectManager.getTexture();
 }
@@ -35,7 +35,7 @@ void MotionBlur::update(Shader& postProcessingShader)
 
 	RenderSystem& rsys = Engine::renderSys;
 
-	glm::mat4 currProjViewMat = rsys.getProjectionMatrix() * rsys.getViewMatrix(rsys.camera->transform);
+	glm::mat4 currProjViewMat = rsys.getProjectionMatrix() * rsys.getViewMatrix(rsys.getCamera()->transform);
 	postProcessingShader.setMat4(mPrevProjViewMatrixLocation, mPrevProjViewMatrix);
 	postProcessingShader.setMat4(mCurrentProjViewMatrixLocation, currProjViewMat);
 	glActiveTexture(GL_TEXTURE0 + mPositionTexture);

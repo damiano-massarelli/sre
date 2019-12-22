@@ -1,0 +1,10 @@
+*.o
+*.cbp
+*.depend
+*.layout
+debug.glsl
+data
+docs
+Debug
+Release
+*.vcxproj*

@@ -41,6 +41,11 @@ class GameObject
 		 */
 		const std::vector<MaterialPtr>& getMaterials() const;
 
+		/**
+		 * Removes all the Mesh%es of this GameObject;
+		 */
+		void removeAllMeshes();
+
         /**
           * Adds a component to this game object.
           * @param component the component to add (a shared_ptr to it) */
