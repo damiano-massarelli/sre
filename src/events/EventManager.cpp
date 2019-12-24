@@ -5,6 +5,8 @@
 const SDL_EventType EventManager::ENTER_FRAME_EVENT = static_cast<SDL_EventType>(SDL_RegisterEvents(1));
 const SDL_EventType EventManager::EXIT_FRAME_EVENT = static_cast<SDL_EventType>(SDL_RegisterEvents(1));
 const SDL_EventType EventManager::PRE_RENDER_EVENT = static_cast<SDL_EventType>(SDL_RegisterEvents(1));
+const SDL_EventType EventManager::ALL_EVENTS = static_cast<SDL_EventType>(SDL_RegisterEvents(1));
+
 
 EventManager::EventManager()
 {
@@ -43,7 +45,10 @@ void EventManager::dispatchEvents()
     /* Dispatches all events */
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
-        dispatchToListeners(event);
+        // Event type
+        SDL_EventType eventType = static_cast<SDL_EventType>(event.type);
+        dispatchToListeners(eventType, event);
+        dispatchToListeners(EventManager::ALL_EVENTS, event);
     }
 
     /* Adds the listeners */
@@ -56,10 +61,8 @@ void EventManager::dispatchEvents()
     m_toAdd.clear();
 }
 
-void EventManager::dispatchToListeners(SDL_Event& event)
+void EventManager::dispatchToListeners(SDL_EventType eventType, SDL_Event& event)
 {
-    // Event type
-    SDL_EventType eventType = static_cast<SDL_EventType>(event.type);
     if (m_event2listeners.count(eventType)) {
         // List of listeners for this type of event
         auto& listeners = m_event2listeners[eventType];
@@ -105,7 +108,7 @@ void EventManager::pushEvent(SDL_EventType type, void* data1 /*= nullptr*/, void
 	event.user.code = 0;
 	event.user.data1 = data1;
 	event.user.data2 = data2;
-	dispatchToListeners(event);
+	dispatchToListeners(type, event);
 }
 
 EventManager::~EventManager()

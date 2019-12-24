@@ -38,6 +38,9 @@ class EventManager
 		/** Emitted every frame just before rendering begins: after enter frame events and before exit frame */
 		static const SDL_EventType PRE_RENDER_EVENT;
 
+        /** Receives all events */
+        static const SDL_EventType ALL_EVENTS;
+
         EventManager(const EventManager& em) = delete;
         EventManager& operator=(const EventManager& em) = delete;
 
@@ -63,7 +66,7 @@ class EventManager
         /**
           * Dispatches a certain event to all the listeners registered for that event
           */
-        void dispatchToListeners(SDL_Event& event);
+        void dispatchToListeners(SDL_EventType eventType, SDL_Event& event);
 
         virtual ~EventManager();
 };

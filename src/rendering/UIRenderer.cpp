@@ -14,9 +14,17 @@ void UIRenderer::setDebugUIDrawer(std::function<void()> drawer)
 {
     if (!mIsDebugUI) {
         initDebugUI();
+        mIsDebugUI = true;
     }
 
     mDebugUIDrawer = drawer;
+}
+
+void UIRenderer::onEvent(SDL_Event e)
+{
+    if (mIsDebugUI) {
+        ImGui_ImplSDL2_ProcessEvent(&e);
+    }
 }
 
 void UIRenderer::render()
@@ -29,6 +37,8 @@ void UIRenderer::render()
 void UIRenderer::cleanUp()
 {
     if (mIsDebugUI) {
+        Engine::eventManager.removeListenerFor(EventManager::ALL_EVENTS, this);
+
         // Cleanup
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplSDL2_Shutdown();
@@ -49,7 +59,7 @@ void UIRenderer::initDebugUI()
     ImGui_ImplSDL2_InitForOpenGL(mWindow, SDL_GL_GetCurrentContext());
     ImGui_ImplOpenGL3_Init(Shader::GLSL_VERSION_STRING);
 
-    mIsDebugUI = true;
+    Engine::eventManager.addListenerFor(EventManager::ALL_EVENTS, this, false);
 }
 
 void UIRenderer::renderDebugUI()
