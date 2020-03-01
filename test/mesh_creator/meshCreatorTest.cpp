@@ -51,7 +51,7 @@ void MeshCreatorTestScene::start() {
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
-    light->addComponent(std::make_shared<Light>(light));
+    light->addComponent(std::make_shared<PointLight>(light));
     light->transform.setPosition(glm::vec3{0.0f, 3.0f, 0.0f});
     Engine::renderSys.addLight(light);
     light->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
@@ -60,7 +60,7 @@ void MeshCreatorTestScene::start() {
 
     auto light3 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light3->name = "light3";
-    light3->addComponent(std::make_shared<Light>(light3, Light::Type::DIRECTIONAL));
+    light3->addComponent(std::make_shared<DirectionalLight>(light3));
     light3->transform.setPosition(glm::vec3{0.0f, 0.0f, 15.0f});
     Engine::renderSys.addLight(light3);
     light3->getComponent<Light>()->diffuseColor = glm::vec3{1.0f, 1.0f, 1.0f};
