@@ -18,6 +18,8 @@ class GameObjectManager
 
 		void cleanUp();
 
+        void shutdown();
+
     public:
         /**
           * Creates a GameObject with a given Mesh and the corresponding Material

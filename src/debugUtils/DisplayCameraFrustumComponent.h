@@ -26,8 +26,6 @@ private:
 
 	CrumbPtr mEnterFrameCrumb;
 
-	GameObjectEH games[8];
-
 public:
 	DisplayCameraFrustumComponent(const GameObjectEH& go, const glm::vec3& color = glm::vec3{ 0.0f, 1.0f, 0.0f });
 

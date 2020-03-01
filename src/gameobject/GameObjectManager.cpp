@@ -53,6 +53,12 @@ const std::vector<GameObject>& GameObjectManager::getGameObjects() const
 
 void GameObjectManager::cleanUp()
 {
+    mGameObjectsHL.removeAll();
+    mGameObjects.clear();
+}
+
+void GameObjectManager::shutdown()
+{
 	mGameObjects.clear();
 }
 

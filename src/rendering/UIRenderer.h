@@ -17,6 +17,7 @@ public:
     void init();
     void render();
     void cleanUp();
+    void shutdown();
     
     void setDebugUIDrawer(std::function<void()> drawer);
 

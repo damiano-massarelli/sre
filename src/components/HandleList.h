@@ -101,6 +101,14 @@ class HandleList
                 mFreeSlots.push(handleIndex);
         }
 
+        void removeAll() {
+            mHandles.clear();
+            mFreeSlots = {};
+            dataIndex2handleIndex.clear();
+
+            mData.clear();
+        }
+
         T& get(std::uint32_t handleIndex, std::uint32_t generation) {
             if (!isValid(handleIndex, generation))
                 throw std::runtime_error("Access to an invalid or deleted handle");

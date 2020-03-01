@@ -64,7 +64,7 @@ void EffectManager::enableEffects()
 void EffectManager::disableEffects()
 {
 	mEnabled = false;
-	createShader({ });
+	createShader({ }); // TODO: why? - anyway, replace with init();
 }
 
 int EffectManager::getTexture()
@@ -100,7 +100,13 @@ void EffectManager::update()
 
 void EffectManager::cleanUp()
 {
-	mPostProcessingShader = Shader();
 	mEffects = {};
+
+    init();
 }
 
+void EffectManager::shutdown()
+{
+    mPostProcessingShader = Shader();
+    mEffects = {};
+}

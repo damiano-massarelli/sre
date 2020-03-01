@@ -72,10 +72,15 @@ public:
 	void render();
 
 	/**
-	 * Cleans up rendering data.
-	 * This method should only be called by the RenderSystem.
+	 * TODO
 	 */
 	void cleanUp();
+
+    /**
+     * Cleans up rendering data.
+     * This method should only be called by the RenderSystem.
+     */
+    void shutdown();
 
 	~ParticleRenderer();
 };

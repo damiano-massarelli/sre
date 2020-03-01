@@ -14,7 +14,7 @@ DisplayCameraFrustumComponent::DisplayCameraFrustumComponent(const GameObjectEH&
 
 	mContainer = Engine::gameObjectManager.createGameObject();
 
-	mEnterFrameCrumb = Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this);
+	mEnterFrameCrumb = Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this, true);
 }
 
 void DisplayCameraFrustumComponent::onEvent(SDL_Event e)

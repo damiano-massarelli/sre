@@ -28,6 +28,16 @@ RenderSystem::RenderSystem()
 
 }
 
+void RenderSystem::setDefaultCamera()
+{
+    GameObjectEH defaultCamera = Engine::gameObjectManager.createGameObject();
+    std::shared_ptr<CameraComponent> cameraComponent = std::make_shared<CameraComponent>(defaultCamera, 0.785f, 0.1f, 1000.0f);
+    defaultCamera->addComponent(cameraComponent);
+
+    defaultCamera->name = "defaultCamera";
+    setCamera(defaultCamera);
+}
+
 void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height)
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -87,13 +97,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height)
 	mShadowMapMaterial = std::make_shared<ShadowMapMaterial>();
 	mPointShadowMaterial = std::make_shared<PointShadowMaterial>();
 
-	// create a default camera
-	GameObjectEH defaultCamera = Engine::gameObjectManager.createGameObject();
-	std::shared_ptr<CameraComponent> cameraComponent = std::make_shared<CameraComponent>(defaultCamera, 0.785f, 0.1f, 1000.0f);
-	defaultCamera->addComponent(cameraComponent);
-
-	defaultCamera->name = "defaultCamera";
-	setCamera(defaultCamera);
+    setDefaultCamera();
 }
 
 void RenderSystem::initGL(std::uint32_t width, std::uint32_t height)
@@ -798,15 +802,19 @@ void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, const Shad
 	glViewport(0, 0, getScreenWidth(), getScreenHeight());
 }
 
-void RenderSystem::cleanUp()
-{
+void RenderSystem::cleanUp() {
+    mLights.clear();
+    effectManager.cleanUp();
+}
+
+void RenderSystem::shutdown() {
 	// Delete uniform buffers
 	glDeleteBuffers(1, &mUboCommonMat);
 	glDeleteBuffers(1, &mUboLights);
 	mShadowMapMaterial = nullptr;
 	mPointShadowMaterial = nullptr;
 
-	effectManager.cleanUp();
+	effectManager.shutdown();
 
 	// cleans shaders
 	mPointLightDeferred.cleanUp();

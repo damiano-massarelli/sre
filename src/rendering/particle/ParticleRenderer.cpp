@@ -205,9 +205,14 @@ void ParticleRenderer::setUpTextureAtlas(const ParticleEmitter* emitter)
 	mParticleShader.setVec2(mFrameSizeLocation, glm::vec2{ emitter->mColSize, emitter->mRowSize });
 }
 
-
 void ParticleRenderer::cleanUp()
 {
+    mEmitters.clear();
+}
+
+void ParticleRenderer::shutdown()
+{
+    cleanUp();
 	mParticleShader = Shader();
 }
 

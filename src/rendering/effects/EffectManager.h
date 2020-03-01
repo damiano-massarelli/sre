@@ -44,5 +44,7 @@ public:
 	void update();
 
 	void cleanUp();
+
+    void shutdown();
 };
 

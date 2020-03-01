@@ -3,7 +3,7 @@
 #include <SDL.h>
 #include <iostream>
 
-// Static member declarations:
+// Static member declarations
 std::unique_ptr<Engine> Engine::instance;
 bool Engine::shouldQuit = false;
 EventManager Engine::eventManager;
@@ -60,15 +60,29 @@ void Engine::start()
 		eventManager.pushExitFrameEvent(&elapsedMillis);
     }
 
-	renderSys.cleanUp();
-	gameObjectManager.cleanUp();
-	particleRenderer.cleanUp();
-    uiRenderer.cleanUp();
+    shutdown();
 
 	std::cout << totDeltas / frames << "\n";
 }
 
+void Engine::cleanUp()
+{
+    renderSys.cleanUp();
+    gameObjectManager.cleanUp();
+    particleRenderer.cleanUp();
+    uiRenderer.cleanUp();
+
+    renderSys.setDefaultCamera();
+}
+
+void Engine::shutdown()
+{
+    renderSys.shutdown();
+    gameObjectManager.shutdown();
+    particleRenderer.shutdown();
+    uiRenderer.shutdown();
+}
+
 Engine::~Engine()
 {
-
 }

@@ -15,7 +15,7 @@ DisplayBoundingBoxComponent::DisplayBoundingBoxComponent(const GameObjectEH& go,
 
 	mBoundingBox = Engine::gameObjectManager.createGameObject(cube, material);
 
-	mEnterFrameCrumb = Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this);
+	mEnterFrameCrumb = Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this, true);
 }
 
 void DisplayBoundingBoxComponent::onEvent(SDL_Event e)

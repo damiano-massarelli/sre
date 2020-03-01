@@ -134,8 +134,12 @@ private:
 
 	// private constructor, only the engine can create a render system
 	RenderSystem();
+    
+    void setDefaultCamera();
 
-	void cleanUp();
+    void cleanUp();
+
+	void shutdown();
 
 public:
 	/** Creates a new window */

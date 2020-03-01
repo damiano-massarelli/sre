@@ -34,7 +34,11 @@ void UIRenderer::render()
     }
 }
 
-void UIRenderer::cleanUp()
+void UIRenderer::cleanUp() {
+    mDebugUIDrawer = std::function<void()>();
+}
+
+void UIRenderer::shutdown()
 {
     if (mIsDebugUI) {
         Engine::eventManager.removeListenerFor(EventManager::ALL_EVENTS, this);

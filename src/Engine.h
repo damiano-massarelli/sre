@@ -19,6 +19,8 @@ class Engine : public EventListener
 
         virtual void onEvent(SDL_Event e) override;
 
+        static void shutdown();
+
     public:
         Engine();
 
@@ -52,6 +54,10 @@ class Engine : public EventListener
           * All systems (rendering, events, etc will start operate on a frame by frame basis
           * This method should be called after initialization is done @sa init */
         static void start();
+
+        /**
+          * Reset the engine states */
+        static void cleanUp();
 
         virtual ~Engine();
 };

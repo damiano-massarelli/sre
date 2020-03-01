@@ -12,11 +12,11 @@ struct GameObjectEH : public ExternalHandle {
 	GameObjectEH();
 
 	inline GameObject* operator*() const {
-		return &mHandleList->get(mHandleIndex, mGeneration);
+		return &(mHandleList->get(mHandleIndex, mGeneration));
 	}
 
 	inline GameObject* operator->() const {
-		return &mHandleList->get(mHandleIndex, mGeneration);
+		return &(mHandleList->get(mHandleIndex, mGeneration));
 	}
 
 	bool isValid() const {
