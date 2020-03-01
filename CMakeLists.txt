@@ -21,7 +21,7 @@ file(GLOB INCLUDE_FILES
     ${PROJECT_SOURCE_DIR}/src/rendering/*/*.h
 )
 file(GLOB SRC_FILES
-    ${PROJECT_SOURCE_DIR}/main.cpp
+    ${PROJECT_SOURCE_DIR}/Application.cpp
     ${PROJECT_SOURCE_DIR}/test/*.cpp
     ${PROJECT_SOURCE_DIR}/test/*/*.cpp
     ${PROJECT_SOURCE_DIR}/src/Engine.cpp
@@ -31,6 +31,7 @@ file(GLOB SRC_FILES
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/test
     ${PROJECT_SOURCE_DIR}/external
     ${PROJECT_SOURCE_DIR}/external/KHR
     ${PROJECT_SOURCE_DIR}/external/glm
