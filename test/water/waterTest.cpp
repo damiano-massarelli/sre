@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
 #include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
@@ -16,18 +17,14 @@
 #include "rendering/shadow/ShadowOnVisibleSceneComponent.h"
 #include "rendering/materials/WaterMaterial.h"
 #include "rendering/light/PointLight.h"
-#include "../test/runTest.h"
 #include "rendering/effects/GammaCorrection.h"
 
 #include <iostream>
 #include <stdlib.h>
 
-#ifdef waterTest
-int main(int argc, char* argv[]) {
-    Engine::init();
+DECLARE_TEST_SCENE("Water Test", WaterTestScene)
 
-    Engine::renderSys.createWindow(1280, 720);
-
+void WaterTestScene::start() {
 	auto gammaPost = std::make_shared<GammaCorrection>();
 	gammaPost->setGamma(1.8f);
 	gammaPost->setExposure(1.0f);
@@ -36,11 +33,12 @@ int main(int argc, char* argv[]) {
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
     camera->transform.moveBy(glm::vec3{0.0f, 0.0f, 30.0f});
-    Engine::renderSys.camera = camera;
 
     auto cam = std::make_shared<FreeCameraComponent>(camera);
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
+
+    Engine::renderSys.setCamera(camera);
 
 	auto water = Engine::gameObjectManager.createGameObject(MeshCreator::plane(),
 		std::make_shared<WaterMaterial>(-5.0f, Texture::loadFromFile("test_data/water/dudv.png"),
@@ -126,9 +124,6 @@ int main(int argc, char* argv[]) {
     gizmo->transform.setParent(light3);
 	gizmo->transform.setLocalPosition(glm::vec3{ 0.0f });
     light3->transform.setLocalRotation(glm::quat{glm::vec3{glm::radians(65.0f), 0.0f, 0.0f}});
-
-    Engine::start();
-
-    return 0;
 }
-#endif // LOAD_HIERARCHIES
+
+void WaterTestScene::end() {}

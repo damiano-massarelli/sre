@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
 #include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
@@ -9,7 +10,6 @@
 #include "gameobject/GameObjectLoader.h"
 #include "rendering/effects/FXAA.h"
 #include "rendering/effects/Bloom.h"
-#include "../test/runTest.h"
 #include "rendering/particle/ParticleEmitter.h"
 #include "rendering/materials/SkyboxMaterial.h"
 #include "rendering/effects/MotionBlur.h"
@@ -57,11 +57,10 @@ static void addParticles(const GameObjectEH& eh) {
 	Engine::renderSys.addLight(eh);
 }
 
-#ifdef complexScene
-int main(int argc, char* argv[]) {
-    Engine::init();
 
- 	Engine::renderSys.createWindow(1280, 720);
+DECLARE_TEST_SCENE("Complex Scene", ComplexTestScene)
+
+void ComplexTestScene::start() {
 // 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 // 	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
     Engine::renderSys.effectManager.addEffect(std::make_shared<SSAO>());
@@ -87,7 +86,6 @@ int main(int argc, char* argv[]) {
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
 	Engine::renderSys.setCamera(camera);
-
 
 	auto sponza = GameObjectLoader().fromFile("test_data/bloom/sponza.fbx");
 	sponza->transform.setScale(glm::vec3{ 0.1f });
@@ -165,9 +163,6 @@ int main(int argc, char* argv[]) {
 	gizmo2->transform.setParent(fakeSun);
 	gizmo2->transform.setLocalRotation(glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f });
 	gizmo2->transform.setPosition(fakeSun->transform.getPosition());
-
-    Engine::start();
-
-    return 0;
 }
-#endif // LOAD_HIERARCHIES
+
+void ComplexTestScene::end() {}

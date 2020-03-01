@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
 #include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
@@ -20,26 +21,23 @@
 #include "skeletalAnimation/SkeletalAnimationLoader.h"
 #include "skeletalAnimation/SkeletralAnimationControllerComponent.h"
 
-#include "../test/runTest.h"
-
 #include <stdlib.h>
 #include <iostream>
 
-#ifdef skeletralAnimation  
-int main(int argc, char* argv[]) {
-	Engine::init();
 
-	Engine::renderSys.createWindow(1280, 720);
+DECLARE_TEST_SCENE("Skeletal Animation", SkeletalAnimationTestScene)
 
+
+void SkeletalAnimationTestScene::start() {
 	auto camera = Engine::gameObjectManager.createGameObject();
 	camera->name = "camera";
 	camera->transform.moveBy(glm::vec3{ 0.0f, 30.0f, 30.0f });
 	camera->transform.setRotation(glm::quat{ glm::vec3{0, glm::radians(180.0f), 0} });
-	Engine::renderSys.camera = camera;
-
 
 	auto cam = std::make_shared<FreeCameraComponent>(camera);
 	camera->addComponent(cam);
+
+    Engine::renderSys.setCamera(camera);
 	
 	auto skyTexture = Texture::loadCubemapFromFile({
 					{"front", "test_data/skybox/front.tga"},
@@ -103,10 +101,6 @@ int main(int argc, char* argv[]) {
 
 	light->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::DYNAMIC);
 	light->addComponent(std::make_shared<ShadowOnVisibleSceneComponent>(light));
-
-
-    Engine::start();
-
-    return 0;
 }
-#endif // LOAD_HIERARCHIES
+
+void SkeletalAnimationTestScene::end() {}

@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
 #include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
@@ -9,7 +10,6 @@
 #include "gameobject/GameObjectLoader.h"
 #include "rendering/effects/FXAA.h"
 #include "rendering/effects/Bloom.h"
-#include "../test/runTest.h"
 #include "rendering/particle/ParticleEmitter.h"
 #include "rendering/materials/SkyboxMaterial.h"
 #include "rendering/effects/MotionBlur.h"
@@ -20,12 +20,9 @@
 #include <iostream>
 
 
-#ifdef pbrTest
-int main(int argc, char* argv[]) {
-    Engine::init(); // init engine
+DECLARE_TEST_SCENE("PBR", PBRTestScene)
 
- 	Engine::renderSys.createWindow(1280, 720); // create a window
-
+void PBRTestScene::start() {
 	// add effects
 	Engine::renderSys.effectManager.enableEffects();
 // 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
@@ -40,16 +37,14 @@ int main(int argc, char* argv[]) {
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
     camera->transform.moveBy(glm::vec3{0.0f, 0.0f, 30.0f});								// set the camera position
-	camera->transform.setRotation(glm::quat{ glm::vec3{0, glm::radians(180.0f), 0} });  // set camera rotation
-
-    Engine::renderSys.camera = camera;	 
+	camera->transform.setRotation(glm::quat{ glm::vec3{0, glm::radians(180.0f), 0} });  // set camera rotation	 
 
 	// FreeCameraComponent is a built-in component for an fps-like camera
     auto cam = std::make_shared<FreeCameraComponent>(camera);
 
 	// Components can be added to to GameObjects
-    camera->addComponent(cam);	
-
+    camera->addComponent(cam);
+    Engine::renderSys.setCamera(camera);
 
 	// Create a PBR material
 	auto pbrMaterial = std::make_shared<PBRMaterial>();
@@ -94,10 +89,6 @@ int main(int argc, char* argv[]) {
 	sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 15.0f;
 	sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 5.0f;
 	sun->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), sun->transform.right()));
-
-	// Starts the GameLoop
-    Engine::start();
-
-    return 0;
 }
-#endif // LOAD_HIERARCHIES
+
+void PBRTestScene::end() {}

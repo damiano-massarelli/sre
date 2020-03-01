@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
 #include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
@@ -11,14 +12,16 @@
 #include "rendering/effects/GodRays.h"
 #include "rendering/effects/FXAA.h"
 #include "rendering/effects/Bloom.h"
-#include "../test/runTest.h"
 
 #include <iostream>
 
 
 struct MoveComponent : public Component, public EventListener {
+
+    CrumbPtr mEnterFrameCrumb;
+
     MoveComponent(const GameObjectEH& eh) : Component{eh} {
-        Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this, false);
+        mEnterFrameCrumb = Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this, true);
     }
 
     virtual void onEvent(SDL_Event e) override {
@@ -34,36 +37,32 @@ struct MoveComponent : public Component, public EventListener {
     }
 };
 
-#ifdef godRaysTest
-int main(int argc, char* argv[]) {
-    Engine::init();
+DECLARE_TEST_SCENE("God Rays", GodRayTestScene)
 
-    Engine::renderSys.createWindow(1280, 720);
-
+void GodRayTestScene::start() {
 	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 
 	auto godRays = std::make_shared<GodRays>();
 
-	//Engine::renderSys.effectManager.addEffect(godRays);
+	Engine::renderSys.effectManager.addEffect(godRays);
 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
 
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
     camera->transform.moveBy(glm::vec3{0.0f, 0.0f, 30.0f});
-    Engine::renderSys.camera = camera;
 
     auto cam = std::make_shared<FreeCameraComponent>(camera);
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
+    Engine::renderSys.setCamera(camera);
 
 	MaterialPtr phong = BlinnPhongMaterialBuilder()
 		.setDiffuseMap("test_data/transform_local/container.png")
 		.setSpecularColor(glm::vec3{ 1, 1, 1 })
 		//.setSpecularMap("test_data/transform_local/container_specular.png")
 		.build();
-
 
     auto parent = Engine::gameObjectManager.createGameObject();
     parent->addComponent(std::make_shared<MoveComponent>(parent));
@@ -78,7 +77,6 @@ int main(int argc, char* argv[]) {
 		child2->transform.setLocalPosition(glm::vec3{0, i - 5, 0 });
 		child2->transform.setScale(glm::vec3{ 2.5f, 0.1f, 0.1f });
 	}
-
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
@@ -99,9 +97,6 @@ int main(int argc, char* argv[]) {
 	directionalLight->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
 
 	godRays->light = directionalLight;
-
-    Engine::start();
-
-    return 0;
 }
-#endif // LOAD_HIERARCHIES
+
+void GodRayTestScene::end() {}

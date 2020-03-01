@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
 #include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
@@ -11,28 +12,25 @@
 #include "terrain/TerrainGenerator.h"
 #include "terrain/HeightMapTerrainHeightProvider.h"
 
-#include "../test/runTest.h"
-
 #include <iostream>
 #include <random>
 
-#ifdef terrain
-int main(int argc, char* argv[]) {
-    Engine::init();
 
-    Engine::renderSys.createWindow(1280, 720);
+DECLARE_TEST_SCENE("Terrain", TerrainTestScene)
 
+
+void TerrainTestScene::start() {
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
     camera->transform.moveBy(glm::vec3{0.0f, 0.0f, 30.0f});
-    Engine::renderSys.camera = camera;
 
     auto cam = std::make_shared<FreeCameraComponent>(camera);
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
+    Engine::renderSys.setCamera(camera);
 
-    MaterialPtr phong = PhongMaterialBuilder()
+    MaterialPtr phong = BlinnPhongMaterialBuilder()
     .setDiffuseMap("test_data/terrain/grass.jpg")
     .setShininess(0.0f)
     .build();
@@ -89,9 +87,6 @@ int main(int argc, char* argv[]) {
     gizmo->transform.setParent(light3);
     gizmo->transform.setPosition(light3->transform.getPosition());
     light3->transform.setRotation(glm::quat{glm::vec3{glm::radians(90.0f), 0.0f, 0.0f}});
-
-    Engine::start();
-
-    return 0;
 }
-#endif // LOAD_HIERARCHIES
+
+void TerrainTestScene::end() {}

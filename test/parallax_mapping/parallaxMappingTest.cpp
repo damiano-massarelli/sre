@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
 #include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
@@ -10,16 +11,16 @@
 #include "gameobject/GameObjectLoader.h"
 #include "rendering/effects/FXAA.h"
 
-#include "../test/runTest.h"
-
 #include <memory>
 #include <iostream>
 
 
 struct MoveComponent : public Component, public EventListener {
 
+    CrumbPtr mEnterFrameCrumb;
+
     MoveComponent(const GameObjectEH& eh) : Component{eh} {
-        Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this, false);
+        mEnterFrameCrumb = Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this, true);
     }
 
     virtual void onEvent(SDL_Event e) override {
@@ -35,21 +36,21 @@ struct MoveComponent : public Component, public EventListener {
     }
 
 };
-#ifdef parallaxMapping
-int main(int argc, char* argv[]) {
-    Engine::init();
 
-    Engine::renderSys.createWindow(1280, 720);
+DECLARE_TEST_SCENE("Parallax Mapping", ParallaxMappingTestScene)
+
+void ParallaxMappingTestScene::start() {
 	Engine::renderSys.shadowMappingSettings.setShadowStrength(0.0f);
 
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
     camera->transform.moveBy(glm::vec3{0.0f, 0.0f, 30.0f});
-    Engine::renderSys.camera = camera;
 
     auto cam = std::make_shared<FreeCameraComponent>(camera);
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
+
+    Engine::renderSys.setCamera(camera);
 
 	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
@@ -88,9 +89,6 @@ int main(int argc, char* argv[]) {
     gizmo->transform.setParent(light3);
     gizmo->transform.setPosition(light3->transform.getPosition());
     light3->transform.setRotation(glm::quat{glm::vec3{glm::radians(180.0f), 0.0f, 0.0f}});
-
-    Engine::start();
-
-    return 0;
 }
-#endif // LOAD_HIERARCHIES
+
+void ParallaxMappingTestScene::end() {}

@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
 #include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
@@ -14,24 +15,21 @@
 #include "rendering/effects/GammaCorrection.h"
 #include "rendering/materials/MultiTextureLambertMaterial.h"
 
-#include "../test/runTest.h"
-
 #include <iostream>
 
-#ifdef multipleTextures 
-int main(int argc, char* argv[]) {
-    Engine::init();
 
-    Engine::renderSys.createWindow(1280, 720);
+DECLARE_TEST_SCENE("Multiple Textures", MultipleTexturesTestScene)
 
+void MultipleTexturesTestScene::start() {
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
     camera->transform.moveBy(glm::vec3{0.0f, 0.0f, 30.0f});
-    Engine::renderSys.camera = camera;
 
     auto cam = std::make_shared<FreeCameraComponent>(camera);
     camera->addComponent(cam);
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
+
+    Engine::renderSys.setCamera(camera);
 
     auto skyTexture = Texture::loadCubemapFromFile({
                     {"front", "test_data/skybox/front.tga"},
@@ -66,7 +64,6 @@ int main(int argc, char* argv[]) {
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-
 	//Engine::renderSys.effectManager.enableEffects();
 	//Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
 
@@ -99,14 +96,10 @@ int main(int argc, char* argv[]) {
     light3->getComponent<Light>()->outerAngle = glm::radians(28.0f);
     light3->transform.scaleBy(glm::vec3{0.2f, 0.2f, 0.2f});
 
-
     auto gizmo = MeshCreator::axisGizmo();
     gizmo->transform.setParent(light3);
     gizmo->transform.setPosition(light3->transform.getPosition());
     light3->transform.setRotation(glm::quat{glm::vec3{glm::radians(90.0f), 0.0f, 0.0f}});
-
-    Engine::start();
-
-    return 0;
 }
-#endif // LOAD_HIERARCHIES
+
+void MultipleTexturesTestScene::end() {}
