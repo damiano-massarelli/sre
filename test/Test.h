@@ -30,6 +30,9 @@ namespace sre {
 
     /**
      *  Singleton class that contains and run the tests.
+     *
+     *  Every test register to this manager using the macro definde below.
+     *      DECLARE_TEST_SCENE(testName, testClass)
      */
     class TestManager {
     private:

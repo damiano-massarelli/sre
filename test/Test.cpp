@@ -29,7 +29,7 @@ namespace sre {
     }
 
     void TestManager::registerTest(std::string name, std::unique_ptr<ITest> test) {
-        // TODO: check that the test doesn t already exists
+        // TODO: check that the test doesn't already exists
         mTests[name] = std::move(test);
     }
 
