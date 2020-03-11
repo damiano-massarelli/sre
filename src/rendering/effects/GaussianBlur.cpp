@@ -11,11 +11,15 @@ GaussianBlur::GaussianBlur(float scaleFactor)
 	hBlur = Shader::loadFromFile(std::vector<std::string>{ "effects/gaussianBlurVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
 	vBlur = Shader::loadFromFile(std::vector<std::string>{ "effects/gaussianBlurVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
 
-	hBlur.use();
-	hBlur.setVec2("direction", glm::vec2{ 0.0f, 1.0f });
+	{
+		ShaderScopedUsage useShader{ hBlur };
+		hBlur.setVec2("direction", glm::vec2{ 0.0f, 1.0f });
+	}
 
-	vBlur.use();
-	vBlur.setVec2("direction", glm::vec2{ 1.0f, 0.0f });
+	{
+		ShaderScopedUsage useShader{ vBlur };
+		vBlur.setVec2("direction", glm::vec2{ 1.0f, 0.0f });
+	}
 }
 
 const Texture& GaussianBlur::getBlurred(const Texture& src, int iterations)

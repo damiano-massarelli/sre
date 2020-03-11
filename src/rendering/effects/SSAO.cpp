@@ -26,12 +26,14 @@ SSAO::SSAO()
 
 	mSSAOCreationShader = Shader::loadFromFile({ "effects/ssaoCreateVS.glsl" }, std::vector<std::string>{}, { "effects/ssaoCreateFS.glsl" }, false);
 
-	mSSAOCreationShader.use();
-	mSSAOCreationShader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
-	mSSAOCreationShader.bindUniformBlock("Camera", Engine::renderSys.CAMERA_UNIFORM_BLOCK_INDEX);
-	mSSAOCreationShader.setVec3Array("samples", mSSAOSamples);
-	mSSAOCreationShader.setInt("NormalData", mNormalTextureIndex);
-	mSSAOCreationShader.setInt("noise", mNoiseTextureIndex);
+	{
+		ShaderScopedUsage useShader{ mSSAOCreationShader };
+		mSSAOCreationShader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
+		mSSAOCreationShader.bindUniformBlock("Camera", Engine::renderSys.CAMERA_UNIFORM_BLOCK_INDEX);
+		mSSAOCreationShader.setVec3Array("samples", mSSAOSamples);
+		mSSAOCreationShader.setInt("NormalData", mNormalTextureIndex);
+		mSSAOCreationShader.setInt("noise", mNoiseTextureIndex);
+	}
 }
 
 void SSAO::createSamples(std::uniform_real_distribution<float>& dist, std::default_random_engine& engine)
@@ -88,8 +90,9 @@ void SSAO::onSetup(Shader& postProcessingShader)
 void SSAO::update(Shader& postProcessingShader)
 {
 	if (mNeedsUpdate) {
+		ShaderScopedUsage useShader{ postProcessingShader };
+
 		mNeedsUpdate = false;
-		postProcessingShader.use();
 		postProcessingShader.setFloat("_ssao_darkenFactor", mDarkenFactor);
 		postProcessingShader.setInt("_ssao_blurSize", mBlurSize);
 	}
@@ -120,7 +123,8 @@ void SSAO::setKernelSize(int size)
 	if (size > 64) size = 64;
 
 	mKernelSize = size;
-	mSSAOCreationShader.use();
+	
+	ShaderScopedUsage useShader{ mSSAOCreationShader };
 	mSSAOCreationShader.setInt("kernelSize", size);
 }
 
@@ -132,8 +136,11 @@ int SSAO::getKernelSize() const
 void SSAO::setRadius(float radius)
 {
 	mRadius = radius;
-	mSSAOCreationShader.use();
-	mSSAOCreationShader.setFloat("radius", radius);
+
+	{
+		ShaderScopedUsage{ mSSAOCreationShader };
+		mSSAOCreationShader.setFloat("radius", radius);
+	}
 }
 
 float SSAO::getRadius() const

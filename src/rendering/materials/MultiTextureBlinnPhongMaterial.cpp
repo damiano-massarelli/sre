@@ -7,7 +7,7 @@ MultiTextureBlinnPhongMaterial::MultiTextureBlinnPhongMaterial() :
 {
 	unSupportedRenderPhases |= RenderPhase::FORWARD_RENDERING;
 
-	shader.use();
+	ShaderScopedUsage useShader{ shader };
 	
 	shader.setInt("baseTexture", 0);
 	shader.setInt("baseTextureBump", 1);
@@ -86,6 +86,8 @@ void MultiTextureBlinnPhongMaterial::after()
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	shader.stop();
 }
 
 std::size_t MultiTextureBlinnPhongMaterial::hash() const

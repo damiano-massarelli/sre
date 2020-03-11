@@ -61,8 +61,8 @@ static void addParticles(const GameObjectEH& eh) {
 DECLARE_TEST_SCENE("Complex Scene", ComplexTestScene)
 
 void ComplexTestScene::start() {
-// 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
-// 	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
+ 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
+ 	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
     Engine::renderSys.effectManager.addEffect(std::make_shared<SSAO>());
 // 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
     auto gammaPost = std::make_shared<GammaCorrection>();

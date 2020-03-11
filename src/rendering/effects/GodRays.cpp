@@ -14,11 +14,13 @@ GodRays::GodRays(float scaleFactor) : Effect{ "godRays", "effects/godRays.glsl" 
 		{"effects/godraysCreateFS.glsl"}
 	);
 
-	mOcclusionCreator.use();
-	mLightScreenPosLocation = mOcclusionCreator.getLocationOf("lightScreenPos");
-	mRadiusLocation = mOcclusionCreator.getLocationOf("radius");
+	{
+		ShaderScopedUsage useShader{ mOcclusionCreator };
+		mLightScreenPosLocation = mOcclusionCreator.getLocationOf("lightScreenPos");
+		mRadiusLocation = mOcclusionCreator.getLocationOf("radius");
 
-	mBlurredTexture = Engine::renderSys.effectManager.getTexture();
+		mBlurredTexture = Engine::renderSys.effectManager.getTexture();
+	}
 }
 
 void GodRays::setDensity(float density)
@@ -56,7 +58,6 @@ float GodRays::getWeight() const
 
 void GodRays::onSetup(Shader& postProcessingShader)
 {
-	postProcessingShader.use();
 	postProcessingShader.setInt("_gr_raysTexture", mBlurredTexture);
 	mLightScreenPosForRadialBlurLocation = postProcessingShader.getLocationOf("_gr_lightScreenPos");
 }
@@ -76,25 +77,29 @@ void GodRays::update(Shader& postProcessingShader)
 	auto projectedRadiusDisplacement = rsys.getProjectionMatrix() * glm::vec4{ lightRadius, 0.0f, glm::distance(lightPosition, cameraTransform.getPosition()), 0.0f };
 	float projectedRadius = glm::abs(projectedRadiusDisplacement.x / projectedRadiusDisplacement.w);
 
+	{
+		ShaderScopedUsage useShader{ mOcclusionCreator };
+		mOcclusionCreator.setVec3(mLightScreenPosLocation, projectedPos);
+		mOcclusionCreator.setFloat(mRadiusLocation, projectedRadius);
 
-	mOcclusionCreator.use();
-	mOcclusionCreator.setVec3(mLightScreenPosLocation, projectedPos);
-	mOcclusionCreator.setFloat(mRadiusLocation, projectedRadius);
-
-	// create the radial blurred image
-	rsys.copyTexture(Engine::renderSys.deferredRenderingFBO.getDepthBuffer(), mOcclusionTarget,   mOcclusionCreator);
+		// create the radial blurred image
+		rsys.copyTexture(Engine::renderSys.deferredRenderingFBO.getDepthBuffer(), mOcclusionTarget, mOcclusionCreator);
+	}
 
 	glActiveTexture(GL_TEXTURE0 + mBlurredTexture);
 	glBindTexture(GL_TEXTURE_2D, mOcclusionTarget.getColorBuffer().getId());
 
-	postProcessingShader.use();
-	postProcessingShader.setVec3(mLightScreenPosForRadialBlurLocation, projectedPos);
-	if (mNeedUpdate) {
-		postProcessingShader.setFloat("_gr_density", mDensity);
-		postProcessingShader.setFloat("_gr_decayRatio", mDecayRatio);
-		postProcessingShader.setFloat("_gr_weight", mWeight);
+	{
+		ShaderScopedUsage useShader{ postProcessingShader };
 
-		mNeedUpdate = false;
+		postProcessingShader.setVec3(mLightScreenPosForRadialBlurLocation, projectedPos);
+		if (mNeedUpdate) {
+			postProcessingShader.setFloat("_gr_density", mDensity);
+			postProcessingShader.setFloat("_gr_decayRatio", mDecayRatio);
+			postProcessingShader.setFloat("_gr_weight", mWeight);
+
+			mNeedUpdate = false;
+		}
 	}
 }
 

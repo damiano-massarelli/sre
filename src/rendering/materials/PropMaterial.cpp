@@ -31,6 +31,7 @@ void PropMaterial::after()
 		glEnable(GL_CULL_FACE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
+	shader.stop();
 }
 
 std::size_t PropMaterial::hash() const

@@ -14,6 +14,7 @@ void LineMaterial::use()
 
 void LineMaterial::after()
 {
+    shader.stop();
     glLineWidth(1.0f);
 }
 

@@ -19,7 +19,7 @@ void GammaCorrection::setExposure(float exposure)
 void GammaCorrection::update(Shader& postProcessingShader)
 {
 	if (mNeedUpdate) {
-		postProcessingShader.use();
+		ShaderScopedUsage useShader{ postProcessingShader };
 		postProcessingShader.setFloat("_gc_gamma", mGamma);
 		postProcessingShader.setFloat("_gc_exposure", mExposure);
 		mNeedUpdate = false;

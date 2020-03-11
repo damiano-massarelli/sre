@@ -10,7 +10,7 @@ SkyboxMaterial::SkyboxMaterial(const Texture& cubemap) :
 	// do not render during shadow mapping
 	unSupportedRenderPhases = RenderPhase::DEFERRED_RENDERING | RenderPhase::SHADOW_MAPPING | RenderPhase::PBR;
 
-    shader.use();
+    ShaderScopedUsage useShader{ shader };
 	shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
     shader.setInt("cubemap", 0);
 }
@@ -31,10 +31,14 @@ void SkyboxMaterial::use()
 
 void SkyboxMaterial::after()
 {
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
     glDepthFunc(GL_LESS);
 
     glEnable(GL_CULL_FACE);
+
+    shader.stop();
 }
 
 float SkyboxMaterial::renderOrder(const glm::vec3& position)

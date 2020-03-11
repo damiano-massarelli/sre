@@ -21,7 +21,7 @@
 #include <nvToolsExt.h>
 
 // is openGL debug enabled
-bool DEBUG = false;
+bool DEBUG = true;
 
 RenderSystem::RenderSystem()
 {
@@ -195,10 +195,13 @@ void RenderSystem::initDeferredRendering()
 	mPointLightDeferredStencil = Shader::loadFromFile({ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightSphereStencilPassVS.glsl" },
 		std::vector<std::string>{},
 		{ "shaders/deferred_rendering/pointLightSphereStencilPassFS.glsl" });
-	mPointLightDeferredStencil.use();
-	mPointLightDeferredStencil.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
-	mPointLightStencilLightIndexLocation = mPointLightDeferredStencil.getLocationOf("lightIndex");
-	mPointLightStencilScaleLocation = mPointLightDeferredStencil.getLocationOf("scale");
+	
+	{
+		ShaderScopedUsage useShader{ mPointLightDeferredStencil };
+		mPointLightDeferredStencil.bindUniformBlock("Lights", RenderSystem::LIGHT_UNIFORM_BLOCK_INDEX);
+		mPointLightStencilLightIndexLocation = mPointLightDeferredStencil.getLocationOf("lightIndex");
+		mPointLightStencilScaleLocation = mPointLightDeferredStencil.getLocationOf("scale");
+	}
 }
 
 void RenderSystem::updateLights()
@@ -497,7 +500,7 @@ void RenderSystem::directionalLightPass(GLuint mark, DeferredLightShader& shader
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
 
-	shaderWrapper.shader.use();
+	ShaderScopedUsage useShader{ shaderWrapper.shader };
 
 	for (std::size_t i = 0; i < mLights.size(); i++) {
 		const auto& light = mLights[i]->getComponent<Light>();
@@ -538,16 +541,19 @@ void RenderSystem::stencilPass(int lightIndex, float radius)
 
 	// do not write this sphere on the color buffer
 	glDrawBuffer(GL_NONE);
-	mPointLightDeferredStencil.use();
-	mPointLightDeferredStencil.setFloat(mPointLightStencilScaleLocation, radius);
-	mPointLightDeferredStencil.setInt(mPointLightStencilLightIndexLocation, lightIndex);
 
-	glBindVertexArray(mPointLightSphere.mVao);
-	glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
+	{
+		ShaderScopedUsage useShader{ mPointLightDeferredStencil };
+		mPointLightDeferredStencil.setFloat(mPointLightStencilScaleLocation, radius);
+		mPointLightDeferredStencil.setInt(mPointLightStencilLightIndexLocation, lightIndex);
 
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+		glBindVertexArray(mPointLightSphere.mVao);
+		glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void*)0);
+
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+	}
 }
 
 void RenderSystem::pointLightPass(GLuint mark, DeferredLightShader& shaderWrapper)
@@ -581,14 +587,16 @@ void RenderSystem::pointLightPass(GLuint mark, DeferredLightShader& shaderWrappe
 		/* mark is used to shader only the pixel of this phase. +1 is needed to identify those pixels
 		   that are not inside a light sphere */
 		glStencilFunc(GL_EQUAL, mark + 1, 0xFF);
-		shaderWrapper.shader.use();
+		{
+			ShaderScopedUsage useShader{ shaderWrapper.shader };
 
-		shaderWrapper.setLightIndex(i);
-		shaderWrapper.setLightRadius(radius);
-		glBindVertexArray(mScreenMesh.mVao);
-		glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void *)0);
+			shaderWrapper.setLightIndex(i);
+			shaderWrapper.setLightRadius(radius);
+			glBindVertexArray(mScreenMesh.mVao);
+			glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void*)0);
 
-		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+		}
 	}
 
 	glDisable(GL_BLEND);
@@ -598,26 +606,33 @@ void RenderSystem::pointLightPass(GLuint mark, DeferredLightShader& shaderWrappe
 void RenderSystem::finalizeRendering()
 {
 	effectManager.update();
-	effectManager.mPostProcessingShader.use();
+	{
+		ShaderScopedUsage useShader{ effectManager.mPostProcessingShader };
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind effects frame buffer
 
-	glViewport(0, 0, getScreenWidth(), getScreenHeight());
+		glViewport(0, 0, getScreenWidth(), getScreenHeight());
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_DEPTH_TEST);
 
-	glBindVertexArray(mScreenMesh.mVao);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, effectTarget.getColorBuffer().getId());
+		glBindVertexArray(mScreenMesh.mVao);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, effectTarget.getColorBuffer().getId());
 
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, effectTarget.getDepthBuffer().getId());
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, effectTarget.getDepthBuffer().getId());
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
 
-	glEnable(GL_DEPTH_TEST);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glEnable(GL_DEPTH_TEST);
+	}
 }
 
 void RenderSystem::renderShadows()
@@ -738,21 +753,6 @@ std::int32_t RenderSystem::getScreenHeight() const
 	SDL_GetWindowSize(mWindow, nullptr, &h);
 	return h;
 }
-/*
-float RenderSystem::getNearPlane() const
-{
-	return mNearPlane;
-}
-
-float RenderSystem::getFarPlane() const
-{
-	return mFarPlane;
-}
-
-float RenderSystem::getVerticalFov() const
-{
-	return mVerticalFov;
-}*/
 
 int RenderSystem::getRenderPhase() const
 {
@@ -777,9 +777,9 @@ void RenderSystem::setClipPlane(const glm::vec4& clipPlane) const
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, const Shader& shader, bool clear)
+void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, Shader& shader, bool clear)
 {
-	shader.use();
+	ShaderScopedUsage useShader{ shader };
 
 	glBindFramebuffer(GL_FRAMEBUFFER, dst.getFbo());
 

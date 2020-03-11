@@ -16,4 +16,6 @@ void ShadowMapMaterial::use()
 void ShadowMapMaterial::after()
 {
 	glEnable(GL_CULL_FACE);
+
+	shader.stop();
 }

@@ -27,14 +27,17 @@ void EffectManager::createShader(std::vector<std::shared_ptr<Effect>> effects)
 		{},
 		code);
 
-	mPostProcessingShader.use();
-	/* Explicit use of getLocationOf to avoid uniform not found warnings */
-	mPostProcessingShader.setInt(mPostProcessingShader.getLocationOf("screenTexture", false), 0);
-	mPostProcessingShader.setInt(mPostProcessingShader.getLocationOf("depthTexture", false), 1);
+	{
+		ShaderScopedUsage useShader{ mPostProcessingShader };
 
-	// call set up phase
-	for (auto& effect : effects)
-		effect->onSetup(mPostProcessingShader);
+		/* Explicit use of getLocationOf to avoid uniform not found warnings */
+		mPostProcessingShader.setInt(mPostProcessingShader.getLocationOf("screenTexture", false), 0);
+		mPostProcessingShader.setInt(mPostProcessingShader.getLocationOf("depthTexture", false), 1);
+
+		// call set up phase
+		for (auto& effect : effects)
+			effect->onSetup(mPostProcessingShader);
+	}
 }
 
 EffectManager::EffectManager()
@@ -93,9 +96,12 @@ void EffectManager::update()
 	if (!mEnabled)
 		return;
 
-	mPostProcessingShader.use();
-	for (auto& effect : mEffects)
-		effect->update(mPostProcessingShader);
+	{
+		ShaderScopedUsage useShader{ mPostProcessingShader };
+		for (auto& effect : mEffects) {
+			effect->update(mPostProcessingShader);
+		}
+	}
 }
 
 void EffectManager::cleanUp()

@@ -267,7 +267,7 @@ public:
 	 * @param shader the shader used to copy the texture
 	 * @param clear clear the dst texture before copying. Set it to false if src and destination texture are the same
 	 */
-	void copyTexture(const Texture& src, RenderTarget& dst, const Shader& shader, bool clear = true);
+	void copyTexture(const Texture& src, RenderTarget& dst, Shader& shader, bool clear = true);
 
 	virtual ~RenderSystem() = default;
 };

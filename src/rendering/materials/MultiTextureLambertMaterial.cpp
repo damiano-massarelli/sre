@@ -8,7 +8,7 @@ MultiTextureLambertMaterial::MultiTextureLambertMaterial(Texture base, Texture r
 {
 	unSupportedRenderPhases |= RenderPhase::FORWARD_RENDERING;
 
-	shader.use();
+	ShaderScopedUsage useShader{ shader };
 
 	shader.setFloat("horizontalTiles", horizontalTiles);
 	shader.setFloat("verticalTiles", verticalTiles);
@@ -57,6 +57,8 @@ void MultiTextureLambertMaterial::after()
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	shader.stop();
 }
 
 std::size_t MultiTextureLambertMaterial::hash() const

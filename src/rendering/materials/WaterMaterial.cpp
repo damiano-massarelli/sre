@@ -29,7 +29,9 @@ WaterMaterial::WaterMaterial(float waterY, const Texture& dudv, const Texture& n
 	unSupportedRenderPhases |= RenderPhase::ALL & ~RenderPhase::DEFERRED_RENDERING;
 
 	mEventCrumb = Engine::eventManager.addListenerFor(EventManager::PRE_RENDER_EVENT, this, true);
-	shader.use();
+	
+	ShaderScopedUsage useShader{ shader };
+
 	shader.setInt("reflection", 0);
 	shader.setInt("refraction", 1);
 	shader.setInt("dudvMap", 2);
@@ -173,4 +175,6 @@ void WaterMaterial::after()
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+
+	shader.stop();
 }

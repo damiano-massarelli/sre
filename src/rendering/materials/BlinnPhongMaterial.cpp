@@ -30,7 +30,7 @@ BlinnPhongMaterial::BlinnPhongMaterial(bool hasBumps, bool isAnimated, bool hasP
 {
 	unSupportedRenderPhases |= (RenderPhase::FORWARD_RENDERING | RenderPhase::PBR);
 
-	shader.use();
+	ShaderScopedUsage useShader{ shader };
 
     shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
 	if (hasParallax) // parallax mapping needs the position of the camera
@@ -52,7 +52,7 @@ void BlinnPhongMaterial::setDiffuseMap(const Texture& texture)
     diffuseMap = texture;
 
     diffuseMap.nameInShader = "material.diffuse";
-    shader.use();
+ ShaderScopedUsage useShader(   shader);
     shader.setInt(diffuseMap.nameInShader, 0);
 }
 
@@ -61,7 +61,7 @@ void BlinnPhongMaterial::setSpecularMap(const Texture& texture)
     specularMap = texture;
 
     specularMap.nameInShader = "material.specular";
-    shader.use();
+ ShaderScopedUsage useShader(   shader);
     shader.setInt(specularMap.nameInShader, 1);
 }
 
@@ -72,7 +72,7 @@ void BlinnPhongMaterial::setBumpMap(const Texture& texture)
 		return;
 	}
 	bumpMap = texture;
-	shader.use();
+	ShaderScopedUsage useShader(shader);
 	shader.setInt(mBumpMapLocation, 2);
 }
 
@@ -83,7 +83,7 @@ void BlinnPhongMaterial::setParallaxMap(const Texture& texture)
 		return;
 	}
 	parallaxMap = texture;
-	shader.use();
+	ShaderScopedUsage useShader(shader);
 	shader.setInt(mParallaxMapLocation, 3);
 }
 
@@ -136,6 +136,8 @@ void BlinnPhongMaterial::use()
 
 void BlinnPhongMaterial::after()
 {
+	shader.stop();
+
      // enable backface culling
     if (isTwoSided) {
         glDepthMask(true);

@@ -17,9 +17,9 @@ public:
 private:
 	static std::map<std::string, Shader> mShaderCache;
 
-	static std::uint32_t mInUse;
+	static GLuint mInUse;
 
-	std::uint32_t mProgramId = 0;
+	GLuint mProgramId = 0;
 
 	static std::uint32_t createShaderFromFiles(const std::vector<std::string>& paths, GLenum type, bool addVersion = true);
 
@@ -85,15 +85,44 @@ public:
 
 	void bindUniformBlock(const std::string& name, std::uint32_t bindingPoint);
 
-	void use() const;
+	/**
+	 * Sets this shader as the current one.
+	 * The previous shader will be restored once Shader::stop is called.
+	 */
+	void use();
+
+	/**
+	 * 
+	 */
+	void stop() const;
+
+	bool isInUse();
 
 	operator bool() const;
 
+	bool operator==(const Shader& other);
+
 	bool isValid() const;
 
-	std::uint32_t getId() const;
+	GLuint getId() const;
 
 	virtual ~Shader();
+};
+
+/**
+ * Controls the usage of Shader in a scope.
+ * Shader::use is automatically called when an object of this class
+ * is created. Shader::stop is then called when that objects goes out
+ * of scope.
+ */
+class ShaderScopedUsage {
+private:
+	Shader mShader;
+
+public:
+	ShaderScopedUsage(Shader& shader);
+
+	~ShaderScopedUsage();
 };
 
 #endif // SHADER_H

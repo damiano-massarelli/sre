@@ -1,11 +1,10 @@
 #include "Engine.h"
 #include "test/Test.h"
 
-
 int main(int argc, char* argv[]) {
     Engine::init();
 
-    Engine::renderSys.createWindow(720, 720);
+    Engine::renderSys.createWindow(1280, 720);
     
     sre::TestManager::get()->startTests();
 

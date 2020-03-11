@@ -5,7 +5,7 @@ PBRMaterial::PBRMaterial()
 {
 	unSupportedRenderPhases = (RenderPhase::FORWARD_RENDERING | RenderPhase::DEFERRED_RENDERING);
 
-	shader.use();
+	ShaderScopedUsage useShader{ shader };
 
 	shader.setInt("material.albedo", 0);
 	shader.setInt("material.normal", 1);
@@ -66,6 +66,8 @@ void PBRMaterial::after()
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+
+	shader.stop();
 }
 
 std::size_t PBRMaterial::hash() const

@@ -7,7 +7,7 @@ void DeferredLightShader::init(const std::vector<std::string>& vertexShaders,
 {
 	shader = Shader::loadFromFile(vertexShaders, {}, fragmentShaders);
 
-	shader.use();
+	ShaderScopedUsage useShader{ shader };
 	mLightIndexLocation = shader.getLocationOf("lightIndex");
 	mLightRadiusLocation = shader.getLocationOf("lightRadius", false);
 

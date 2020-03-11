@@ -4,7 +4,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <cstdint>
 #include <vector>
-#include <string.h>
+#include <string>
 
 struct Bone
 {

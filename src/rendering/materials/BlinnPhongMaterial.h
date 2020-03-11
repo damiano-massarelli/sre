@@ -71,10 +71,13 @@ public:
 
 	/** The diffuse color, if a diffuse map is set it is multiplied by this color */
     glm::vec3 diffuseColor{1.0f, 1.0f, 1.0f};
+
 	/** The specular color, if a specular map is set it is multiplied by this color */
     glm::vec3 specularColor{1.0f, 1.0f, 1.0f};
+
 	/** shininess according to the Blinn-Phong lighting model */
     float shininess = 32.0f;
+
 	/** 0.0 means transparent, 1.0 is fully opaque */
     float opacity = 1.0f;
 

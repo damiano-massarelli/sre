@@ -7,7 +7,7 @@
 #include <algorithm>
 
 std::map<std::string, Shader> Shader::mShaderCache;
-std::uint32_t Shader::mInUse = 0;
+GLuint Shader::mInUse = 0;
 
 const char* Shader::GLSL_VERSION_STRING = "#version 420 core";
 
@@ -21,6 +21,17 @@ std::ostream& operator<<(std::ostream& out, const std::vector<std::string>& vec)
     out << "]";
     return out;
 }
+
+ShaderScopedUsage::ShaderScopedUsage(Shader& shader) : mShader{shader}
+{
+	mShader.use();
+}
+
+ShaderScopedUsage::~ShaderScopedUsage()
+{
+	mShader.stop();
+}
+
 
 Shader Shader::loadFromFile(const std::vector<std::string>& vertexPaths,
 	const std::vector<std::string>& geometryPaths,
@@ -334,10 +345,21 @@ void Shader::setVec3Array(const std::string& name, const std::vector<glm::vec3>&
 		glUniform3fv(location, array.size(), glm::value_ptr(*array.data()));
 }
 
-void Shader::use() const
+void Shader::use()
 {
-	mInUse = mProgramId;
+	Shader::mInUse = mProgramId;
     glUseProgram(mProgramId);
+}
+
+void Shader::stop() const
+{
+	Shader::mInUse = 0;
+	glUseProgram(0);
+}
+
+bool Shader::isInUse()
+{
+	return Shader::mInUse == mProgramId;
 }
 
 bool Shader::isValid() const
@@ -345,7 +367,7 @@ bool Shader::isValid() const
 	return mProgramId != 0;
 }
 
-std::uint32_t Shader::getId() const
+GLuint Shader::getId() const
 {
 	return mProgramId;
 }
@@ -354,8 +376,12 @@ Shader::operator bool() const {
 	return isValid();
 }
 
+bool Shader::operator==(const Shader& other)
+{
+	return mProgramId == other.mProgramId;
+}
+
 Shader::~Shader()
 {
 	cleanUpIfNeeded();
 }
-

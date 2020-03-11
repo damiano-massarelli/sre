@@ -20,7 +20,7 @@ void Bloom::onSetup(Shader& postProcessingShader)
 void Bloom::update(Shader& postProcessingShader)
 {
 	if (mNeedsUpdate) {
-		postProcessingShader.use();
+		ShaderScopedUsage useShader{ postProcessingShader };
 		postProcessingShader.setFloat("_bloom_bloomFactor", mBloomFactor);
 		mNeedsUpdate = false;
 	}

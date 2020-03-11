@@ -26,8 +26,7 @@ void MotionBlur::onSetup(Shader& postProcessingShader)
 
 void MotionBlur::update(Shader& postProcessingShader)
 {
-	postProcessingShader.use();
-
+	ShaderScopedUsage useShader{ postProcessingShader };
 	if (mBlurNeedsUpdate) {
 		mBlurNeedsUpdate = false;
 		postProcessingShader.setFloat("_mb_blurFactor", mBlurFactor);

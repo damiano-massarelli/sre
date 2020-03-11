@@ -17,6 +17,8 @@ public:
 
 	virtual void use() override;
 
+	virtual void after() override;
+
 	void setTransformations(const std::vector<glm::mat4>& transforms, float farPlane, const glm::vec3& lightPosition);
 
 	~PointShadowMaterial() = default;

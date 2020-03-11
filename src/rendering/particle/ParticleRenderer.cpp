@@ -36,7 +36,8 @@ void ParticleRenderer::init()
 	prepareParticleQuad();
 
 	mParticleShader = Shader::loadFromFile(std::vector<std::string>{ "shaders/particleVS.glsl" }, {}, { "shaders/particleFS.glsl" });
-	mParticleShader.use();
+	
+	ShaderScopedUsage useShader{ mParticleShader };
 	mFrameSizeLocation = mParticleShader.getLocationOf("frameSize");
 }
 
@@ -147,7 +148,7 @@ void ParticleRenderer::render()
 	computeInverseViewMatrix();
 
 	glBindVertexArray(mParticleMesh.getVao());
-	mParticleShader.use();
+	ShaderScopedUsage useShader{ mParticleShader };
 
 	glDepthMask(GL_FALSE);
 
