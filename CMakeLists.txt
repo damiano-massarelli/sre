@@ -70,5 +70,5 @@ target_link_libraries(
     SDL2
     glad
     imgui
-    assimp-vc140-mt
+    assimp-vc142-mt
 )

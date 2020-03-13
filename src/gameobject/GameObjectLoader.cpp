@@ -255,6 +255,7 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 
 Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type, const std::string& meshCacheName)
 {
+	std::cout << scene->mNumTextures << "\n";
     std::map<int, int> aiMapMode2glMapMode{
         {aiTextureMapMode_Wrap, GL_REPEAT},
         {aiTextureMapMode_Clamp, GL_CLAMP_TO_EDGE},
@@ -281,12 +282,10 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
 			mapModeT = mapModeTData->second;
 
         const char* texturePath = path.C_Str();
+
         /* check whether or not this is an embedded texture. If that's the case
-         * load it from memory. The name of embedded textures starts with
-         * '*' followed by a number that can be used to index scene->mTextures
-         * This texture is then converted to bytes read by Texture */
-        if (texturePath[0] == '*') {
-            aiTexture* texture = scene->mTextures[std::atoi(texturePath + 1)];
+         * load it from memory. */
+        if (const aiTexture* texture = scene->GetEmbeddedTexture(texturePath)) {
             std::uint8_t* textureData = reinterpret_cast<unsigned char*>(texture->pcData);
             if (texture->mHeight == 0)
 				return Texture::loadFromMemoryCached(meshCacheName + std::string{ texturePath }, textureData, texture->mWidth, mapModeS, mapModeT);

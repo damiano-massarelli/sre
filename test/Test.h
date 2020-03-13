@@ -22,7 +22,7 @@ namespace sre {
     };
 
     /**
-     *  Class to use to register a test.
+     *  Class used to register a test.
      */
     class TestRegisterer {
     public:
