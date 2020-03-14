@@ -255,7 +255,6 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 
 Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type, const std::string& meshCacheName)
 {
-	std::cout << scene->mNumTextures << "\n";
     std::map<int, int> aiMapMode2glMapMode{
         {aiTextureMapMode_Wrap, GL_REPEAT},
         {aiTextureMapMode_Clamp, GL_CLAMP_TO_EDGE},
