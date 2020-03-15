@@ -71,7 +71,7 @@ void SkeletalAnimationTestScene::start() {
 	//Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
 
 	auto human = GameObjectLoader().fromFile("test_data/skeletral_animation/human.dae");
-	auto animationController = human->getComponent<SkeletralAnimationControllerComponent>();
+	auto animationController = human->getComponent<SkeletalAnimationControllerComponent>();
 	auto animation2 = SkeletalAnimationLoader().fromFile("test_data/skeletral_animation/human_animation_2.dae", animationController->getBoneName2index());
 	animation2.loopDirection = SkeletalAnimation::LoopDirection::BOUNCE;
 	animationController->addAnimation("anim2", animation2);

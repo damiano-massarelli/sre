@@ -97,7 +97,7 @@ void ParticleTestScene::start() {
 	auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
 	auto human = GameObjectLoader().fromFile("C:/Users/damia/Desktop/warrior_idle.dae");
-	auto animationController = human->getComponent<SkeletralAnimationControllerComponent>();
+	auto animationController = human->getComponent<SkeletalAnimationControllerComponent>();
 	animationController->playAnimation("default");
 	auto animation = animationController->getAnimation("default");
 	animation->loopDirection = SkeletalAnimation::LoopDirection::REPEAT;

@@ -73,6 +73,7 @@ void EffectManager::disableEffects()
 int EffectManager::getTexture()
 {
 	int texture = -1;
+	// todo replace 15 with the maximum number of available texture slots
 	for (int i = 0; i < 15; ++i) {
 		if (mInUseTextures.find(i) == mInUseTextures.end()) {
 			texture = i;
@@ -80,8 +81,9 @@ int EffectManager::getTexture()
 		}
 	}
 	
-	if (texture != -1)
+	if (texture != -1) {
 		mInUseTextures.insert(texture);
+	}
 
 	return texture;
 }

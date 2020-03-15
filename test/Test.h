@@ -10,7 +10,7 @@
 namespace sre {
 
     /**
-     *  Test interface.
+     * Test interface.
      */
     class ITest {
     public:
@@ -22,7 +22,7 @@ namespace sre {
     };
 
     /**
-     *  Class used to register a test.
+     * Class used to register a test.
      */
     class TestRegisterer {
     public:
@@ -30,8 +30,7 @@ namespace sre {
     };
 
     /**
-     *  Singleton class that contains and run the tests.
-     *
+     * Singleton class that contains and run the tests.
      *  Every test register to this manager using the macro definde below.
      *      DECLARE_TEST_SCENE(testName, testClass)
      */

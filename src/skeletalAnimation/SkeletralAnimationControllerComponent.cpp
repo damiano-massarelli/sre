@@ -1,19 +1,19 @@
 #include "skeletalAnimation/SkeletralAnimationControllerComponent.h"
 #include "Engine.h"
 
-SkeletralAnimationControllerComponent::SkeletralAnimationControllerComponent(const GameObjectEH& go, const std::vector<Bone>& skeleton,
+SkeletalAnimationControllerComponent::SkeletalAnimationControllerComponent(const GameObjectEH& go, const std::vector<Bone>& skeleton,
 	const std::map<std::string, std::uint32_t>& boneName2index)
 	: Component{ go }, mSkeleton{ skeleton }, mBoneName2Index{ boneName2index }
 {
 
 }
 
-void SkeletralAnimationControllerComponent::addAnimation(const std::string& name, const SkeletalAnimation& animation)
+void SkeletalAnimationControllerComponent::addAnimation(const std::string& name, const SkeletalAnimation& animation)
 {
 	mName2animation[name] = animation;
 }
 
-SkeletalAnimation* SkeletralAnimationControllerComponent::getAnimation(const std::string& name)
+SkeletalAnimation* SkeletalAnimationControllerComponent::getAnimation(const std::string& name)
 {
 	SkeletalAnimation* animation = nullptr;
 	auto anim = mName2animation.find(name);
@@ -23,23 +23,23 @@ SkeletalAnimation* SkeletralAnimationControllerComponent::getAnimation(const std
 	return animation;
 }
 
-void SkeletralAnimationControllerComponent::playAnimation(const std::string& name)
+void SkeletalAnimationControllerComponent::playAnimation(const std::string& name)
 {
 	time.reset();
 	mCurrentAnimation = name;
 }
 
-const std::map<std::string, std::uint32_t>& SkeletralAnimationControllerComponent::getBoneName2index() const
+const std::map<std::string, std::uint32_t>& SkeletalAnimationControllerComponent::getBoneName2index() const
 {
 	return mBoneName2Index;
 }
 
-void SkeletralAnimationControllerComponent::updateBones(std::int32_t location, const Shader& shaderToUpdate)
+void SkeletalAnimationControllerComponent::updateBones(std::int32_t location, const Shader& shaderToUpdate)
 {
 	shaderToUpdate.setMat4Array(location, getTransforms());
 }
 
-std::vector<glm::mat4> SkeletralAnimationControllerComponent::getTransforms()
+std::vector<glm::mat4> SkeletalAnimationControllerComponent::getTransforms()
 {
 	const SkeletalAnimation& animation = mName2animation[mCurrentAnimation];
 

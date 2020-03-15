@@ -18,7 +18,7 @@ namespace sre {
         TestManager::get()->registerTest(name, std::move(test));
     }
 
-    std::unique_ptr<TestManager> TestManager::instance;
+    std::unique_ptr<TestManager> TestManager::instance = nullptr;
 
     TestManager* TestManager::get() {
         if (instance == nullptr) {

@@ -447,7 +447,7 @@ GameObjectEH GameObjectLoader::fromFile(const std::string& path)
 
 	// if bones where found this GameObject supports skeletal animation
 	if (mBones.size() != 0) {
-		mSkeletalAnimationController = std::make_shared<SkeletralAnimationControllerComponent>(GameObjectEH{}, mBones, mBoneName2Index);
+		mSkeletalAnimationController = std::make_shared<SkeletalAnimationControllerComponent>(GameObjectEH{}, mBones, mBoneName2Index);
 		SkeletalAnimationLoader loader;
 		auto animation = loader.fromAssimpScene(scene, mBoneName2Index);
 		mSkeletalAnimationController->addAnimation("default", animation);

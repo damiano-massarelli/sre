@@ -85,7 +85,7 @@ public:
 	they would end up using the same animation. Hence before being used, each material ask its
 	animation controller to update the bone transformation matrices */
 	/** animation controller used for skeletal animation */
-	std::weak_ptr<SkeletralAnimationControllerComponent> skeletalAnimationController;
+	std::weak_ptr<SkeletalAnimationControllerComponent> skeletalAnimationController;
 
     virtual void use() override;
 

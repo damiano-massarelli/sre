@@ -20,7 +20,7 @@
  * an animation, it will be automatically added to this component
  * and its name will be "default".
  */
-class SkeletralAnimationControllerComponent :
+class SkeletalAnimationControllerComponent :
 	public Component
 {
 private:
@@ -38,7 +38,7 @@ public:
 	Timer time;
 
 
-	SkeletralAnimationControllerComponent(const GameObjectEH& go, const std::vector<Bone>& skeleton,
+	SkeletalAnimationControllerComponent(const GameObjectEH& go, const std::vector<Bone>& skeleton,
 		const std::map<std::string, std::uint32_t>& boneName2index);
 
 	/**

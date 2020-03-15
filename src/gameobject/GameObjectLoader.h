@@ -44,7 +44,7 @@ class GameObjectLoader
 		std::map<std::pair<std::uint32_t, aiMesh*>, std::vector<float>> mVertexToInfluencingBonesWeights;
 
 		/** skeletal animation controller to add to animated materials */
-		std::shared_ptr<SkeletralAnimationControllerComponent> mSkeletalAnimationController = nullptr;
+		std::shared_ptr<SkeletalAnimationControllerComponent> mSkeletalAnimationController = nullptr;
 
         GameObjectEH processNode(aiNode* node, const aiScene* scene);
         void processMesh(const GameObjectEH& go, aiNode* node, int meshNumber, aiMesh* mesh, const aiScene* scene);
