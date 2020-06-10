@@ -47,8 +47,10 @@ link_directories(
     ${PROJECT_SOURCE_DIR}/external/assimp/lib
 )
 
-# GLAD
+# Glad
 add_subdirectory(external/glad)
+
+# ImGui
 add_subdirectory(external/imgui)
 
 # Setup build
@@ -56,6 +58,9 @@ set(TARGET_NAME sre)
 
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${TARGET_NAME})
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
+
+# Assimp
+add_subdirectory(external/assimp ${EXECUTABLE_OUTPUT_PATH}/external/assimp)
 
 add_executable(${TARGET_NAME} ${SRC_FILES})
 
@@ -70,5 +75,5 @@ target_link_libraries(
     SDL2
     glad
     imgui
-    assimp-vc142-mt
+    assimp
 )
