@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.6)
 
 project(sre)
 
+set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+
 # Set C++ to use the C++17 standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -53,14 +57,13 @@ add_subdirectory(external/glad)
 # ImGui
 add_subdirectory(external/imgui)
 
+# Assimp
+add_subdirectory(external/assimp ${EXECUTABLE_OUTPUT_PATH}/external/assimp)
+
 # Setup build
 set(TARGET_NAME sre)
 
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${TARGET_NAME})
-set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
-
-# Assimp
-add_subdirectory(external/assimp ${EXECUTABLE_OUTPUT_PATH}/external/assimp)
 
 add_executable(${TARGET_NAME} ${SRC_FILES})
 
