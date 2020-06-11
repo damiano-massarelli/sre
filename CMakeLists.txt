@@ -15,8 +15,6 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
 endif(MSVC)
 
-#message("Cmake home dir: ${CMAKE_HOME_DIRECTORY}")
-
 # Searching files
 file(GLOB INCLUDE_FILES
     ${PROJECT_SOURCE_DIR}/test/*.h
@@ -41,41 +39,39 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/external/glm
     ${PROJECT_SOURCE_DIR}/external/nvToolsExt
     ${PROJECT_SOURCE_DIR}/external/stb_image
-    ${PROJECT_SOURCE_DIR}/external/SDL2/include
-    ${PROJECT_SOURCE_DIR}/external/assimp/include
-)
-
-# Setup dependencies
-link_directories(
-    ${PROJECT_SOURCE_DIR}/external/SDL2/lib/x64
-    ${PROJECT_SOURCE_DIR}/external/assimp/lib
 )
 
 # Glad
-add_subdirectory(external/glad)
-
-# ImGui
-add_subdirectory(external/imgui)
+add_subdirectory(external/glad ${EXECUTABLE_OUTPUT_PATH}/external/glad)
 
 # Assimp
 add_subdirectory(external/assimp ${EXECUTABLE_OUTPUT_PATH}/external/assimp)
+include_directories(${PROJECT_SOURCE_DIR}/external/assimp/include)
 
 # SDL2
 add_subdirectory(external/SDL2 ${EXECUTABLE_OUTPUT_PATH}/external/SDL2)
+include_directories(${PROJECT_SOURCE_DIR}/external/SDL2/include)
 
-# Setup build
-set(TARGET_NAME sre)
+# Setup dependencies
+#link_directories(
+#    ${PROJECT_SOURCE_DIR}/external/SDL2/lib/x64
+#    ${PROJECT_SOURCE_DIR}/external/assimp/lib
+#)
 
-set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${TARGET_NAME})
+# ImGui
+add_subdirectory(external/imgui ${EXECUTABLE_OUTPUT_PATH}/external/imgui)
 
-add_executable(${TARGET_NAME} ${SRC_FILES})
+# Setup target
+set(TARGET sre)
 
-set_target_properties(sre PROPERTIES
-    VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-)
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${TARGET})
+
+add_executable(${TARGET} ${SRC_FILES})
+
+set_target_properties(sre PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
 
 target_link_libraries(
-    ${TARGET_NAME}
+    ${TARGET}
     opengl32
     SDL2Main
     SDL2

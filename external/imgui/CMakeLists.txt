@@ -13,3 +13,4 @@ add_library(
     imgui_widgets.cpp
     imstb_rectpack.h imstb_textedit.h imstb_truetype.h
 )
+target_link_libraries(imgui glad SDL2)
