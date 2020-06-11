@@ -60,6 +60,9 @@ add_subdirectory(external/imgui)
 # Assimp
 add_subdirectory(external/assimp ${EXECUTABLE_OUTPUT_PATH}/external/assimp)
 
+# Assimp
+add_subdirectory(external/SDL2 ${EXECUTABLE_OUTPUT_PATH}/external/SDL2)
+
 # Setup build
 set(TARGET_NAME sre)
 
