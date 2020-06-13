@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 project(imgui)
 
 add_library(
-    imgui 
+    imgui STATIC
     imconfig.h
     imgui.h imgui.cpp
     imgui_draw.cpp

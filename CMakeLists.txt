@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.6)
 project(sre)
 
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 
 # Set C++ to use the C++17 standard
@@ -52,14 +51,16 @@ include_directories(${PROJECT_SOURCE_DIR}/external/assimp/include)
 add_subdirectory(external/SDL2 ${EXECUTABLE_OUTPUT_PATH}/external/SDL2)
 include_directories(${PROJECT_SOURCE_DIR}/external/SDL2/include)
 
-# Setup dependencies
-#link_directories(
-#    ${PROJECT_SOURCE_DIR}/external/SDL2/lib/x64
-#    ${PROJECT_SOURCE_DIR}/external/assimp/lib
-#)
-
 # ImGui
 add_subdirectory(external/imgui ${EXECUTABLE_OUTPUT_PATH}/external/imgui)
+
+# Setup dependencies
+link_directories(
+    ${EXECUTABLE_OUTPUT_PATH}/external/glad
+    ${EXECUTABLE_OUTPUT_PATH}/external/imgui
+    ${EXECUTABLE_OUTPUT_PATH}/external/SDL2
+    ${EXECUTABLE_OUTPUT_PATH}/external/assimp
+)
 
 # Setup target
 set(TARGET sre)
