@@ -33,15 +33,17 @@ void MeshCreatorTestScene::start() {
 
 
     auto cone = Engine::gameObjectManager.createGameObject(MeshCreator::cone(), phong);
-    auto coneNormals = Engine::gameObjectManager.createGameObject(MeshCreator::cone(), std::make_shared<PropMaterial>(true));
+    auto coneNormals = Engine::gameObjectManager.createGameObject(MeshCreator::cone(.5f, 3), std::make_shared<PropMaterial>(true));
     coneNormals->transform.setParent(cone);
     cone->transform.setPosition(glm::vec3{5, 0, 0});
 
     auto cube = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), phong);
     cube->transform.setPosition(glm::vec3{2.5, 0, 0});
 
-    auto cylinder = Engine::gameObjectManager.createGameObject(MeshCreator::cylinder(), phong);
-    cylinder->transform.setPosition(glm::vec3{-2.5, 0, 0});
+    auto cylinder = Engine::gameObjectManager.createGameObject(MeshCreator::cylinder(0.5f, 10), phong);
+    auto cNorm = Engine::gameObjectManager.createGameObject(MeshCreator::cylinder(0.5f, 10) , std::make_shared<PropMaterial>(true));
+    cNorm->transform.setParent(cylinder);
+    cylinder->transform.setPosition(glm::vec3{ -2.5, 0, 0 });
 
     auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(), phong);
     sphere->transform.setPosition(glm::vec3{-5, 0, 0});

@@ -38,8 +38,8 @@ private:
 	 * store different values in the stencil buffer. The most significant bit is used to 
 	 * distinguish them. The following 1 is needed because during stencilPass values are added
 	 * or subtracted from this bits */
-	static constexpr GLuint DEFERRED_STENCIL_MARK = 0x40; // 0100 0000
-	static constexpr GLuint PBR_STENCIL_MARK      = 0xC0; // 1100 0000
+	//static constexpr GLuint DEFERRED_STENCIL_MARK = 0x40; // 0100 0000
+	//static constexpr GLuint PBR_STENCIL_MARK      = 0xC0; // 1100 0000
 
 	SDL_Window* mWindow = nullptr;
 
@@ -111,9 +111,6 @@ private:
 	/** Performs all operations needed by deferred rendering */
 	void prepareDeferredRendering();
 
-	/** Performs all operations needed by PBR rendering */
-	void preparePBRRendering();
-
 	/** Performs all operations needed to finalize deferred rendering: combine g-buffer data */
 	void finalizeDeferredRendering(const RenderTarget* target);
 
@@ -121,9 +118,9 @@ private:
 
 	void stencilPass(int lightIndex, float radius);
 
-	void pointLightPass(GLuint mark, DeferredLightShader& shaderWrapper);
+	void pointLightPass(DeferredLightShader& shaderWrapper);
 
-	void directionalLightPass(GLuint mark, DeferredLightShader& shaderWrapper);
+	void directionalLightPass(DeferredLightShader& shaderWrapper);
 
 	/** Performs shadow mapping */
 	void renderShadows();

@@ -190,7 +190,7 @@ void RenderSystem::initDeferredRendering()
 			{ "Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX },
 		});
 
-	mPointLightSphere = MeshCreator::sphere(1.0f, 10, 10, false, false);
+	mPointLightSphere = MeshCreator::sphere(1.0f, 10, 10);
 
 	mPointLightDeferredStencil = Shader::loadFromFile({ "shaders/Light.glsl", "shaders/deferred_rendering/pointLightSphereStencilPassVS.glsl" },
 		std::vector<std::string>{},
@@ -354,7 +354,7 @@ void RenderSystem::prepareDeferredRendering()
 	// set up the stencil test so that only the parts affected by deferred rendering
 	// are actually lit in the deferred rendering directional light pass pass
 	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_ALWAYS, DEFERRED_STENCIL_MARK, 0xFF);
+	glStencilFunc(GL_ALWAYS, 0x00, 0xFF);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilMask(0xFF);
 
@@ -365,62 +365,40 @@ void RenderSystem::prepareDeferredRendering()
 	glDisable(GL_BLEND);
 }
 
-void RenderSystem::preparePBRRendering()
-{
-	// sets the actual mark on the stencil buffer
-	glStencilFunc(GL_ALWAYS, PBR_STENCIL_MARK, 0xFF);
-}
-
 void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase)
 {
-	//nvtxRangePushA("Frame");
-
 	auto targetToUse = target;
 	if (target == nullptr) // target null means render to screen
 		targetToUse = &effectTarget;
 
-	//nvtxRangePushA("Prepare deferred");
 	prepareRendering(targetToUse);
 
 	prepareDeferredRendering();
-	//nvtxRangePop();
 
-	//nvtxRangePushA("Render deferred");
-	render(RenderPhase::DEFERRED_RENDERING | phase);
-	//nvtxRangePop();
+	//render(RenderPhase::DEFERRED_RENDERING | phase);
 
-	preparePBRRendering();
 	render(RenderPhase::PBR | phase);
 
 	// no need to render lights and stuff if render target is not valid
 	if (!targetToUse->isValid()) return;
 
-	//nvtxRangePushA("finalize deferred");
 	finalizeDeferredRendering(targetToUse);
-	//nvtxRangePop();
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//nvtxRangePushA("Render forward");
 	render(RenderPhase::FORWARD_RENDERING | phase);
-	//nvtxRangePop();
 
 	// render particles
 	Engine::particleRenderer.render();
 
 	// render to screen only if no target specified
 	if (target == nullptr) {
-		//nvtxRangePushA("finalize rendering");
 		finalizeRendering();
         
         Engine::uiRenderer.render();
 
         SDL_GL_SwapWindow(mWindow);
-
-		//nvtxRangePop();
 	}
-
-	//nvtxRangePop();
 }
 
 void RenderSystem::render(int phase)
@@ -434,14 +412,12 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 	/* Depth and stencil information is needed in the forward rendering pass (see renderScene).
 	 * Therefore, we need to copy the depth and stencil information created during the deferred
 	 * shader pass into the currently bound fbo. */
-	//glBindFramebuffer(GL_READ_FRAMEBUFFER, deferredRenderingFBO.getFBO());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->getFbo());
 	glBlitFramebuffer(
 		0, 0, deferredRenderingFBO.getWidth(), deferredRenderingFBO.getHeight(),
 		0, 0, deferredRenderingFBO.getWidth(), deferredRenderingFBO.getHeight(),
 		GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
 	);
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, target->getFbo());
 
 	// clear the color buffer of the currently bound fbo (can be either effects fbo or default (0) fbo)
@@ -452,10 +428,6 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 	// there is no need of using a depth buffer
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
-
-	// stop writing into the stencil buffer
-	glStencilMask(0);
-	glDisable(GL_STENCIL_TEST);
 
 	// bind texture used by directional and point light passes
 	glActiveTexture(GL_TEXTURE0);
@@ -468,12 +440,12 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getNormalBuffer().getId());
 
 	// perform directional light pass (include shadows)
-	directionalLightPass(DEFERRED_STENCIL_MARK, mDirectionalLightDeferred);
-	directionalLightPass(PBR_STENCIL_MARK, mDirectionalLightDeferredPBR);
+	directionalLightPass(mDirectionalLightDeferred);
+	directionalLightPass(mDirectionalLightDeferredPBR);
 
 	// perform point light pass (include shadows)
-	pointLightPass(DEFERRED_STENCIL_MARK, mPointLightDeferred);
-	pointLightPass(PBR_STENCIL_MARK, mPointLightDeferredPBR);
+	pointLightPass(mPointLightDeferred);
+	pointLightPass(mPointLightDeferredPBR);
 
 	// unbind textures
 	for (int i = 3; i >= 0; --i) {
@@ -485,15 +457,9 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 	glEnable(GL_DEPTH_TEST);
 }
 
-void RenderSystem::directionalLightPass(GLuint mark, DeferredLightShader& shaderWrapper)
+void RenderSystem::directionalLightPass(DeferredLightShader& shaderWrapper)
 {
 	glBindVertexArray(mScreenMesh.mVao);
-
-	// enable stencil test so that this operation is only carried
-	// out for those pixels actually drawn during deferred rendering
-	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_EQUAL, mark, 0xFF);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 	// for multiple lights
 	glEnable(GL_BLEND);
@@ -520,7 +486,6 @@ void RenderSystem::directionalLightPass(GLuint mark, DeferredLightShader& shader
 	}
 
 	glDisable(GL_BLEND);
-	glDisable(GL_STENCIL_TEST);
 }
 
 void RenderSystem::stencilPass(int lightIndex, float radius)
@@ -533,10 +498,10 @@ void RenderSystem::stencilPass(int lightIndex, float radius)
 	// depth test must be enabled
 	glEnable(GL_DEPTH_TEST);
 
-	glStencilFunc(GL_ALWAYS, 0, 0x00);
+	glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	// increment if back face of sphere is behind something
 	glStencilOpSeparate(GL_BACK, GL_REPLACE, GL_INCR_WRAP, GL_KEEP);
-	// decrement if front face of sphere is before something
+	// decrement if front face of sphere is behind something
 	glStencilOpSeparate(GL_FRONT, GL_REPLACE, GL_DECR_WRAP, GL_KEEP);
 
 	// do not write this sphere on the color buffer
@@ -556,12 +521,8 @@ void RenderSystem::stencilPass(int lightIndex, float radius)
 	}
 }
 
-void RenderSystem::pointLightPass(GLuint mark, DeferredLightShader& shaderWrapper)
+void RenderSystem::pointLightPass(DeferredLightShader& shaderWrapper)
 {
-	/* This mask prevents the two most significant bits from being deleted 
-	 * This mask is used so that the stencil buffer can be
-	 * cleared without losing the information on pbr vs. blinn-phong */
-	glStencilMask(0x3F);  
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_STENCIL_BUFFER_BIT);
 	glEnable(GL_STENCIL_TEST);
@@ -584,9 +545,8 @@ void RenderSystem::pointLightPass(GLuint mark, DeferredLightShader& shaderWrappe
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, pointLight->getPointShadowTarget().getDepthBuffer().getId());
 
-		/* mark is used to shader only the pixel of this phase. +1 is needed to identify those pixels
-		   that are not inside a light sphere */
-		glStencilFunc(GL_EQUAL, mark + 1, 0xFF);
+		/* render only fragments affected by point light */
+		glStencilFunc(GL_EQUAL, 0x01, 0xFF);
 		{
 			ShaderScopedUsage useShader{ shaderWrapper.shader };
 
