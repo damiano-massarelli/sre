@@ -1,6 +1,34 @@
 cmake_minimum_required(VERSION 3.6)
 
-project(sre)
+### MACRO for sort file inside a project in VS
+MACRO(SOURCE_GROUP_BY_FOLDER target)
+  SET(SOURCE_GROUP_DELIMITER "/")
+  SET(last_dir "")
+  SET(files "")
+  FOREACH(file ${${target}_HEADERS} ${${target}_SRC})
+    file(RELATIVE_PATH relative_file "${PROJECT_SOURCE_DIR}" ${file})
+    GET_FILENAME_COMPONENT(dir "${relative_file}" PATH)
+    IF (NOT "${dir}" STREQUAL "${last_dir}")
+      IF (files)
+        SOURCE_GROUP("${last_dir}" FILES ${files})
+      ENDIF (files)
+      SET(files "")
+    ENDIF (NOT "${dir}" STREQUAL "${last_dir}")
+    SET(files ${files} ${file})
+    SET(last_dir "${dir}")
+  ENDFOREACH(file)
+  IF (files)
+    SOURCE_GROUP("${last_dir}" FILES ${files})
+  ENDIF (files)
+ENDMACRO(SOURCE_GROUP_BY_FOLDER)
+
+# Setup target
+set(TARGET sre)
+
+project(${TARGET})
+
+# Turn on the ability to create folders to organize projects
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
@@ -15,13 +43,13 @@ if(MSVC)
 endif(MSVC)
 
 # Searching files
-file(GLOB INCLUDE_FILES
+file(GLOB ${TARGET}_HEADERS
     ${PROJECT_SOURCE_DIR}/test/*.h
     ${PROJECT_SOURCE_DIR}/src/*.h
     ${PROJECT_SOURCE_DIR}/src/*/*.h
     ${PROJECT_SOURCE_DIR}/src/rendering/*/*.h
 )
-file(GLOB SRC_FILES
+file(GLOB ${TARGET}_SRC
     ${PROJECT_SOURCE_DIR}/Application.cpp
     ${PROJECT_SOURCE_DIR}/test/*.cpp
     ${PROJECT_SOURCE_DIR}/test/*/*.cpp
@@ -62,12 +90,12 @@ link_directories(
     ${EXECUTABLE_OUTPUT_PATH}/external/assimp
 )
 
-# Setup target
-set(TARGET sre)
-
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${TARGET})
 
-add_executable(${TARGET} ${SRC_FILES})
+add_executable(${TARGET} ${${TARGET}_SRC})
+
+# Group sources into folders for VS
+SOURCE_GROUP_BY_FOLDER(${TARGET})
 
 set_target_properties(sre PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
 
