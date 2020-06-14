@@ -25,7 +25,7 @@ void FreeCameraComponent::syncWithTransform()
 {
 	// FIXME sometimes this does not work
 	auto angles = glm::eulerAngles(gameObject->transform.getRotation());
-	float pi = glm::pi<float>();
+	constexpr float pi = glm::pi<float>();
 	if (angles.z == pi) {
 		angles.x = -pi + angles.x;
 		angles.y = pi - angles.y;
@@ -58,6 +58,12 @@ void FreeCameraComponent::onEvent(SDL_Event e)
             transform.moveBy(-camRight * delta * moveSpeed);
         if (keys[SDL_SCANCODE_A])
             transform.moveBy(camRight * delta * moveSpeed);
+
+		if (keys[SDL_SCANCODE_Q])
+			transform.moveBy(glm::vec3{ 0.f, -1.f, 0.f } * delta * moveSpeed);
+		if (keys[SDL_SCANCODE_E])
+			transform.moveBy(glm::vec3{ 0.f, 1.f, 0.f } * delta * moveSpeed);
+
 		if (glm::any(glm::notEqual(transform.getRotation(), mOldOrientation))) {
 			syncWithTransform();
 			transform.setRotation(glm::vec3{ pitch, heading, 0.0f });
