@@ -110,9 +110,9 @@ void ComplexTestScene::start() {
 	pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness.png"));
 	pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal.png"));
 	pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
-	pbrMaterial->setAmbientOccludionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
+	pbrMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
 
-	auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 50, 50, true, true, true), pbrMaterial);
+	auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 50, 50), pbrMaterial);
 	sphere->transform.scaleBy(glm::vec3{ 3.0f });
 	sphere->transform.moveBy(glm::vec3{ 35.0f, 130.0f, 0.0f });
 
