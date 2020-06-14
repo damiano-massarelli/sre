@@ -23,7 +23,7 @@ public:
 
 	void setRoughnessMap(const Texture& roughness);
 
-	void setAmbientOccludionMap(const Texture& ao);
+	void setAmbientOcclusionMap(const Texture& ao);
 
 	virtual void use() override;
 

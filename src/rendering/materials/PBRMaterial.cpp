@@ -35,7 +35,7 @@ void PBRMaterial::setRoughnessMap(const Texture& roughness)
 	mRoughness = roughness;
 }
 
-void PBRMaterial::setAmbientOccludionMap(const Texture& ao)
+void PBRMaterial::setAmbientOcclusionMap(const Texture& ao)
 {
 	mAO = ao;
 }
@@ -62,7 +62,7 @@ void PBRMaterial::use()
 
 void PBRMaterial::after()
 {
-	for (int i = 4; i <= 0; --i) {
+	for (int i = 4; i >= 0; --i) {
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
