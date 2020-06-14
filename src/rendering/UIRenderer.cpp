@@ -8,50 +8,7 @@
 void UIRenderer::init()
 {
     mWindow = Engine::renderSys.getWindow();
-}
 
-void UIRenderer::setDebugUIDrawer(std::function<void()> drawer)
-{
-    if (!mIsDebugUI) {
-        initDebugUI();
-        mIsDebugUI = true;
-    }
-
-    mDebugUIDrawer = drawer;
-}
-
-void UIRenderer::onEvent(SDL_Event e)
-{
-    if (mIsDebugUI) {
-        ImGui_ImplSDL2_ProcessEvent(&e);
-    }
-}
-
-void UIRenderer::render()
-{
-    if (mIsDebugUI) {
-        renderDebugUI();
-    }
-}
-
-void UIRenderer::cleanUp() {
-    mDebugUIDrawer = std::function<void()>();
-}
-
-void UIRenderer::shutdown()
-{
-    if (mIsDebugUI) {
-        Engine::eventManager.removeListenerFor(EventManager::ALL_EVENTS, this);
-
-        // Cleanup
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplSDL2_Shutdown();
-        ImGui::DestroyContext();
-    }
-}
-
-void UIRenderer::initDebugUI()
-{
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -66,18 +23,56 @@ void UIRenderer::initDebugUI()
     Engine::eventManager.addListenerFor(EventManager::ALL_EVENTS, this, false);
 }
 
-void UIRenderer::renderDebugUI()
+void UIRenderer::addUIDrawer(std::function<void()> drawer)
+{
+    mUIDrawers.push_back(drawer);
+}
+
+void UIRenderer::setDebugUIDrawer(std::function<void()> drawer)
+{
+    mDebugUIDrawer = drawer;
+}
+
+void UIRenderer::onEvent(SDL_Event e)
+{
+    ImGui_ImplSDL2_ProcessEvent(&e);
+}
+
+void UIRenderer::render(bool showDebugUI)
 {
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(mWindow);
     ImGui::NewFrame();
 
-    if (mDebugUIDrawer) {
+    if (showDebugUI && mDebugUIDrawer!= nullptr) {
         mDebugUIDrawer();
+    }
+
+    for (auto& drawer : mUIDrawers) {
+        drawer();
     }
 
     // Rendering
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void UIRenderer::cleanUp() {
+    mUIDrawers.clear();
+}
+
+void UIRenderer::shutdown()
+{
+    cleanUp();
+    
+    // Unset the debug UI drawer
+    mDebugUIDrawer = std::function<void()>();
+
+    Engine::eventManager.removeListenerFor(EventManager::ALL_EVENTS, this);
+
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
 }

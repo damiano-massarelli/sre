@@ -36,6 +36,8 @@ namespace sre {
     void TestManager::startTests() {
         Engine::uiRenderer.setDebugUIDrawer([this](){
             ImGui::Begin("Tests");
+            ImGui::SetWindowPos(ImVec2::ImVec2(), ImGuiCond_Once);
+            ImGui::SetWindowSize("Tests", ImVec2::ImVec2(150, 500), ImGuiCond_Once);
 
             for (auto& testEntry : mTests) {
                 if (ImGui::Button(testEntry.first.c_str())) {
