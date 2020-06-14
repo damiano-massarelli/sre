@@ -25,7 +25,7 @@ void UIRenderer::init()
 
 void UIRenderer::addUIDrawer(std::function<void()> drawer)
 {
-    UIDrawers.push_back(drawer);
+    mUIDrawers.push_back(drawer);
 }
 
 void UIRenderer::setDebugUIDrawer(std::function<void()> drawer)
@@ -49,7 +49,7 @@ void UIRenderer::render(bool showDebugUI)
         mDebugUIDrawer();
     }
 
-    for (auto& drawer : UIDrawers) {
+    for (auto& drawer : mUIDrawers) {
         drawer();
     }
 
@@ -59,7 +59,7 @@ void UIRenderer::render(bool showDebugUI)
 }
 
 void UIRenderer::cleanUp() {
-    UIDrawers.clear();
+    mUIDrawers.clear();
 }
 
 void UIRenderer::shutdown()
