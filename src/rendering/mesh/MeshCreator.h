@@ -4,6 +4,8 @@
 #include "gameobject/GameObjectEH.h"
 #include <cstdint>
 
+
+
 class MeshCreator
 {
 public:
@@ -30,14 +32,13 @@ public:
       * @return a cone Mesh */
     static Mesh cone(float radius = 0.5f, std::uint32_t resolution = 50);
 
-    static Mesh sphere(float radius = 0.5f, std::uint32_t sectors = 20, std::uint32_t stacks = 20, 
-		bool includeTextureCoordinates = true, bool includeNormals = true, bool includeTangent = false);
+    static Mesh sphere(float radius = 0.5f, std::uint32_t sectors = 20, std::uint32_t stacks = 20);
 
 	/**
 	  * Creates a plane.
       * @return a plane Mesh
       */
-	static Mesh plane(bool includeTextureCoordinates = true, bool includeNormals = true);
+	static Mesh plane();
 };
 
 #endif // MESHCREATOR_H

@@ -92,6 +92,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 	std::vector<float> positions;
 	std::vector<float> normals;
 	std::vector<float> uvs;
+	std::vector<float> tangents;
 
 	// bottom face
 	float slice = (2 * pi) / resolution;
@@ -102,6 +103,8 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 		positions.insert(positions.end(), { x, -.5f, z });
 
 		normals.insert(normals.end(), { 0.0f, -1.0f, 0.0f });
+
+		tangents.insert(tangents.end(), { 1.f, 0.f, 0.f });
 
 		uvs.insert(uvs.end(), { (x + 1) / 2, (z + 1) / 2 });
 
@@ -116,6 +119,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 	positions.insert(positions.end(), { 0.0f, -.5f, 0.0f });
 	normals.insert(normals.end(), { 0.0f, -1.0f, 0.0f });
 	uvs.insert(uvs.end(), { 0.5f, 0.5f });
+	tangents.insert(tangents.end(), { 1.f, 0.f, 0.f });
 
 
 	// top face
@@ -127,6 +131,8 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 		positions.insert(positions.end(), { x, .5f, z });
 
 		normals.insert(normals.end(), { 0.0f, 1.0f, 0.0f });
+
+		tangents.insert(tangents.end(), { 1.f, 0.f, 0.f });
 
 		uvs.insert(uvs.end(), { (x + 1) / 2, 1 - (z + 1) / 2 });
 
@@ -140,20 +146,26 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 	positions.insert(positions.end(), { 0.0f, .5f, 0.0f });
 	normals.insert(normals.end(), { 0.0f, 1.0f, 0.0f });
 	uvs.insert(uvs.end(), { 0.5f, 0.5f });
+	tangents.insert(tangents.end(), { 1.f, 0.f, 0.f });
 
 	// body
 	current = 2 * resolution + 2;
 	for (std::uint32_t i = 0; i <= resolution; ++i) {
-		float cos = std::cos(slice * i);
-		float sin = std::sin(slice * i);
-		float x = radius * cos;
-		float z = radius * sin;
+		const float cos = std::cos(slice * i);
+		const float sin = std::sin(slice * i);
+		const float x = radius * cos;
+		const float z = radius * sin;
+		const float xNext = std::cos(slice * (i + 1)) * radius;
+		const float zNext = std::sin(slice * (i + 1)) * radius;
+
 
 		positions.insert(positions.end(), { x, .5f, z });
 		positions.insert(positions.end(), { x, -.5f, z });
 
 		normals.insert(normals.end(), { cos, 0.0f, sin });
 		normals.insert(normals.end(), { cos, 0.0f, sin });
+		tangents.insert(tangents.end(), { xNext - x, 0.f, zNext - z });
+		tangents.insert(tangents.end(), { xNext - x, 0.f, zNext - z });
 
 		uvs.insert(uvs.end(), { (float)i / resolution, 1.0f });
 		uvs.insert(uvs.end(), { (float)i / resolution, 0.0f });
@@ -172,13 +184,12 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 
 	}
 
-	positions.insert(positions.end(), { 0.0f, -.5f, 0.0f });
-	normals.insert(normals.end(), { 0.0f, 1.0f, 0.0f });
-
+	// Order matter: check the vertex buffer layout in the PBR VS
 	MeshLoader loader;
 	loader.loadData(positions.data(), positions.size(), 3);
 	loader.loadData(normals.data(), normals.size(), 3);
 	loader.loadData(uvs.data(), uvs.size(), 2);
+	loader.loadData(tangents.data(), tangents.size(), 3);
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
 	return loader.getMesh(0, indices.size());
@@ -189,6 +200,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
 	std::vector<std::uint32_t> indices;
 	std::vector<float> positions;
 	std::vector<float> normals;
+	std::vector<float> tangents;
 	std::vector<float> uvs;
 
 	// bottom face
@@ -203,6 +215,8 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
 
 		uvs.insert(uvs.end(), { (x + 1) / 2, (z + 1) / 2 });
 
+		tangents.insert(tangents.end(), { 1.f, 0.f, 0.f });
+
 		indices.insert(indices.end(), {
 						(i + 1) % resolution,
 						resolution,
@@ -214,49 +228,55 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
 	positions.insert(positions.end(), { 0.0f, -.5f, 0.0f });
 	normals.insert(normals.end(), { 0.0f, -1.0f, 0.0f });
 	uvs.insert(uvs.end(), { 0.5f, 0.5f });
+	tangents.insert(tangents.end(), { 1.f, 0.f, 0.f });
 
-	float bodyNormalY = std::sin(pi / 2 - std::atan2(1.0f, radius));
+	const float bodyNormalY = std::sin(pi / 2 - std::atan2(1.0f, radius));
 
 	// body
 	std::uint32_t current = resolution + 1;
 	for (std::uint32_t i = 0; i <= resolution; ++i) {
-		float cos = std::cos(slice * i);
-		float sin = std::sin(slice * i);
-		float x = radius * cos;
-		float z = radius * sin;
+		const float cos = std::cos(slice * i);
+		const float sin = std::sin(slice * i);
+		const float x = radius * cos;
+		const float z = radius * sin;
+		const float xNext = radius * std::cos(slice * (i + 1));
+		const float zNext = radius * std::sin(slice * (i + 1));
 
 		positions.insert(positions.end(), { x, -.5f, z });
+		positions.insert(positions.end(), { 0.f, .5f, 0.f });
 
 		glm::vec3 normal{ cos, bodyNormalY, sin };
 		normal = glm::normalize(normal);
 		normals.insert(normals.end(), { normal.x, normal.y, normal.z });
+		normals.insert(normals.end(), { normal.x, normal.y, normal.z });
+
+		tangents.insert(tangents.end(), { xNext - x, 0.f, zNext - z });
+		tangents.insert(tangents.end(), { xNext - x, 0.f, zNext - z });
 
 		uvs.insert(uvs.end(), { (float)i / resolution, 1.0f });
+		uvs.insert(uvs.end(), { 0.5f, 0.5f });
 
 		if (i != resolution) {
 			indices.insert(indices.end(), {
-							i + current,
-							resolution + current + 1,
-							(i + 1) + current
+							i * 2 + current,
+							(i * 2 + 1) + current, // top
+							(i * 2 + 2) + current
 				});
 		}
 	}
 
-	// top vertex
-	positions.insert(positions.end(), { 0.0f, .5f, 0.0f });
-	normals.insert(normals.end(), { 0.0f, 1.0f, 0.0f });
-	uvs.insert(uvs.end(), { 0.5f, 0.5f });
-
+	// Order matter: check the vertex buffer layout in the PBR VS
 	MeshLoader loader;
 	loader.loadData(positions.data(), positions.size(), 3);
 	loader.loadData(normals.data(), normals.size(), 3);
 	loader.loadData(uvs.data(), uvs.size(), 2);
+	loader.loadData(tangents.data(), tangents.size(), 3);
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
 	return loader.getMesh(0, indices.size());
 }
 
-Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stacks, bool includeTextureCoordinates, bool includeNormals, bool includeTangent)
+Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stacks)
 {
 	std::vector<float> positions;
 	std::vector<float> normals;
@@ -279,14 +299,12 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
 			normals.insert(normals.end(), { x, y, z });
 			uvs.insert(uvs.end(), { (float)j / sectors, (float)i / stacks });
 
-			if (includeTangent) {
-				float thetaNext = 2 * pi * ((float)(j + 1) / sectors);
+			float thetaNext = 2 * pi * ((float)(j + 1) / sectors);
 
-				float xNext = radius * std::cos(phi) * std::cos(thetaNext);
-				float zNext = radius * std::cos(phi) * std::sin(thetaNext);
+			float xNext = radius * std::cos(phi) * std::cos(thetaNext);
+			float zNext = radius * std::cos(phi) * std::sin(thetaNext);
 
-				tangents.insert(tangents.end(), { xNext - x, 0.0f, zNext - z });
-			}
+			tangents.insert(tangents.end(), { xNext - x, 0.0f, zNext - z });
 
 			if (i != stacks) {
 				indices.insert(indices.end(), {
@@ -304,20 +322,18 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
 		}
 	}
 
+	// Order matter: check the vertex buffer layout in the PBR VS
 	MeshLoader loader;
 	loader.loadData(positions.data(), positions.size(), 3);
-	if (includeNormals)
-		loader.loadData(normals.data(), normals.size(), 3);
-	if (includeTextureCoordinates)
-		loader.loadData(uvs.data(), uvs.size(), 2);
-	if (includeTangent)
-		loader.loadData(tangents.data(), tangents.size(), 3);
+	loader.loadData(normals.data(), normals.size(), 3);
+	loader.loadData(uvs.data(), uvs.size(), 2);
+	loader.loadData(tangents.data(), tangents.size(), 3);
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
 	return loader.getMesh(0, indices.size());
 }
 
-Mesh MeshCreator::plane(bool includeTextureCoordinates, bool includeNormals)
+Mesh MeshCreator::plane()
 {
 	std::vector<float> positions{
 		.5f, .5f, 0.0f,
@@ -327,17 +343,17 @@ Mesh MeshCreator::plane(bool includeTextureCoordinates, bool includeNormals)
 	};
 
 	std::vector<float> uvs{
-		 1.0f,  0.0f,
 		 1.0f,  1.0f,
-		 0.0f,  1.0f,
-		 0.0f,  0.0f
+		 1.0f,  0.0f,
+		 0.0f,  0.0f,
+		 0.0f,  1.0f
 	};
 
 	std::vector <float> normals{
-		 0.0f,  1.0f,  0.0f,
-		 0.0f,  1.0f,  0.0f,
-		 0.0f,  1.0f,  0.0f,
-		 0.0f,  1.0f,  0.0f,
+		 0.0f,  0.0f,  1.0f,
+		 0.0f,  0.0f,  1.0f,
+		 0.0f,  0.0f,  1.0f,
+		 0.0f,  0.0f,  1.0f,
 	};
 
 	std::vector<std::uint32_t> indices{
@@ -345,13 +361,19 @@ Mesh MeshCreator::plane(bool includeTextureCoordinates, bool includeNormals)
 		2, 0, 3
 	};
 
+	std::vector<float> tangents{
+		1.0f,  0.0f,  0.0f,
+		1.0f,  0.0f,  0.0f,
+		1.0f,  0.0f,  0.0f,
+		1.0f,  0.0f,  0.0f,
+	};
+
+	// Order matter: check the vertex buffer layout in the PBR VS
 	MeshLoader loader;
 	loader.loadData(positions.data(), positions.size(), 3);
-	if (includeNormals)
-		loader.loadData(normals.data(), normals.size(), 3);
-
-	if (includeTextureCoordinates)
-		loader.loadData(uvs.data(), uvs.size(), 2);
+	loader.loadData(normals.data(), normals.size(), 3);
+	loader.loadData(uvs.data(), uvs.size(), 2);
+	loader.loadData(tangents.data(), tangents.size(), 3);
 
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
