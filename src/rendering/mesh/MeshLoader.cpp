@@ -1,7 +1,7 @@
 #include "rendering/mesh/MeshLoader.h"
 #include <glad/glad.h>
 
-MeshLoader::MeshLoader(int drawMode) : mDrawMode{drawMode}
+MeshLoader::MeshLoader(GLenum drawMode) : mDrawMode{drawMode}, mVao{0}
 {
     glGenVertexArrays(1, &mMesh.mVao);
     glBindVertexArray(mMesh.mVao);
@@ -21,7 +21,7 @@ Mesh MeshLoader::getMesh(std::uint32_t vertexNumber, std::uint32_t indexNumber)
     return mMesh;
 }
 
-Mesh MeshLoader::createMesh(float vertexData[], std::uint32_t numOfVertices, std::uint32_t indices[], std::uint32_t numOfIndices, int drawMode)
+Mesh MeshLoader::createMesh(const float vertexData[], std::uint32_t numOfVertices, std::uint32_t indices[], std::uint32_t numOfIndices, GLenum drawMode)
 {
     Mesh mesh{0};
     mesh.mDrawMode = drawMode;
@@ -39,7 +39,7 @@ Mesh MeshLoader::createMesh(float vertexData[], std::uint32_t numOfVertices, std
 
     glBindVertexArray(mesh.mVao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 8 * numOfVertices * sizeof(float), vertexData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 11 * numOfVertices * sizeof(float), static_cast<const void *>(vertexData), GL_STATIC_DRAW);
 
     if (numOfIndices != 0) {
         mesh.mUsesIndices = true;
@@ -48,13 +48,16 @@ Mesh MeshLoader::createMesh(float vertexData[], std::uint32_t numOfVertices, std
     }
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void *)0);
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) (3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void *) (3 * sizeof(float)));
 
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) (6 * sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void *) (6 * sizeof(float)));
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
 
     mesh.mBuffers.insert(mesh.mBuffers.end(), {vbo, ebo});
     glBindVertexArray(0);
