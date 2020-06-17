@@ -25,13 +25,13 @@ DECLARE_TEST_SCENE("PBR", PBRTestScene)
 void PBRTestScene::start() {
 	// add effects
 	Engine::renderSys.effectManager.enableEffects();
-// 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
+	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
-// 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
-// 	auto gammaPost = std::make_shared<GammaCorrection>();
-// 	gammaPost->setGamma(1.8f);
-// 	gammaPost->setExposure(1.0f);
-// 	Engine::renderSys.effectManager.addEffect(gammaPost);
+ 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
+ 	auto gammaPost = std::make_shared<GammaCorrection>();
+ 	gammaPost->setGamma(2.2f);
+ 	gammaPost->setExposure(1.0f);
+ 	Engine::renderSys.effectManager.addEffect(gammaPost);
 
 	// create a camera
     auto camera = Engine::gameObjectManager.createGameObject();
@@ -54,6 +54,10 @@ void PBRTestScene::start() {
 	pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
 	pbrMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
 
+	// TODO gamma
+	// TODO roughness (1 - roughness)
+	pbrMaterial->setRoughness(0.f);
+
 	// Create a sphere and set its scale
 	auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 50, 50), pbrMaterial);
 	sphere->transform.scaleBy(glm::vec3{ 3.0f });
@@ -70,10 +74,10 @@ void PBRTestScene::start() {
 		});
 
 	// Create a Skybox material
-	auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
+	//auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
 
 	// Create the actual Skybox
-	auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
+	//auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
 	// Create an empy GameObject for the light
 	auto sun = Engine::gameObjectManager.createGameObject();
@@ -86,7 +90,7 @@ void PBRTestScene::start() {
 	//
 	Engine::renderSys.addLight(sun);
 	sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
-	sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 15.0f;
+	sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 150.0f;
 	sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 5.0f;
 	sun->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), sun->transform.right()));
 }
