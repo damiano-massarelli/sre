@@ -45,9 +45,11 @@ public:
 	void useNormalMap(bool useNormalMap);
 
 	void setMetalnessMap(const Texture& metalness);
+	void setUseMetalnessMap(bool useIt);
 	void setMetalness(float metalness);
 
 	void setRoughnessMap(const Texture& roughness);
+	void setUseRoughnessMap(bool useIt);
 	void setRoughness(float roughness);
 
 	void setAmbientOcclusionMap(const Texture& ao);

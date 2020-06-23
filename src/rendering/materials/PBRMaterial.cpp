@@ -63,6 +63,11 @@ void PBRMaterial::setMetalnessMap(const Texture& metalness)
 	mMetalnessMap = metalness;
 }
 
+void PBRMaterial::setUseMetalnessMap(bool useIt)
+{
+	mUseMetalnessMap = useIt;
+}
+
 void PBRMaterial::setMetalness(float metalness)
 {
 	mMetalness = metalness;
@@ -71,6 +76,11 @@ void PBRMaterial::setMetalness(float metalness)
 void PBRMaterial::setRoughnessMap(const Texture& roughness)
 {
 	mRoughnessMap = roughness;
+}
+
+void PBRMaterial::setUseRoughnessMap(bool useIt)
+{
+	mUseRoughnessMap = useIt;
 }
 
 void PBRMaterial::setRoughness(float roughness)
