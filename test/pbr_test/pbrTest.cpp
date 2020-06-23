@@ -26,8 +26,8 @@ void PBRTestScene::start() {
 	// add effects
 	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
-	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
- 	Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
+	//Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
+ 	//Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
  	auto gammaPost = std::make_shared<GammaCorrection>();
  	gammaPost->setGamma(2.2f);
  	gammaPost->setExposure(1.0f);
@@ -48,20 +48,48 @@ void PBRTestScene::start() {
 
 	// Create a PBR material
 	auto pbrMaterial = std::make_shared<PBRMaterial>();
-	pbrMaterial->setAlbedoMap(Texture::loadFromFile("test_data/pbr/albedo.png"));
-	pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness.png"));
-	pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal.png"));
-	pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
-	pbrMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
+	//pbrMaterial->setAlbedoMap(Texture::loadFromFile("test_data/pbr/albedo.png"));
+	pbrMaterial->setAlbedo(glm::vec3{ 255, 118, 106 } / 255.0f);
+	//pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness.png"));
+	//pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal.png"));
+	//pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
+	//pbrMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
 
-	// TODO gamma
-	// TODO roughness (1 - roughness)
+	Engine::uiRenderer.addUIDrawer([pbrMaterial]() {
+		float roughness = pbrMaterial->getRoughness();
+		bool useRoughnessMap = pbrMaterial->getUseRoughnessMap();
+		float metalness = pbrMaterial->getMetalness();
+		bool useMetalnessMap = pbrMaterial->getUseMetalnessMap();
+
+	    ImGui::Begin("Props");
+		ImGui::SliderFloat("Roughness", &roughness, 0.f, 1.f);
+		ImGui::Checkbox("Use Roughness Map", &useRoughnessMap);
+		
+		ImGui::SliderFloat("Metalness", &metalness, 0.f, 1.f);
+		ImGui::Checkbox("Use Metalness Map", &useMetalnessMap);
+
+		pbrMaterial->setRoughness(roughness);
+		pbrMaterial->setUseRoughnessMap(useMetalnessMap);
+		
+		pbrMaterial->setMetalness(metalness);
+		pbrMaterial->setUseMetalnessMap(useMetalnessMap);
+
+	    ImGui::End();
+	});
+
 	pbrMaterial->setRoughness(0.f);
 
+	auto sphereFromFile = GameObjectLoader().fromFile("test_data/pbr/sphere.fbx")->transform.findAll("Sphere")[0]->getMeshes()[0];
+
 	// Create a sphere and set its scale
-	auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 50, 50), pbrMaterial);
+	auto sphere = Engine::gameObjectManager.createGameObject(sphereFromFile, pbrMaterial);
 	sphere->transform.scaleBy(glm::vec3{ 3.0f });
 	sphere->transform.rotateBy(glm::angleAxis(glm::radians(90.0f), sphere->transform.forward()));
+
+	auto sphereGenerated = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(), pbrMaterial);
+	sphereGenerated->transform.setPosition(glm::vec3{ 5.f, 0.f, 0.f });
+	sphereGenerated->transform.scaleBy(glm::vec3{ 3.0f });
+	sphereGenerated->transform.rotateBy(glm::angleAxis(glm::radians(90.0f), sphereGenerated->transform.forward()));
 
 	// Load a cubemap Texture
 	auto skyTexture = Texture::loadCubemapFromFile({
@@ -87,10 +115,10 @@ void PBRTestScene::start() {
 	sun->addComponent(std::make_shared<DirectionalLight>(sun));
 	sun->transform.setPosition(glm::vec3{ 50.0f, 205.0f, -65.0f });
 
-	//
+	
 	Engine::renderSys.addLight(sun);
 	sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
-	sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 150.0f;
+	sun->getComponent<Light>()->ambientColor = glm::vec3{ 0.1f } / 150.0f;
 	sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 5.0f;
 	sun->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), sun->transform.right()));
 }
