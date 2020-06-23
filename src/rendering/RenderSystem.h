@@ -31,16 +31,6 @@ class RenderSystem
 	friend class Engine;
 
 private:
-	/* PBR materials also store their data in the deferred renderer FBO.
-	 * However, since this data is different from that stored by Blinn-Phong
-	 * materials, two different shaders are used in the finalizeDeferredRendering.
-	 * to use the right shader in the right fragment the pbr pass and normal-deferred pass
-	 * store different values in the stencil buffer. The most significant bit is used to 
-	 * distinguish them. The following 1 is needed because during stencilPass values are added
-	 * or subtracted from this bits */
-	//static constexpr GLuint DEFERRED_STENCIL_MARK = 0x40; // 0100 0000
-	//static constexpr GLuint PBR_STENCIL_MARK      = 0xC0; // 1100 0000
-
 	SDL_Window* mWindow = nullptr;
 
 	glm::mat4 mProjection{ 1.0f };

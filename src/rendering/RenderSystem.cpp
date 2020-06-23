@@ -440,11 +440,9 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target)
 	glBindTexture(GL_TEXTURE_2D, deferredRenderingFBO.getNormalBuffer().getId());
 
 	// perform directional light pass (include shadows)
-	directionalLightPass(mDirectionalLightDeferred);
 	directionalLightPass(mDirectionalLightDeferredPBR);
 
 	// perform point light pass (include shadows)
-	pointLightPass(mPointLightDeferred);
 	pointLightPass(mPointLightDeferredPBR);
 
 	// unbind textures
