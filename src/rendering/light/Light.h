@@ -53,7 +53,7 @@ protected:
 	Light(const GameObjectEH& go, Type lightType = Type::POINT);
 
 public:
-    glm::vec3 ambientColor{0.1f};
+    glm::vec3 ambientColor{0.0f};
     glm::vec3 diffuseColor{1.0f};
     glm::vec3 specularColor{1.0f};
 
