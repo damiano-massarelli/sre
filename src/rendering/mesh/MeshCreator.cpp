@@ -167,8 +167,8 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 		tangents.insert(tangents.end(), { xNext - x, 0.f, zNext - z });
 		tangents.insert(tangents.end(), { xNext - x, 0.f, zNext - z });
 
-		uvs.insert(uvs.end(), { (float)i / resolution, 1.0f });
-		uvs.insert(uvs.end(), { (float)i / resolution, 0.0f });
+		uvs.insert(uvs.end(), { 1.f - static_cast<float>(i) / resolution, 1.0f });
+		uvs.insert(uvs.end(), { 1.f - static_cast<float>(i) / resolution, 0.0f });
 
 		if (i != resolution) {
 			indices.insert(indices.end(), {
@@ -248,7 +248,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
 		glm::vec3 normal{ cos, bodyNormalY, sin };
 		normal = glm::normalize(normal);
 		normals.insert(normals.end(), { normal.x, normal.y, normal.z });
-		normals.insert(normals.end(), { normal.x, normal.y, normal.z });
+		normals.insert(normals.end(), { 0.f, 1.f, 0.f });
 
 		tangents.insert(tangents.end(), { xNext - x, 0.f, zNext - z });
 		tangents.insert(tangents.end(), { xNext - x, 0.f, zNext - z });
@@ -285,8 +285,8 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
 
 	std::vector<std::uint32_t> indices;
 
-	for (std::uint32_t i = 0; i <= stacks; ++i) {
-		float phi = -pi / 2 + pi * ((float)i / stacks);
+	for (std::uint32_t i = 0; i < stacks; ++i) {
+		float phi = -pi / 2 + pi * ((float)i / (stacks - 1));
 		float y = radius * std::sin(phi);
 
 		for (std::uint32_t j = 0; j <= sectors; ++j) {
@@ -297,7 +297,7 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
 
 			positions.insert(positions.end(), { x, y, z });
 			normals.insert(normals.end(), { x, y, z });
-			uvs.insert(uvs.end(), { (float)j / sectors, (float)i / stacks });
+			uvs.insert(uvs.end(), { 1.f - static_cast<float>(j) / sectors, static_cast<float>(i) / (stacks - 1) });
 
 			float thetaNext = 2 * pi * ((float)(j + 1) / sectors);
 
@@ -306,7 +306,7 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
 
 			tangents.insert(tangents.end(), { xNext - x, 0.0f, zNext - z });
 
-			if (i != stacks) {
+			if (j != sectors && i != stacks - 1) {
 				indices.insert(indices.end(), {
 					// first triangle
 					j + i * (sectors + 1),
@@ -317,7 +317,7 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
 					j + 1 + i * (sectors + 1),
 					j + (i + 1) * (sectors + 1),
 					j + 1 + (i + 1) * (sectors + 1)
-					});
+				});
 			}
 		}
 	}

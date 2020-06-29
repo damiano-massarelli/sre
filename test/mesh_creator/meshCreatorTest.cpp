@@ -45,11 +45,13 @@ void MeshCreatorTestScene::start() {
     cNorm->transform.setParent(cylinder);
     cylinder->transform.setPosition(glm::vec3{ -2.5, 0, 0 });
 
-    auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(), phong);
+    auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(1.f, 20, 20), phong);
     sphere->transform.setPosition(glm::vec3{-5, 0, 0});
 
 	auto plane = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), phong);
 	plane->transform.setPosition(glm::vec3{ -7.5, 0, 0 });
+
+    MeshCreator::axisGizmo();
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
