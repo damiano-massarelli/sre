@@ -106,7 +106,7 @@ void ComplexTestScene::start() {
 
 
 	auto pbrMaterial = std::make_shared<PBRMaterial>();
-	pbrMaterial->setAlbedo(Texture::loadFromFile("test_data/pbr/albedo.png"));
+	pbrMaterial->setAlbedoMap(Texture::loadFromFile("test_data/pbr/albedo.png"));
 	pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness.png"));
 	pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal.png"));
 	pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));

@@ -43,7 +43,7 @@ class Mesh
 
         bool mUsesIndices = false;
 
-        int mDrawMode = GL_TRIANGLES;
+        GLenum mDrawMode = GL_TRIANGLES;
 
         /// whether or not this class stores information about its vertices
         bool mHasVertexData = false;

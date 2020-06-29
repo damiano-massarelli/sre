@@ -67,7 +67,7 @@ void SSRTestScene::start() {
 
     // Ground
     std::shared_ptr<PBRMaterial> planeMat = std::make_shared<PBRMaterial>();
-    planeMat->setAlbedo(Texture::loadFromFile("test_data/ssr/textures/metal/albedo.jpg"));
+    planeMat->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/metal/albedo.jpg"));
     planeMat->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughness.jpg"));
     planeMat->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg"));
     planeMat->setNormalMap(Texture::loadFromFile("test_data/ssr/textures/metal/normal.jpg"));

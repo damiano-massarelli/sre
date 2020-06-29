@@ -13,7 +13,7 @@
 class MeshLoader
 {
     private:
-        int mDrawMode;
+        GLenum mDrawMode;
         std::uint32_t mVao;
         Mesh mMesh;
         std::vector<std::uint32_t> mBuffers;
@@ -24,11 +24,11 @@ class MeshLoader
         /** Creates a new mesh given an array of floats containing packed data.
           * about: vertex position, vertex normal, vertex texture coordinates.
           * Data should be provided in this exact order */
-        static Mesh createMesh(float vertexData[], std::uint32_t numOfVertices, std::uint32_t indices[], std::uint32_t numOfIndices, int drawMode = GL_TRIANGLES);
+        static Mesh createMesh(const float vertexData[], std::uint32_t numOfVertices, std::uint32_t indices[], std::uint32_t numOfIndices, GLenum drawMode = GL_TRIANGLES);
 
         /** Creates a new MeshLoader specifying the draw mode for the Mesh to create
           * @param drawMode the mode used to draw the created mesh */
-        MeshLoader(int drawMode = GL_TRIANGLES);
+        MeshLoader(GLenum drawMode = GL_TRIANGLES);
 
         /** Loads vertex description data for the Mesh.
           * @param data an array of data to load.
