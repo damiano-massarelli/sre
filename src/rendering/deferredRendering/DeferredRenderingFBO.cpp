@@ -36,7 +36,7 @@ std::uint32_t DeferredRenderingFBO::getFBO() const
 
 void DeferredRenderingFBO::resize(std::uint32_t width, std::uint32_t height)
 {
-	if (width != mWidth && height != mHeight) {
+	if (width != mWidth || height != mHeight) {
 		glDeleteFramebuffers(1, &mFbo);
 		init(width, height);
 	}
