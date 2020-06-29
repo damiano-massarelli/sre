@@ -86,7 +86,7 @@ void PBRTestScene::start() {
 	sphere->transform.scaleBy(glm::vec3{ 3.0f });
 	sphere->transform.rotateBy(glm::angleAxis(glm::radians(90.0f), sphere->transform.forward()));
 
-	auto sphereGenerated = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(), pbrMaterial);
+	auto sphereGenerated = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 100, 100), pbrMaterial);
 	sphereGenerated->transform.setPosition(glm::vec3{ 5.f, 0.f, 0.f });
 	sphereGenerated->transform.scaleBy(glm::vec3{ 3.0f });
 	sphereGenerated->transform.rotateBy(glm::angleAxis(glm::radians(90.0f), sphereGenerated->transform.forward()));

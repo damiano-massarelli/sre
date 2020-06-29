@@ -47,6 +47,7 @@ vec3 fresnel(float cosTheta, vec3 F0)
 
 vec3 pbrComputeColor(Light light, vec3 L, float forceAttenuation, float inShadow, vec3 albedo, float roughness, float metalness, float ao, vec3 fragPosition, vec3 N, vec3 cameraPosition) 
 {
+    N = normalize(N);
     vec3 V            = normalize(cameraPosition - fragPosition);
 
     vec3 F0           = vec3(0.04); 

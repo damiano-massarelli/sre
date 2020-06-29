@@ -2,6 +2,7 @@
 .vscode/
 bin/
 vsbuild/
+build/
 imgui.ini
 
 *.dll

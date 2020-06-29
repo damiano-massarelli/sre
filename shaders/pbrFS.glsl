@@ -36,7 +36,7 @@ void main() {
     // The normal is in the third column
     vec3 normal = tangentToWorldSpace[2];
     if (material.useNormalMap) {
-        normal = (texture(material.normalMap, texCoord).rgb) * 2.0 - 1.0;
+        normal = texture(material.normalMap, texCoord).rgb * 2.0 - 1.0;
         normal = normalize(tangentToWorldSpace * normal);
     }    
 	Normal = normal;

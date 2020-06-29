@@ -3,4 +3,4 @@
 	url = https://github.com/assimp/assimp.git
 [submodule "external/SDL2"]
 	path = external/SDL2
-	url = git@github.com:SDL-mirror/SDL.git
+	url = https://github.com/SDL-mirror/SDL.git
