@@ -23,17 +23,16 @@
 DECLARE_TEST_SCENE("PBR", PBRTestScene)
 
 void PBRTestScene::start() {
-	// add effects
+	// Add effects
 	Engine::renderSys.effectManager.enableEffects();
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
-	//Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
- 	//Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
- 	auto gammaPost = std::make_shared<GammaCorrection>();
+	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
+	auto gammaPost = std::make_shared<GammaCorrection>();
  	gammaPost->setGamma(2.2f);
  	gammaPost->setExposure(1.0f);
  	Engine::renderSys.effectManager.addEffect(gammaPost);
 
-	// create a camera
+	// Create a camera
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
     camera->transform.moveBy(glm::vec3{0.0f, 0.0f, 30.0f});								// set the camera position
@@ -48,12 +47,12 @@ void PBRTestScene::start() {
 
 	// Create a PBR material
 	auto pbrMaterial = std::make_shared<PBRMaterial>();
-	//pbrMaterial->setAlbedoMap(Texture::loadFromFile("test_data/pbr/albedo.png"));
+	pbrMaterial->setAlbedoMap(Texture::loadFromFile("test_data/pbr/albedo.png"));
 	pbrMaterial->setAlbedo(glm::vec3{ 255, 118, 106 } / 255.0f);
-	//pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness.png"));
-	//pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal.png"));
-	//pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
-	//pbrMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
+	pbrMaterial->setMetalnessMap(Texture::loadFromFile("test_data/pbr/metalness.png"));
+	pbrMaterial->setNormalMap(Texture::loadFromFile("test_data/pbr/normal.png"));
+	pbrMaterial->setRoughnessMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
+	pbrMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/pbr/roughness.png"));
 
 	Engine::uiRenderer.addUIDrawer([pbrMaterial]() {
 		float roughness = pbrMaterial->getRoughness();
@@ -69,7 +68,7 @@ void PBRTestScene::start() {
 		ImGui::Checkbox("Use Metalness Map", &useMetalnessMap);
 
 		pbrMaterial->setRoughness(roughness);
-		pbrMaterial->setUseRoughnessMap(useMetalnessMap);
+		pbrMaterial->setUseRoughnessMap(useRoughnessMap);
 		
 		pbrMaterial->setMetalness(metalness);
 		pbrMaterial->setUseMetalnessMap(useMetalnessMap);
@@ -77,35 +76,11 @@ void PBRTestScene::start() {
 	    ImGui::End();
 	});
 
-	pbrMaterial->setRoughness(0.f);
+	pbrMaterial->setRoughness(0.1f);
 
-	auto sphereFromFile = GameObjectLoader().fromFile("test_data/pbr/sphere.fbx")->transform.findAll("Sphere")[0]->getMeshes()[0];
-
-	// Create a sphere and set its scale
-	auto sphere = Engine::gameObjectManager.createGameObject(sphereFromFile, pbrMaterial);
-	sphere->transform.scaleBy(glm::vec3{ 3.0f });
-	sphere->transform.rotateBy(glm::angleAxis(glm::radians(90.0f), sphere->transform.forward()));
-
-	auto sphereGenerated = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 100, 100), pbrMaterial);
-	sphereGenerated->transform.setPosition(glm::vec3{ 5.f, 0.f, 0.f });
+	auto sphereGenerated = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(0.5f, 50, 50), pbrMaterial);
+	sphereGenerated->transform.setPosition(glm::vec3{ 0.f, 0.f, 0.f });
 	sphereGenerated->transform.scaleBy(glm::vec3{ 3.0f });
-	sphereGenerated->transform.rotateBy(glm::angleAxis(glm::radians(90.0f), sphereGenerated->transform.forward()));
-
-	// Load a cubemap Texture
-	auto skyTexture = Texture::loadCubemapFromFile({
-					{"front", "test_data/skybox/front.tga"},
-					{"back", "test_data/skybox/back.tga"},
-					{"top", "test_data/skybox/top.tga"},
-					{"bottom", "test_data/skybox/bottom.tga"},
-					{"left", "test_data/skybox/left.tga"},
-					{"right", "test_data/skybox/right.tga"},
-		});
-
-	// Create a Skybox material
-	//auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
-
-	// Create the actual Skybox
-	//auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
 	// Create an empy GameObject for the light
 	auto sun = Engine::gameObjectManager.createGameObject();
@@ -115,12 +90,12 @@ void PBRTestScene::start() {
 	sun->addComponent(std::make_shared<DirectionalLight>(sun));
 	sun->transform.setPosition(glm::vec3{ 50.0f, 205.0f, -65.0f });
 
-	
 	Engine::renderSys.addLight(sun);
 	sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
 	sun->getComponent<Light>()->ambientColor = glm::vec3{ 0.1f } / 150.0f;
 	sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 5.0f;
-	sun->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), sun->transform.right()));
+	sun->transform.setPosition(glm::vec3{ 5.f, 5.f, 5.f });
+	sun->transform.lookAt(glm::vec3{0.f});
 }
 
 void PBRTestScene::end() {}
