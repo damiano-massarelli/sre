@@ -12,10 +12,10 @@ namespace sre {
     /**
      * Test interface.
      */
-    class ITest {
+    class ITestScene {
     public:
-        ITest() {}
-        virtual ~ITest() {}
+        ITestScene() {}
+        virtual ~ITestScene() {}
 
         virtual void start() = 0;
         virtual void end() = 0;
@@ -24,9 +24,9 @@ namespace sre {
     /**
      * Class used to register a test.
      */
-    class TestRegisterer {
+    class TestSceneRegisterer {
     public:
-        TestRegisterer(std::string name, std::unique_ptr<ITest> test);
+        TestSceneRegisterer(std::string name, std::unique_ptr<ITestScene> test);
     };
 
     /**
@@ -34,29 +34,29 @@ namespace sre {
      *  Every test register to this manager using the macro definde below.
      *      DECLARE_TEST_SCENE(testName, testClass)
      */
-    class TestManager {
+    class TestSceneManager {
     private:
-        static std::unique_ptr<TestManager> instance;
+        static std::unique_ptr<TestSceneManager> instance;
 
-        std::map<std::string, std::unique_ptr<ITest>> mTests;
+        std::map<std::string, std::unique_ptr<ITestScene>> mTests;
 
-        ITest* mCurrentTest = nullptr;
+        ITestScene* mCurrentTest = nullptr;
 
     public:
-        TestManager() = default;
+        TestSceneManager() = default;
 
-        static TestManager* get();
+        static TestSceneManager* get();
 
-        void registerTest(std::string name, std::unique_ptr<ITest> test);
+        void registerTest(std::string name, std::unique_ptr<ITestScene> test);
 
         void startTests();
     };
 }
 
 #define DECLARE_TEST_SCENE(testName, testClass) \
-class testClass : public sre::ITest { \
-    static sre::TestRegisterer registerer; \
+class testClass : public sre::ITestScene { \
+    static sre::TestSceneRegisterer registerer; \
     virtual void start() override; \
     virtual void end() override; \
 }; \
-sre::TestRegisterer testClass::registerer(testName, std::make_unique<testClass>()); \
+sre::TestSceneRegisterer testClass::registerer(testName, std::make_unique<testClass>()); \

@@ -6,7 +6,7 @@ int main(int argc, char* argv[]) {
 
     Engine::renderSys.createWindow(1280, 720);
     
-    sre::TestManager::get()->startTests();
+    sre::TestSceneManager::get()->startTests();
 
     // Starts the game loop
     Engine::start();

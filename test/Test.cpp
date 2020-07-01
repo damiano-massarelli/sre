@@ -14,26 +14,26 @@ extern "C" {
 
 namespace sre {
 
-    TestRegisterer::TestRegisterer(std::string name, std::unique_ptr<ITest> test) {
-        TestManager::get()->registerTest(name, std::move(test));
+    TestSceneRegisterer::TestSceneRegisterer(std::string name, std::unique_ptr<ITestScene> test) {
+        TestSceneManager::get()->registerTest(name, std::move(test));
     }
 
-    std::unique_ptr<TestManager> TestManager::instance = nullptr;
+    std::unique_ptr<TestSceneManager> TestSceneManager::instance = nullptr;
 
-    TestManager* TestManager::get() {
+    TestSceneManager* TestSceneManager::get() {
         if (instance == nullptr) {
-            instance = std::make_unique<TestManager>();
+            instance = std::make_unique<TestSceneManager>();
         }
 
         return instance.get();
     }
 
-    void TestManager::registerTest(std::string name, std::unique_ptr<ITest> test) {
+    void TestSceneManager::registerTest(std::string name, std::unique_ptr<ITestScene> test) {
         // TODO: check that the test doesn't already exists
         mTests[name] = std::move(test);
     }
 
-    void TestManager::startTests() {
+    void TestSceneManager::startTests() {
         Engine::uiRenderer.setDebugUIDrawer([this](){
             ImGui::Begin("Tests");
             ImGui::SetWindowPos(ImVec2::ImVec2(), ImGuiCond_Once);
