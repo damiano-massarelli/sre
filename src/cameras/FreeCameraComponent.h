@@ -14,20 +14,26 @@ class FreeCameraComponent : public Component, public EventListener {
     private:
         CrumbPtr crumb;
 
-        // first time registering mouse movements?
+        // First time registering mouse movements?
         bool mFirst = true;
         std::int32_t mLastMouseX;
         std::int32_t mLastMouseY;
 
 		glm::quat mOldOrientation;
 
+        // Sensitivity
+        float mXMouseSensitivity = -0.004f;
+        float mYMouseSensitivity = -0.004f;
+        float mMoveSpeed = 70.0f;
+
+        float mCameraSensitivity = 1.f;
+
+        static constexpr float MIN_SENSITIVITY_FACTOR = 0.1f;
+        static constexpr float MAX_SENSITIVITY_FACTOR = 5.f;
+
     public:
         float heading = 0.0f;
         float pitch = 0.0f;
-
-        float xMouseSensitivity = -0.004f;
-        float yMouseSensitivity = -0.004f;
-        float moveSpeed = 70.0f;
 
         /** is the camera following mouse and keyboard */
         bool tracking = true;
@@ -42,6 +48,10 @@ class FreeCameraComponent : public Component, public EventListener {
 		void syncWithTransform();
 
         virtual void onEvent(SDL_Event e) override;
+
+        void setCameraSensitivity(float sensitivity);
+
+        inline float getCameraSensitivity() const { return mCameraSensitivity; }
 };
 
 #endif // FREECAMERACOMPONENT_H

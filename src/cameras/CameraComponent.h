@@ -51,6 +51,9 @@ public:
 	float getFarPlaneDistance() const;
 
 	/**
+	 * Calculates and return the view frustum of the camera.
+	 * The vertices of the frustum are in world space.
+	 *
 	 * @return the view Frustum for this camera.
 	 */
 	Frustum getViewFrutsum() const;

@@ -44,6 +44,7 @@ void FreeCameraComponent::onEvent(SDL_Event e)
 
     if (e.type == EventManager::ENTER_FRAME_EVENT) {
         if (!tracking) return;
+
         float delta = (*(static_cast<float*>(e.user.data1))) / 1000.0f;
         const Uint8* keys = SDL_GetKeyboardState(nullptr);
 
@@ -51,18 +52,18 @@ void FreeCameraComponent::onEvent(SDL_Event e)
         glm::vec3 camRight = transform.right();
 
         if (keys[SDL_SCANCODE_W])
-            transform.moveBy(camLookDirection * delta * moveSpeed);
+            transform.moveBy(camLookDirection * delta * mMoveSpeed * mCameraSensitivity);
         if (keys[SDL_SCANCODE_S])
-            transform.moveBy(-camLookDirection * delta * moveSpeed);
+            transform.moveBy(-camLookDirection * delta * mMoveSpeed * mCameraSensitivity);
         if (keys[SDL_SCANCODE_D])
-            transform.moveBy(-camRight * delta * moveSpeed);
+            transform.moveBy(-camRight * delta * mMoveSpeed * mCameraSensitivity);
         if (keys[SDL_SCANCODE_A])
-            transform.moveBy(camRight * delta * moveSpeed);
+            transform.moveBy(camRight * delta * mMoveSpeed * mCameraSensitivity);
 
 		if (keys[SDL_SCANCODE_Q])
-			transform.moveBy(glm::vec3{ 0.f, -1.f, 0.f } * delta * moveSpeed);
+			transform.moveBy(glm::vec3{ 0.f, -1.f, 0.f } * delta * mMoveSpeed * mCameraSensitivity);
 		if (keys[SDL_SCANCODE_E])
-			transform.moveBy(glm::vec3{ 0.f, 1.f, 0.f } * delta * moveSpeed);
+			transform.moveBy(glm::vec3{ 0.f, 1.f, 0.f } * delta * mMoveSpeed * mCameraSensitivity);
 
 		if (glm::any(glm::notEqual(transform.getRotation(), mOldOrientation))) {
 			syncWithTransform();
@@ -70,13 +71,20 @@ void FreeCameraComponent::onEvent(SDL_Event e)
 			mOldOrientation = transform.getRotation();
 		}
     } if (e.type == SDL_MOUSEMOTION && tracking) {
-        heading += e.motion.xrel * xMouseSensitivity;
-        pitch -= e.motion.yrel * yMouseSensitivity;
+        heading += e.motion.xrel * mXMouseSensitivity * mCameraSensitivity;
+        pitch -= e.motion.yrel * mYMouseSensitivity * mCameraSensitivity;
 		transform.setRotation(glm::vec3{ pitch, heading, 0.0f });
 		mOldOrientation = transform.getRotation();
-    } if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_t) {
+    } if (e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_t || e.key.keysym.sym == SDLK_ESCAPE)) {
         tracking = !tracking;
         SDL_SetRelativeMouseMode(static_cast<SDL_bool>(tracking));
     }
 
 }
+
+void FreeCameraComponent::setCameraSensitivity(float sensitivity)
+{
+	const float clampedFactor = std::clamp(sensitivity, MIN_SENSITIVITY_FACTOR, MAX_SENSITIVITY_FACTOR);
+	mCameraSensitivity = clampedFactor;
+}
+
