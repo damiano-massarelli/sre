@@ -12,6 +12,8 @@
 #include <string>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/matrix_access.hpp>
+#include <rendering\materials\PBRMaterial.h>
+#include <assimp\include\assimp\pbrmaterial.h>
 
 std::map<std::string, Mesh> GameObjectLoader::mMeshCache;
 
@@ -204,6 +206,25 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 {
     BlinnPhongMaterialBuilder phongBuilder;
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+	auto pbrMaterial = std::make_shared<PBRMaterial>();
+
+	aiShadingMode shadingMode;
+	const aiReturn shadingModeHintDefined = material->Get(AI_MATKEY_SHADING_MODEL, shadingMode);
+	if (shadingModeHintDefined == aiReturn_FAILURE) {
+		std::cout << "Shading model hint not found. Assuming PBR\n";
+	}
+
+	aiString fileBaseColor, fileMetallicRoughness;
+	float a, b, c;
+	
+	if (shadingModeHintDefined == aiReturn_FAILURE || shadingMode == aiShadingMode_CookTorrance) {
+		material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, a);
+		material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, b);
+		material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, c);
+		material->GetTexture(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE, &fileBaseColor);
+		material->GetTexture(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, &fileMetallicRoughness);
+	}
 
     aiColor3D color{0.f,0.f,0.f};
     if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, color))
