@@ -214,16 +214,19 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 	if (shadingModeHintDefined == aiReturn_FAILURE) {
 		std::cout << "Shading model hint not found. Assuming PBR\n";
 	}
-
-	aiString fileBaseColor, fileMetallicRoughness;
-	float a, b, c;
 	
 	if (shadingModeHintDefined == aiReturn_FAILURE || shadingMode == aiShadingMode_CookTorrance) {
-		material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, a);
-		material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, b);
-		material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, c);
-		material->GetTexture(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE, &fileBaseColor);
-		material->GetTexture(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, &fileMetallicRoughness);
+		//material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, a);
+		//material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, b);
+		//material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, c);
+
+		// These are defined in the assimp's pbrmaterial.h
+		//#define AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE aiTextureType_DIFFUSE, 1
+        //#define AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE aiTextureType_UNKNOWN, 0
+
+		pbrMaterial->setAlbedoMap(loadTexture(material, scene, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE, cacheName));
+		pbrMaterial->setMetalnessMap(loadTexture(material, scene, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, cacheName));
+		pbrMaterial->setNormalMap(loadTexture(material, scene, aiTextureType_NORMALS, 1, cacheName));
 	}
 
     aiColor3D color{0.f,0.f,0.f};
@@ -240,15 +243,15 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS, shininess))
         phongBuilder.setShininess(shininess);
 
-	phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE, cacheName));
-    phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR, cacheName));
+	phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE, 0, cacheName));
+    phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR, 0, cacheName));
 	
 	// add bump map only if available
 	if (material->GetTextureCount(aiTextureType_HEIGHT) != 0)
-		phongBuilder.setBumpMap(loadTexture(material, scene, aiTextureType_HEIGHT, cacheName));
+		phongBuilder.setBumpMap(loadTexture(material, scene, aiTextureType_HEIGHT, 0, cacheName));
 
 	if (material->GetTextureCount(aiTextureType_DISPLACEMENT) != 0)
-		phongBuilder.setParallaxMap(loadTexture(material, scene, aiTextureType_DISPLACEMENT, cacheName));
+		phongBuilder.setParallaxMap(loadTexture(material, scene, aiTextureType_DISPLACEMENT, 0, cacheName));
 
 	// is this model animated?
 	phongBuilder.setAnimated(mesh->mNumBones != 0);
@@ -270,26 +273,25 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 	if (mesh->mNumBones != 0) 
 		loadedMaterial->skeletalAnimationController = mSkeletalAnimationController;
 	
-
-    return loadedMaterial;
+    return pbrMaterial;
 }
 
-Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type, const std::string& meshCacheName)
+Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene, aiTextureType type, int id, const std::string& meshCacheName)
 {
-    std::map<int, int> aiMapMode2glMapMode{
-        {aiTextureMapMode_Wrap, GL_REPEAT},
-        {aiTextureMapMode_Clamp, GL_CLAMP_TO_EDGE},
-        {aiTextureMapMode_Mirror, GL_MIRRORED_REPEAT},
-        {aiTextureMapMode_Decal, GL_REPEAT} // not supported
-    };
+	std::map<int, int> aiMapMode2glMapMode{
+		{aiTextureMapMode_Wrap, GL_REPEAT},
+		{aiTextureMapMode_Clamp, GL_CLAMP_TO_EDGE},
+		{aiTextureMapMode_Mirror, GL_MIRRORED_REPEAT},
+		{aiTextureMapMode_Decal, GL_REPEAT} // not supported
+	};
 
-    // Only one texture supported
-    if(material->GetTextureCount(type) != 0) {
-        aiString path;
-        aiTextureMapMode mapModeU, mapModeV;
-        material->Get(AI_MATKEY_TEXTURE(type, 0), path);
-        material->Get(AI_MATKEY_MAPPINGMODE_U(type, 0), mapModeU);
-        material->Get(AI_MATKEY_MAPPINGMODE_V(type, 0), mapModeV);
+	// Only one texture supported
+	if (material->GetTextureCount(type) != 0) {
+		aiString path;
+		aiTextureMapMode mapModeU, mapModeV;
+		material->Get(AI_MATKEY_TEXTURE(type, id), path);
+		material->Get(AI_MATKEY_MAPPINGMODE_U(type, id), mapModeU);
+		material->Get(AI_MATKEY_MAPPINGMODE_V(type, id), mapModeV);
 
 		GLenum mapModeS = GL_REPEAT;
 		GLenum mapModeT = GL_REPEAT;
@@ -301,29 +303,30 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
 		if (mapModeTData != aiMapMode2glMapMode.end())
 			mapModeT = mapModeTData->second;
 
-        const char* texturePath = path.C_Str();
+		const char* texturePath = path.C_Str();
 
-        /* check whether or not this is an embedded texture. If that's the case
-         * load it from memory. */
-        if (const aiTexture* texture = scene->GetEmbeddedTexture(texturePath)) {
-            std::uint8_t* textureData = reinterpret_cast<unsigned char*>(texture->pcData);
-            if (texture->mHeight == 0)
+		/* check whether or not this is an embedded texture. If that's the case
+		 * load it from memory. */
+		if (const aiTexture* texture = scene->GetEmbeddedTexture(texturePath)) {
+			std::uint8_t* textureData = reinterpret_cast<unsigned char*>(texture->pcData);
+			if (texture->mHeight == 0)
 				return Texture::loadFromMemoryCached(meshCacheName + std::string{ texturePath }, textureData, texture->mWidth, mapModeS, mapModeT);
-            else
-                return Texture::loadFromMemoryCached(meshCacheName + std::string{ texturePath }, textureData, texture->mWidth * texture->mHeight, mapModeS, mapModeT);
+			else
+				return Texture::loadFromMemoryCached(meshCacheName + std::string{ texturePath }, textureData, texture->mWidth * texture->mHeight, mapModeS, mapModeT);
 
-        } else {
+		}
+		else {
 			std::filesystem::path path{ texturePath };
 			if (path.is_relative())
 				path = mWorkingDir / path;
 
-            return Texture::loadFromFile(path.string(),
-                                 mapModeS,
-                                 mapModeT);
-        }
-    }
+			return Texture::loadFromFile(path.string(),
+				mapModeS,
+				mapModeT);
+		}
+	}
 
-    return Texture{};
+	return Texture{};
 }
 
 void GameObjectLoader::decompose(const glm::mat4& mat, glm::vec3& outPos, glm::quat& outRot, glm::vec3& outScale)

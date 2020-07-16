@@ -28,24 +28,29 @@ void PBRLoadingTestScene::start() {
 	Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 	Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
 	auto gammaPost = std::make_shared<GammaCorrection>();
- 	gammaPost->setGamma(2.2f);
- 	gammaPost->setExposure(1.0f);
- 	Engine::renderSys.effectManager.addEffect(gammaPost);
+	gammaPost->setGamma(2.2f);
+	gammaPost->setExposure(1.0f);
+	Engine::renderSys.effectManager.addEffect(gammaPost);
 
 	// Create a camera
-    auto camera = Engine::gameObjectManager.createGameObject();
-    camera->name = "camera";
-    camera->transform.moveBy(glm::vec3{0.0f, 0.0f, 30.0f});								// set the camera position
+	auto camera = Engine::gameObjectManager.createGameObject();
+	camera->name = "camera";
+	camera->transform.moveBy(glm::vec3{ 0.0f, 0.0f, 10.0f });							// set the camera position
 	camera->transform.setRotation(glm::quat{ glm::vec3{0, glm::radians(180.0f), 0} });  // set camera rotation	 
 
 	// FreeCameraComponent is a built-in component for an fps-like camera
-    auto cam = std::make_shared<FreeCameraComponent>(camera);
+	auto cam = std::make_shared<FreeCameraComponent>(camera);
+	cam->setCameraSensitivity(0.2f);
 
 	// Components can be added to to GameObjects
-    camera->addComponent(cam);
-    Engine::renderSys.setCamera(camera);
+	camera->addComponent(cam);
+	Engine::renderSys.setCamera(camera);
 
 	auto helmet = GameObjectLoader{}.fromFile("test_data/damaged_helmet_pbr/DamagedHelmet.gltf");
+	MaterialPtr mat = helmet->getMaterials()[0];
+
+	PBRMaterial* pbrMat = static_cast<PBRMaterial*>(mat.get());
+	
 
 	// Create an empy GameObject for the light
 	auto sun = Engine::gameObjectManager.createGameObject();
