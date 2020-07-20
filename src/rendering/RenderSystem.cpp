@@ -23,11 +23,6 @@
 // is openGL debug enabled
 bool DEBUG = true;
 
-RenderSystem::RenderSystem()
-{
-
-}
-
 void RenderSystem::setDefaultCamera()
 {
     GameObjectEH defaultCamera = Engine::gameObjectManager.createGameObject();
@@ -210,7 +205,7 @@ void RenderSystem::updateLights()
 	glBindBuffer(GL_UNIFORM_BUFFER, mUboLights);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(std::size_t), (void*)&numLight);
 	for (std::size_t i = 0; i < numLight; i++) {
-		int base = 16 + 208 * i;
+		GLintptr base = 16 + 208 * static_cast<GLintptr>(i);
 		LightPtr lightComponent = mLights[i]->getComponent<Light>();
 		if (lightComponent == nullptr) continue;
 
@@ -477,7 +472,7 @@ void RenderSystem::directionalLightPass(DeferredLightShader& shaderWrapper)
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, directionalLight->getShadowMapTarget().getDepthBuffer().getId());
 
-		shaderWrapper.setLightIndex(i);
+		shaderWrapper.setLightIndex(static_cast<std::int32_t>(i));
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -538,7 +533,7 @@ void RenderSystem::pointLightPass(DeferredLightShader& shaderWrapper)
 
 		float radius = pointLight->getRadius();
 
-		stencilPass(i, radius);
+		stencilPass(static_cast<std::int32_t>(i), radius);
 
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, pointLight->getPointShadowTarget().getDepthBuffer().getId());
@@ -548,7 +543,7 @@ void RenderSystem::pointLightPass(DeferredLightShader& shaderWrapper)
 		{
 			ShaderScopedUsage useShader{ shaderWrapper.shader };
 
-			shaderWrapper.setLightIndex(i);
+			shaderWrapper.setLightIndex(static_cast<std::int32_t>(i));
 			shaderWrapper.setLightRadius(radius);
 			glBindVertexArray(mScreenMesh.mVao);
 			glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void*)0);

@@ -35,16 +35,16 @@ private:
 
 	glm::mat4 mProjection{ 1.0f };
 
-	glm::mat4 mInvertView;
+	glm::mat4 mInvertView{0.f};
 
 	/** reference for the common matrix ubo */
-	std::uint32_t mUboCommonMat;
+	GLuint mUboCommonMat = 0;
 
 	/** reference for the lights ubo */
-	std::uint32_t mUboLights;
+	GLuint mUboLights = 0;
 
 	/** reference for camera ubo */
-	std::uint32_t mUboCamera;
+	GLuint mUboCamera = 0;
 
 	/** Simple rect that represents the screen */
 	Mesh mScreenMesh;
@@ -120,7 +120,7 @@ private:
 	void renderPointLightShadows(const PointLight* light, const Transform& lightTransform);
 
 	// private constructor, only the engine can create a render system
-	RenderSystem();
+	RenderSystem() = default;
     
     void setDefaultCamera();
 

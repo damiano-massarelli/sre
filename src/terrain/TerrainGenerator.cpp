@@ -5,7 +5,7 @@
 #include <memory.h>
 
 TerrainGenerator::TerrainGenerator(std::uint32_t hVertex, std::uint32_t vVertex, std::uint32_t width, std::uint32_t depth)
-    : mHVertex{hVertex}, mVVertex{vVertex}, mWidth{width}, mDepth{depth}
+    : mHVertex{hVertex}, mVVertex{vVertex}, mWidth{width}, mDepth{depth}, mIncludeTangentSpace{false}
 {
 
 }
@@ -63,7 +63,7 @@ Mesh TerrainGenerator::createTerrain(const TerrainHeightProvider& heightProvider
 		loader.loadData(tangents.data(), tangents.size(), 3);
     loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
-    return loader.getMesh(0, indices.size());
+    return loader.getMesh(0, static_cast<std::uint32_t>(indices.size()));
 }
 
 void TerrainGenerator::includeTangentSpace(bool include)

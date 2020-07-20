@@ -10,7 +10,7 @@
 class DeferredRenderingFBO
 {
 private:
-	std::uint32_t mFbo;
+	GLuint mFbo{};
 	Texture mDiffuseBuffer;
 	Texture mAdditionalBuffer;
 	Texture mPositionBuffer;
@@ -38,7 +38,7 @@ public:
 	 * Gets the FBO id
 	 * @return the numeric id for this FBO
 	 */
-	std::uint32_t getFBO() const;
+	GLuint getFBO() const;
 
 	/**
 	 * Resizes the FBO.

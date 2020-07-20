@@ -6,11 +6,23 @@ void DeferredRenderingFBO::init(std::uint32_t width, std::uint32_t height)
 	mWidth = width;
 	mHeight = height;
 
-	mDiffuseBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
-	mAdditionalBuffer	= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
-	mPositionBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGB, GL_FLOAT, GL_RGB16F);
-	mNormalBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGB, GL_FLOAT, GL_RGB16F);
-	mDepthBuffer		= Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, GL_DEPTH24_STENCIL8);
+	Texture::TextureLoadOptions loadOptions;
+	loadOptions.internalFormat = GL_RGBA16F;
+	loadOptions.dataPixelType = GL_FLOAT;
+	loadOptions.appearanceOptions.createMipmap = false;
+	loadOptions.appearanceOptions.wrapS = GL_REPEAT;
+	loadOptions.appearanceOptions.wrapT = GL_REPEAT;
+
+	Texture::TextureLoadOptions depthLoadOptions = loadOptions;
+	depthLoadOptions.internalFormat = GL_DEPTH24_STENCIL8;
+	depthLoadOptions.dataPixelFormat = GL_DEPTH_STENCIL;
+	depthLoadOptions.dataPixelType = GL_UNSIGNED_INT_24_8;
+
+	mDiffuseBuffer		= Texture::load(nullptr, width, height, loadOptions);
+	mAdditionalBuffer	= Texture::load(nullptr, width, height, loadOptions);
+	mPositionBuffer		= Texture::load(nullptr, width, height, loadOptions);
+	mNormalBuffer		= Texture::load(nullptr, width, height, loadOptions);
+	mDepthBuffer		= Texture::load(nullptr, width, height, depthLoadOptions);
 
 	glGenFramebuffers(1, &mFbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, mFbo);

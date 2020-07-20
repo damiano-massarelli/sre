@@ -64,7 +64,7 @@ class HandleList
 
             std::uint32_t handleIndex;
             if (mFreeSlots.empty()) {
-                handleIndex = mHandles.size();
+                handleIndex = static_cast<std::uint32_t>(mHandles.size());
                 mHandles.push_back(h);
             }
             else {
@@ -86,7 +86,7 @@ class HandleList
             std::uint32_t dataIndexToRemove = mHandles[handleIndex].index;
 
             // swaps values
-            std::uint32_t lastDataIndex = mData.size() - 1;
+            std::uint32_t lastDataIndex = static_cast<std::uint32_t>(mData.size()) - 1;
             std::iter_swap(mData.begin() + lastDataIndex, mData.begin() + dataIndexToRemove);
             mData.erase(mData.end() - 1, mData.end());
 

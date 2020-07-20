@@ -7,7 +7,7 @@
 
 std::map<std::string, Texture> Texture::textureCache;
 
-Texture Texture::loadFromFile(const std::string& path, int wrapS, int wrapT)
+Texture Texture::loadFromFile(const std::string& path, const TextureLoadAppearanceOptions& options)
 {
 	auto cached = textureCache.find(path);
 	if (cached != textureCache.end()) 
@@ -23,7 +23,8 @@ Texture Texture::loadFromFile(const std::string& path, int wrapS, int wrapT)
         std::cerr << "unable to load texture " << path << "\n";
         return texture;
     } else {
-        texture = Texture::load(data, width, height, wrapS, wrapT, true, GL_RGBA);
+		const TextureLoadOptions loadOptions{ GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, options };
+        texture = Texture::load(data, width, height, loadOptions);
         stbi_image_free(data);
     }
 
@@ -34,24 +35,28 @@ Texture Texture::loadFromFile(const std::string& path, int wrapS, int wrapT)
     return texture;
 }
 
-Texture Texture::loadFromMemory(std::uint8_t* data, std::int32_t len, int wrapS, int wrapT)
+Texture Texture::loadFromMemory(std::uint8_t* data, std::int32_t len, const TextureLoadAppearanceOptions& options)
 {
     stbi_set_flip_vertically_on_load(true);
 
     int width, height, cmp;
     std::uint8_t* convertedData = stbi_load_from_memory(data, len, &width, &height, &cmp, STBI_rgb_alpha);
-    return Texture::load(convertedData, width, height, wrapS, wrapT, true, GL_RGBA);
-	if (convertedData)
+
+	TextureLoadOptions loadOptions{ GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, options };
+    return Texture::load(convertedData, width, height, loadOptions);
+	if (convertedData) {
 		stbi_image_free(convertedData);
+	}
 }
 
-Texture Texture::loadFromMemoryCached(const std::string& cacheKey, std::uint8_t* data, std::int32_t len, int wrapS, int wrapT)
+Texture Texture::loadFromMemoryCached(const std::string& cacheKey, std::uint8_t* data, std::int32_t len, const TextureLoadAppearanceOptions& options)
 {
 	auto cached = textureCache.find(cacheKey);
-	if (cached != textureCache.end())
+	if (cached != textureCache.end()) {
 		return cached->second;
+	}
 
-	auto texture = loadFromMemory(data, len, wrapS, wrapT);
+	auto texture = loadFromMemory(data, len, options);
 	texture.refCount.onRemove = [cacheKey]() { Texture::textureCache.erase(cacheKey); };
 	textureCache[cacheKey] = texture;
 	textureCache[cacheKey].refCount.setWeak();
@@ -149,25 +154,24 @@ Texture Texture::loadCubemap(const std::map<std::string, void*>& data, int width
 	return t;
 }
 
-Texture Texture::load(void* data, int width, int height, int wrapS, int wrapT, bool mipmap, int format, int type, int internalFormat,
-	GLenum minFilter, GLenum magFilter)
+Texture Texture::load(void* data, int width, int height, const TextureLoadOptions& options)
 {
     std::uint32_t texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-	if (internalFormat == GL_REPEAT) internalFormat = format;
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, options.internalFormat, width, height, 0, options.dataPixelFormat, options.dataPixelType, data);
 	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-	if (mipmap) {
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, options.appearanceOptions.minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, options.appearanceOptions.magFilter);
+
+	if (options.appearanceOptions.createMipmap) {
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	}
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, options.appearanceOptions.wrapS);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, options.appearanceOptions.wrapT);
 
 	if (GLAD_GL_ARB_texture_filter_anisotropic) {
 		float maxAniso = 0;
@@ -188,9 +192,7 @@ Texture Texture::load(void* data, int width, int height, int wrapS, int wrapT, b
 }
 
 Texture::Texture(std::uint32_t id) : mTextureId{id}
-{
-
-}
+{}
 
 void Texture::cleanUpIfNeeded()
 {

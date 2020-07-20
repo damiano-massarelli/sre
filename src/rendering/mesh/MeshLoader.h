@@ -14,11 +14,11 @@ class MeshLoader
 {
     private:
         GLenum mDrawMode;
-        std::uint32_t mVao;
+        GLuint mVao;
         Mesh mMesh;
-        std::vector<std::uint32_t> mBuffers;
+        std::vector<GLuint> mBuffers;
 
-        int mCurrentAttribPointer = 0;
+        GLuint mCurrentAttribPointer = 0;
 
     public:
         /** Creates a new mesh given an array of floats containing packed data.
@@ -38,11 +38,12 @@ class MeshLoader
           * @param dataType the type of the data to load (GL_FLOAT, GL_UNSIGNED_INT, etc).
 		  * @param addToAttribPointer if true an attrib pointer is created for the data provided 
 		  * @param usage the usage (static, stream, etc) */
-        template <typename T, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
-        std::uint32_t loadData(const T* data, std::uint32_t size, int dataPerVertex,
+        template<typename T>
+        GLuint loadData(const T* data, std::size_t size, GLint dataPerVertex,
 			GLenum bufferType = GL_ARRAY_BUFFER, GLenum dataType = GL_FLOAT, bool addToAttribPointer = true, GLenum usage = GL_STATIC_DRAW) {
+            static_assert(std::is_arithmetic_v<T>);
 
-            std::uint32_t bo;
+            GLuint bo;
             glGenBuffers(1, &bo);
             glBindBuffer(bufferType, bo);
 
@@ -50,7 +51,12 @@ class MeshLoader
 
             if (addToAttribPointer) {
                 glEnableVertexAttribArray(mCurrentAttribPointer);
-                glVertexAttribPointer(mCurrentAttribPointer, dataPerVertex, dataType, GL_FALSE, dataPerVertex * sizeof(T), (void *) 0);
+                if constexpr (std::is_floating_point_v<T>) {
+                    glVertexAttribPointer(mCurrentAttribPointer, dataPerVertex, dataType, GL_FALSE, dataPerVertex * sizeof(T), (void*)0);
+                }
+                else if constexpr (std::is_integral_v<T>) {
+                    glVertexAttribIPointer(mCurrentAttribPointer, dataPerVertex, dataType, dataPerVertex * sizeof(T), (void*)0);
+                }
                 mCurrentAttribPointer++;
 			}
 			
@@ -62,36 +68,11 @@ class MeshLoader
 			return bo;
         }
 
-		// template specialization for ints. They should use glVertexAttrib * I * Pointer
-		template <>
-		std::uint32_t loadData<std::int32_t, nullptr>(const std::int32_t* data, std::uint32_t size, int dataPerVertex,
-			GLenum bufferType, GLenum dataType, bool addToAttribPointer, GLenum usage) {
-
-			std::uint32_t bo;
-			glGenBuffers(1, &bo);
-			glBindBuffer(bufferType, bo);
-
-			glBufferData(bufferType, size * sizeof(std::int32_t), data, usage);
-
-			if (addToAttribPointer) {
-				glEnableVertexAttribArray(mCurrentAttribPointer);
-				glVertexAttribIPointer(mCurrentAttribPointer, dataPerVertex, dataType, dataPerVertex * sizeof(std::int32_t), (void *)0);
-				mCurrentAttribPointer++;
-			}
-			
-			if (bufferType == GL_ELEMENT_ARRAY_BUFFER)
-				mMesh.mEbo = bo;
-
-			mMesh.mBuffers.push_back(bo);
-
-			return bo;
-		}
-
-		int addAttribPointer(GLenum bufferType, std::uint32_t vbo, int stride, int dataPerVertex, GLenum dataType, int offset) {
+		GLuint addAttribPointer(GLenum bufferType, GLuint vbo, GLsizei stride, GLint dataPerVertex, GLenum dataType, std::uintptr_t offset) {
 			glBindBuffer(bufferType, vbo);
 
 			glEnableVertexAttribArray(mCurrentAttribPointer);
-			glVertexAttribPointer(mCurrentAttribPointer, dataPerVertex, dataType, GL_FALSE, stride, (void *)offset);
+			glVertexAttribPointer(mCurrentAttribPointer, dataPerVertex, dataType, GL_FALSE, stride, (void *)(offset));
 			glVertexAttribDivisor(mCurrentAttribPointer, 1);
 
 			auto attrib = mCurrentAttribPointer;

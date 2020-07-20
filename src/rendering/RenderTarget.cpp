@@ -7,11 +7,23 @@ void RenderTarget::create(std::uint32_t width, std::uint32_t height, bool wantCo
 	Texture colorBuffer;
 	Texture depthBuffer;
 
+	Texture::TextureLoadOptions colorLoadOptions;
+	colorLoadOptions.internalFormat = GL_RGBA16F;
+	colorLoadOptions.dataPixelType = GL_FLOAT;
+	colorLoadOptions.appearanceOptions.wrapS = GL_REPEAT;
+	colorLoadOptions.appearanceOptions.wrapT = GL_REPEAT;
+	colorLoadOptions.appearanceOptions.createMipmap = false;
+
+	Texture::TextureLoadOptions depthLoadOptions = colorLoadOptions;
+	depthLoadOptions.internalFormat = GL_DEPTH24_STENCIL8;
+	depthLoadOptions.dataPixelFormat = GL_DEPTH_STENCIL;
+	depthLoadOptions.dataPixelType = GL_UNSIGNED_INT_24_8;
+
 	if (wantColorBuffer)
-		colorBuffer = Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RGBA16F);
+		colorBuffer = Texture::load(nullptr, width, height, colorLoadOptions);
 
 	if (wantDepthBuffer)
-		depthBuffer = Texture::load(nullptr, width, height, GL_REPEAT, GL_REPEAT, false, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, GL_DEPTH24_STENCIL8);
+		depthBuffer = Texture::load(nullptr, width, height, depthLoadOptions);
 
 	if (colorBuffer || depthBuffer)
 		createWith(colorBuffer, depthBuffer);

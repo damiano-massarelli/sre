@@ -325,24 +325,24 @@ void Shader::setMat4Array(const std::string& name, const std::vector<glm::mat4>&
 {
 	std::int32_t location = getLocationOf(name);
 	if (location != -1)
-		glUniformMatrix4fv(location, array.size(), GL_FALSE, glm::value_ptr(*array.data()));
+		glUniformMatrix4fv(location, static_cast<GLsizei>(array.size()), GL_FALSE, glm::value_ptr(*array.data()));
 }
 
 void Shader::setMat4Array(std::int32_t location, const std::vector<glm::mat4>& array) const
 {
-	glUniformMatrix4fv(location, array.size(), GL_FALSE, glm::value_ptr(*array.data()));
+	glUniformMatrix4fv(location, static_cast<GLsizei>(array.size()), GL_FALSE, glm::value_ptr(*array.data()));
 }
 
 void Shader::setVec3Array(std::int32_t location, const std::vector<glm::vec3>& array) const
 {
-	glUniform3fv(location, array.size(), glm::value_ptr(*array.data()));
+	glUniform3fv(location, static_cast<GLsizei>(array.size()), glm::value_ptr(*array.data()));
 }
 
 void Shader::setVec3Array(const std::string& name, const std::vector<glm::vec3>& array) const
 {
 	std::int32_t location = getLocationOf(name);
 	if (location != -1)
-		glUniform3fv(location, array.size(), glm::value_ptr(*array.data()));
+		glUniform3fv(location, static_cast<GLsizei>(array.size()), glm::value_ptr(*array.data()));
 }
 
 void Shader::use()

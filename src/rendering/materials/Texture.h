@@ -28,6 +28,29 @@ class Texture {
 		void cleanUpIfNeeded();
 
     public:
+		/**
+		  * Appearance settings used on the loaded texture.
+		  */
+		struct TextureLoadAppearanceOptions {
+			bool createMipmap = true;
+			GLint minFilter = GL_LINEAR;
+			GLint magFilter = GL_LINEAR;
+			GLint wrapS = GL_CLAMP_TO_EDGE;
+			GLint wrapT = GL_CLAMP_TO_EDGE;
+		};
+
+		/**
+		  * Settings used when loading a texture.
+		  * These settings include both data format settings and appearance settings.
+ 		  */
+		struct TextureLoadOptions {
+			GLint internalFormat = GL_RGBA;
+			GLenum dataPixelFormat = GL_RGBA;
+			GLenum dataPixelType = GL_UNSIGNED_BYTE;
+			TextureLoadAppearanceOptions appearanceOptions{};
+		};
+		
+
         /**
           * Creates an invalid texture.
           * Use one of the static load* methods to load a texture. */
@@ -38,9 +61,10 @@ class Texture {
           * Textures are also cached using their path as the cache key.
 		  *
           * @param path the path of the file to load
+		  * @param options appearance settings used on the loaded texture
           * @return the loaded texture
           */
-        static Texture loadFromFile(const std::string& path, int wrapS = GL_REPEAT, int wrapT = GL_REPEAT);
+		static Texture loadFromFile(const std::string& path, const TextureLoadAppearanceOptions& options = TextureLoadAppearanceOptions{});
 
         /**
           * Loads a texture from a buffer in memory.
@@ -48,34 +72,29 @@ class Texture {
 		  * specify an identifier to cache textures loaded from
 		  * memory use loadFromMemoryCached().
           * @param data a pointer to the buffer
-          * @param length of the buffer
+          * @param len length of the buffer
+		  * @param options settigns used when loading the texture.
           * @return the loaded texture */
-        static Texture loadFromMemory(std::uint8_t* data, std::int32_t len, int wrapS = GL_REPEAT, int wrapT = GL_REPEAT);
+		static Texture loadFromMemory(std::uint8_t* data, std::int32_t len, const TextureLoadAppearanceOptions& options = TextureLoadAppearanceOptions{});
 		
 		/**
 		 * Loads a texture from a buffer in memory and caches it.
 		 * @sa loadFromMemory()
 		 * @param cacheKey the name used to cache this texture
 		 * @param data a pointer to the buffer
-		 * @param length of the buffer
+		 * @param len length of the buffer
+		 * @param options settings used when loading the texture
 		 * @return the loaded texture */
-		static Texture loadFromMemoryCached(const std::string& cacheKey, std::uint8_t* data, std::int32_t len, int wrapS = GL_REPEAT, int wrapT = GL_REPEAT);
+		static Texture loadFromMemoryCached(const std::string& cacheKey, std::uint8_t* data, std::int32_t len, const TextureLoadAppearanceOptions& options = TextureLoadAppearanceOptions{});
 
 		/**
 		 * Creates a new Texture.
 		 * @param data pixel data of the image
 		 * @param width width of the texture
 		 * @param height height of the texture
-		 * @param wrapS repeat mode on x axis
-		 * @param wrapT repeat mode on y axis
-		 * @param mipmap should use mipmap?
-		 * @param format pixel data format format (GL_RGB, GL_RGBA, etc)
-		 * @param type the type of data stored in the texture
-		 * @param internalFormat the format of the data stored in the texture (if GL_REPEAT then it will be the same as format)
+		 * @param options settings used when loading the texture
 		 */
-		static Texture load(void* data, int width, int height,
-			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, bool mipmap = true, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE, int internalFormat = GL_REPEAT,
-			GLenum minFilter = GL_LINEAR, GLenum magFilter = GL_LINEAR);
+		static Texture load(void* data, int width, int height, const TextureLoadOptions& options = TextureLoadOptions{});
 
         /**
           * Loads a cubemap from file.

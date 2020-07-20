@@ -3,9 +3,13 @@
 
 GaussianBlur::GaussianBlur(float scaleFactor)
 {
+	Texture::TextureLoadOptions loadOptions;
+	loadOptions.internalFormat = GL_RGB16F;
+	loadOptions.appearanceOptions.createMipmap = false;
+
 	auto width = Engine::renderSys.getScreenWidth() * scaleFactor;
 	auto height = Engine::renderSys.getScreenHeight() * scaleFactor;
-	mBlurred = Texture::load(nullptr, static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height), GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, false, GL_RGBA, GL_FLOAT, GL_RGB16F);
+	mBlurred = Texture::load(nullptr, static_cast<std::int32_t>(width), static_cast<std::int32_t>(height), loadOptions);
 	mTarget.createWith(mBlurred, Texture{});
 
 	hBlur = Shader::loadFromFile(std::vector<std::string>{ "effects/gaussianBlurVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);

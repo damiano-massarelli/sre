@@ -11,9 +11,18 @@ SSAO::SSAO()
 	mNoiseTextureIndex = Engine::renderSys.effectManager.getTexture();
 	mNormalTextureIndex = Engine::renderSys.effectManager.getTexture();
 
+	Texture::TextureLoadOptions loadOptions;
+	loadOptions.dataPixelFormat = GL_RGBA;
+	loadOptions.dataPixelType = GL_FLOAT;
+	loadOptions.internalFormat = GL_RED;
+	loadOptions.appearanceOptions.createMipmap = false;
+	loadOptions.appearanceOptions.magFilter = GL_NEAREST;
+	loadOptions.appearanceOptions.minFilter = GL_NEAREST;
+	loadOptions.appearanceOptions.wrapS = GL_REPEAT;
+	loadOptions.appearanceOptions.wrapT = GL_REPEAT;
 	mSSAOCreationTarget.createWith(
 		// only red component is used
-		Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), GL_REPEAT, GL_REPEAT, false, GL_RGBA, GL_FLOAT, GL_RED, GL_NEAREST, GL_NEAREST),
+		Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), loadOptions),
 		Texture{}
 	);
 
@@ -79,7 +88,14 @@ void SSAO::createNoiseTexture(std::uniform_real_distribution<float>& dist, std::
 		noiseData.push_back(rotation);
 	}
 
-	mNoiseTexture = Texture::load(noiseData.data(), res, res, GL_REPEAT, GL_REPEAT, false, GL_RGB, GL_FLOAT, GL_RGB16F);
+	Texture::TextureLoadOptions loadOptions;
+	loadOptions.dataPixelType = GL_FLOAT;
+	loadOptions.dataPixelFormat = GL_RGB;
+	loadOptions.internalFormat = GL_RGB16F;
+	loadOptions.appearanceOptions.wrapS = GL_REPEAT;
+	loadOptions.appearanceOptions.wrapT = GL_REPEAT;
+	loadOptions.appearanceOptions.createMipmap = false;
+	mNoiseTexture = Texture::load(noiseData.data(), res, res, loadOptions);
 }
 
 void SSAO::onSetup(Shader& postProcessingShader)
@@ -138,7 +154,7 @@ void SSAO::setRadius(float radius)
 	mRadius = radius;
 
 	{
-		ShaderScopedUsage{ mSSAOCreationShader };
+		ShaderScopedUsage usage{ mSSAOCreationShader };
 		mSSAOCreationShader.setFloat("radius", radius);
 	}
 }

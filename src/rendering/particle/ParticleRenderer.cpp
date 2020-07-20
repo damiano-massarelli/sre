@@ -60,7 +60,7 @@ void ParticleRenderer::prepareParticleQuad()
 
 	loader.addAttribPointer(GL_ARRAY_BUFFER, mParticleDataVBO, stride, 1, GL_FLOAT, 20 * sizeof(float));
 
-	mParticleMesh = loader.getMesh(0, indices.size());
+	mParticleMesh = loader.getMesh(0, static_cast<std::uint32_t>(indices.size()));
 }
 
 void ParticleRenderer::updateParticleVBO(const std::vector<float>& data)
@@ -193,7 +193,7 @@ void ParticleRenderer::renderParticles(ParticleEmitter* emitter)
 
 	updateParticleVBO(data);
 
-	glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, particles.size());
+	glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, static_cast<GLsizei>(particles.size()));
 }
 
 void ParticleRenderer::setUpTextureAtlas(const ParticleEmitter* emitter)

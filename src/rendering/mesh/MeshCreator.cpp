@@ -192,7 +192,7 @@ Mesh MeshCreator::cylinder(float radius, std::uint32_t resolution)
 	loader.loadData(tangents.data(), tangents.size(), 3);
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
-	return loader.getMesh(0, indices.size());
+	return loader.getMesh(0, static_cast<std::uint32_t>(indices.size()));
 }
 
 Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
@@ -273,7 +273,7 @@ Mesh MeshCreator::cone(float radius, std::uint32_t resolution)
 	loader.loadData(tangents.data(), tangents.size(), 3);
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
-	return loader.getMesh(0, indices.size());
+	return loader.getMesh(0, static_cast<std::uint32_t>(indices.size()));
 }
 
 Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stacks)
@@ -330,7 +330,7 @@ Mesh MeshCreator::sphere(float radius, std::uint32_t sectors, std::uint32_t stac
 	loader.loadData(tangents.data(), tangents.size(), 3);
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
-	return loader.getMesh(0, indices.size());
+	return loader.getMesh(0, static_cast<std::uint32_t>(indices.size()));
 }
 
 Mesh MeshCreator::plane()
@@ -377,5 +377,5 @@ Mesh MeshCreator::plane()
 
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
-	return loader.getMesh(0, indices.size());
+	return loader.getMesh(0, static_cast<std::uint32_t>(indices.size()));
 }

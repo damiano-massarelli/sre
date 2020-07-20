@@ -34,7 +34,7 @@ private:
     /// how many times the terrain texture is repeated vertically
     float mVTerrainTextureTiles = 40;
 
-	bool mIncludeTangentSpace;
+	bool mIncludeTangentSpace = false;
 
 public:
 	/**

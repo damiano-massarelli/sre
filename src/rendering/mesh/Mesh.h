@@ -35,11 +35,11 @@ class Mesh
 		BoundingBox boundingBox;
 
     private:
-        std::uint32_t mVao = 0;
-        std::vector<std::uint32_t> mBuffers;
+        GLuint mVao = 0;
+        std::vector<GLuint> mBuffers;
 
 		// useful to change the LOD of a mesh
-		std::uint32_t mEbo = 0;
+		GLuint mEbo = 0;
 
         bool mUsesIndices = false;
 
@@ -64,12 +64,12 @@ class Mesh
 		/**
 		 * @return the VAO used to render this mesh.
 		 */
-		std::uint32_t getVao() const;
+		GLuint getVao() const;
 
 		/**
 		 * @return the EBO used to index the vertices of this mesh.
 		 */
-		std::uint32_t getEbo() const;
+		GLuint getEbo() const;
 
         /**
           * Returns vertex data for this mesh.

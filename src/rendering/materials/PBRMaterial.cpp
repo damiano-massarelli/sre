@@ -156,7 +156,7 @@ std::size_t PBRMaterial::hash() const
 {
 	// Creating an int stacking 5 bits corresponding to each boolean
 	// This is to avoid to put five other args in the hash_combine below
-	const std::size_t boolMask = mUseAlbedoMap | (mUseNormalMap << 1) | (mUseMetalnessMap << 2) | (mUseRoughnessMap << 3) | (mUseAOMap << 4);
+	const std::size_t boolMask = (mUseAlbedoMap << 0) | (mUseNormalMap << 1) | (mUseMetalnessMap << 2) | (mUseRoughnessMap << 3) | (mUseAOMap << 4);
 	
 	std::size_t seed = Material::hash();
 	
@@ -172,7 +172,7 @@ bool PBRMaterial::equalsTo(const Material* rhs) const
 	// FIXME add type to Material
 	if (shader.getId() != rhs->shader.getId()) return false;
 
-	constexpr float EPS = 0.001;
+	constexpr float EPS = 0.001F;
 
 	auto other = static_cast<const PBRMaterial*>(rhs);
 

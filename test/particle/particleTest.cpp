@@ -96,13 +96,13 @@ void ParticleTestScene::start() {
 	auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
 	auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
-	auto human = GameObjectLoader().fromFile("C:/Users/damia/Desktop/warrior_idle.dae");
-	auto animationController = human->getComponent<SkeletalAnimationControllerComponent>();
-	animationController->playAnimation("default");
-	auto animation = animationController->getAnimation("default");
-	animation->loopDirection = SkeletalAnimation::LoopDirection::REPEAT;
+	//auto human = GameObjectLoader().fromFile("C:/Users/damia/Desktop/warrior_idle.dae");
+	//auto animationController = human->getComponent<SkeletalAnimationControllerComponent>();
+	//animationController->playAnimation("default");
+	//auto animation = animationController->getAnimation("default");
+	//animation->loopDirection = SkeletalAnimation::LoopDirection::REPEAT;
 
-	human->transform.scaleBy(glm::vec3{ 10.0f });
+	//human->transform.scaleBy(glm::vec3{ 10.0f });
 
 	auto sun = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
 	sun->name = "sun";

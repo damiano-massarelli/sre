@@ -110,6 +110,7 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 		std::cout << "Mesh: " << mesh->mName.C_Str() << " node: " << node->mName.C_Str() << ": cannot find uv coords, setting them to (0, 0)\n";
 
 	bool needsTangents = ((scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_HEIGHT) != 0
+		|| scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_NORMALS) != 0
 		|| scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_DISPLACEMENT)) && !mesh->HasTangentsAndBitangents());
 	if (needsTangents)
 		std::cout << "Mesh: " << mesh->mName.C_Str() << " node: " << node->mName.C_Str() << ": has bump map/parallax map but no tangent data, will be calculated\n";
@@ -192,7 +193,7 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 	}
     loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
-    Mesh loadedMesh = loader.getMesh(vertices.size(), indices.size());
+    Mesh loadedMesh = loader.getMesh(static_cast<std::uint32_t>(vertices.size()), static_cast<std::uint32_t>(indices.size()));
 	loadedMesh.boundingBox = BoundingBox{ positionsForBoundingBox };
 
 	loadedMesh.refCount.onRemove = [cacheName]() { GameObjectLoader::mMeshCache.erase(cacheName); };
@@ -225,11 +226,11 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
         //#define AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE aiTextureType_UNKNOWN, 0
 
 		pbrMaterial->setAlbedoMap(loadTexture(material, scene, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE, cacheName));
-		pbrMaterial->setMetalnessMap(loadTexture(material, scene, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, cacheName));
-		pbrMaterial->setNormalMap(loadTexture(material, scene, aiTextureType_NORMALS, 1, cacheName));
+		//pbrMaterial->setMetalnessMap(loadTexture(material, scene, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, cacheName));
+		pbrMaterial->setNormalMap(loadTexture(material, scene, aiTextureType_NORMALS, 0, cacheName));
 	}
 
-    aiColor3D color{0.f,0.f,0.f};
+    /*aiColor3D color{0.f,0.f,0.f};
     if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, color))
         phongBuilder.setDiffuseColor(glm::vec3{color.r, color.g, color.b});
 
@@ -272,7 +273,7 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 	// add animationController
 	if (mesh->mNumBones != 0) 
 		loadedMaterial->skeletalAnimationController = mSkeletalAnimationController;
-	
+	*/
     return pbrMaterial;
 }
 
@@ -305,14 +306,21 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
 
 		const char* texturePath = path.C_Str();
 
+		Texture::TextureLoadAppearanceOptions loadOptions;
+		loadOptions.createMipmap = true;
+		loadOptions.minFilter = GL_LINEAR;
+		loadOptions.magFilter = GL_LINEAR;
+		loadOptions.wrapS = mapModeS;
+		loadOptions.wrapT = mapModeT;
+
 		/* check whether or not this is an embedded texture. If that's the case
 		 * load it from memory. */
 		if (const aiTexture* texture = scene->GetEmbeddedTexture(texturePath)) {
 			std::uint8_t* textureData = reinterpret_cast<unsigned char*>(texture->pcData);
 			if (texture->mHeight == 0)
-				return Texture::loadFromMemoryCached(meshCacheName + std::string{ texturePath }, textureData, texture->mWidth, mapModeS, mapModeT);
+				return Texture::loadFromMemoryCached(meshCacheName + std::string{ texturePath }, textureData, texture->mWidth, loadOptions);
 			else
-				return Texture::loadFromMemoryCached(meshCacheName + std::string{ texturePath }, textureData, texture->mWidth * texture->mHeight, mapModeS, mapModeT);
+				return Texture::loadFromMemoryCached(meshCacheName + std::string{ texturePath }, textureData, texture->mWidth * texture->mHeight, loadOptions);
 
 		}
 		else {
@@ -320,9 +328,7 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
 			if (path.is_relative())
 				path = mWorkingDir / path;
 
-			return Texture::loadFromFile(path.string(),
-				mapModeS,
-				mapModeT);
+			return Texture::loadFromFile(path.string(), loadOptions);
 		}
 	}
 
@@ -347,7 +353,7 @@ void GameObjectLoader::findBones(const aiScene* scene)
 
 			// this is not very cache friendly but for now it is ok
 			auto boneName = std::string{ bone->mName.C_Str() };
-			auto boneIndex = mBones.size();
+			auto boneIndex = static_cast<std::uint32_t>(mBones.size());
 			mBoneName2Index[boneName] = boneIndex;
 			mBones.push_back(b);
 
@@ -395,7 +401,7 @@ bool GameObjectLoader::isBone(const aiNode* node)
 void GameObjectLoader::computeTangentsAndBitangentSign(const aiMesh* mesh, std::vector<float>& tangents, std::vector<std::int32_t> bitangentSign) const
 {
 	if (!mesh->HasTextureCoords(0)) {
-		tangents.resize(3 * mesh->mNumVertices, 0.0f);
+		tangents.resize(3 * static_cast<std::size_t>(mesh->mNumVertices), 0.0f);
 		bitangentSign.resize(mesh->mNumVertices, 0);
 		std::cerr << "cannot calculate tangent space: texture coordinates are missing\n";
 		return;

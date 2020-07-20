@@ -60,7 +60,7 @@ void DisplayCameraFrustumComponent::onEvent(SDL_Event e)
 	loader.loadData(normals.data(), normals.size(), 3); // normals just because they are needed by the shader
 	loader.loadData(indices.data(), indices.size(), 0, GL_ELEMENT_ARRAY_BUFFER, GL_UNSIGNED_INT, false);
 
-	Mesh mesh = loader.getMesh(0, indices.size());
+	Mesh mesh = loader.getMesh(0, static_cast<std::uint32_t>(indices.size()));
 
 	mContainer->removeAllMeshes();
 	mContainer->addMesh(mesh, mMaterial);
