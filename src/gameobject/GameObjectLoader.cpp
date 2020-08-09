@@ -217,61 +217,38 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 	}
 	
 	if (shadingModeHintDefined == aiReturn_FAILURE || shadingMode == aiShadingMode_CookTorrance) {
-		//material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, a);
-		//material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, b);
-		//material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, c);
+		// load albedo
+		aiColor3D albedo;
+		if (AI_SUCCESS == material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, albedo)) {
+			pbrMaterial->setAlbedo(glm::vec3{ albedo.r, albedo.g, albedo.b });
+		}
 
-		// These are defined in the assimp's pbrmaterial.h
-		//#define AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE aiTextureType_DIFFUSE, 1
-        //#define AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE aiTextureType_UNKNOWN, 0
+		// load metalness
+		float metalnessFactor = 1.f;
+		if (AI_SUCCESS == material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, metalnessFactor)) {
+			pbrMaterial->setMetalness(metalnessFactor);
+		}
+
+		// load roughness
+		float roughnessFactor = 1.f;
+		if (AI_SUCCESS == material->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, roughnessFactor)) {
+			pbrMaterial->setRoughness(roughnessFactor);
+		}
+
+		// check if it is two sided
+		int twosided = 0;
+		if (AI_SUCCESS == material->Get(AI_MATKEY_TWOSIDED, twosided)) {
+			pbrMaterial->isTwoSided = static_cast<bool>(twosided);
+		}
 
 		pbrMaterial->setAlbedoMap(loadTexture(material, scene, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE, cacheName));
-		//pbrMaterial->setMetalnessMap(loadTexture(material, scene, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, cacheName));
+		pbrMaterial->setAmbientOcclusionMap(loadTexture(material, scene, aiTextureType_LIGHTMAP, 0, cacheName)); // In assimp AO texture is called lightmap, ok...
+		setMetalnessRoughnessTexture(pbrMaterial, loadTexture(material, scene, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, cacheName));
 		pbrMaterial->setNormalMap(loadTexture(material, scene, aiTextureType_NORMALS, 0, cacheName));
 	}
 
-    /*aiColor3D color{0.f,0.f,0.f};
-    if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, color))
-        phongBuilder.setDiffuseColor(glm::vec3{color.r, color.g, color.b});
-
-    if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_SPECULAR, color))
-        phongBuilder.setSpecularColor(glm::vec3{color.r, color.g, color.b});
-
-    //if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_TRANSPARENT, color))
-
-    float shininess = 0.0f;
-    phongBuilder.setShininess(shininess); // defaults to 0
-    if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS, shininess))
-        phongBuilder.setShininess(shininess);
-
-	phongBuilder.setDiffuseMap(loadTexture(material, scene, aiTextureType_DIFFUSE, 0, cacheName));
-    phongBuilder.setSpecularMap(loadTexture(material, scene, aiTextureType_SPECULAR, 0, cacheName));
-	
-	// add bump map only if available
-	if (material->GetTextureCount(aiTextureType_HEIGHT) != 0)
-		phongBuilder.setBumpMap(loadTexture(material, scene, aiTextureType_HEIGHT, 0, cacheName));
-
-	if (material->GetTextureCount(aiTextureType_DISPLACEMENT) != 0)
-		phongBuilder.setParallaxMap(loadTexture(material, scene, aiTextureType_DISPLACEMENT, 0, cacheName));
-
-	// is this model animated?
-	phongBuilder.setAnimated(mesh->mNumBones != 0);
-
-    BlinnPhongMaterialPtr loadedMaterial = phongBuilder.build();
-
-    int twosided = 0;
-    if (AI_SUCCESS == material->Get(AI_MATKEY_TWOSIDED, twosided))
-        loadedMaterial->isTwoSided = static_cast<bool>(twosided);
-
-    // Another check to see if the material is transparent
-    float opacity = 1.0f;
-    if (AI_SUCCESS == material->Get(AI_MATKEY_OPACITY, opacity)) {
-        loadedMaterial->opacity = opacity;
-        loadedMaterial->isTwoSided = opacity < 1.0f;
-    }
-
 	// add animationController
-	if (mesh->mNumBones != 0) 
+	/*if (mesh->mNumBones != 0) 
 		loadedMaterial->skeletalAnimationController = mSkeletalAnimationController;
 	*/
     return pbrMaterial;
@@ -306,7 +283,7 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
 
 		const char* texturePath = path.C_Str();
 
-		Texture::TextureLoadAppearanceOptions loadOptions;
+		Texture::AppearanceSettings loadOptions;
 		loadOptions.createMipmap = true;
 		loadOptions.minFilter = GL_LINEAR;
 		loadOptions.magFilter = GL_LINEAR;
@@ -333,6 +310,35 @@ Texture GameObjectLoader::loadTexture(aiMaterial* material, const aiScene* scene
 	}
 
 	return Texture{};
+}
+
+void GameObjectLoader::setMetalnessRoughnessTexture(std::shared_ptr<PBRMaterial> material, const Texture& metalnessRoughness)
+{
+	if (metalnessRoughness.isValid()) {
+		Texture::Settings textureSettings = metalnessRoughness.getSettings();
+		textureSettings.dataPixelFormat = GL_RED;
+		textureSettings.internalFormat = GL_RED;
+		textureSettings.dataPixelType = GL_UNSIGNED_BYTE;
+
+		RenderTarget renderTarget;
+		
+		Texture metalnessTexture = Texture::load(nullptr, metalnessRoughness.getWidth(), metalnessRoughness.getHeight(), textureSettings);
+		renderTarget.createWith(metalnessTexture, Texture{});
+
+		mTextureChannelFilter.use();
+		mTextureChannelFilter.setInt("channel", 2); // get blue channel
+		Engine::renderSys.copyTexture(metalnessRoughness, renderTarget, mTextureChannelFilter);
+
+		Texture roughnessTexture = Texture::load(nullptr, metalnessRoughness.getWidth(), metalnessRoughness.getHeight(), textureSettings);
+		renderTarget.createWith(roughnessTexture, Texture{});
+		
+		mTextureChannelFilter.use();
+		mTextureChannelFilter.setInt("channel", 1); // get green channel
+		Engine::renderSys.copyTexture(metalnessRoughness, renderTarget, mTextureChannelFilter);
+
+		material->setMetalnessMap(metalnessTexture);
+		material->setRoughnessMap(roughnessTexture);
+	}
 }
 
 void GameObjectLoader::decompose(const glm::mat4& mat, glm::vec3& outPos, glm::quat& outRot, glm::vec3& outScale)
@@ -457,6 +463,11 @@ std::vector<float>& GameObjectLoader::getInfluencingBonesWeights(std::uint32_t v
 	weights.resize(MAX_BONES_PER_VERTEX, 0.0f);
 
 	return weights;
+}
+
+GameObjectLoader::GameObjectLoader()
+{
+	mTextureChannelFilter = Shader::loadFromFile({ "effects/textureChannelExtractorVS.glsl" }, {}, std::vector<std::string>{ "effects/textureChannelExtractorFS.glsl" });
 }
 
 GameObjectEH GameObjectLoader::fromFile(const std::string& path)

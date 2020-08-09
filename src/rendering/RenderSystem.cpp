@@ -753,6 +753,9 @@ void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, Shader& sh
 	glEnable(GL_DEPTH_TEST);
 
 	glViewport(0, 0, getScreenWidth(), getScreenHeight());
+
+	// New content written on texture, regenerate mip maps
+	dst.getColorBuffer().regenerateMipmap();
 }
 
 void RenderSystem::cleanUp() {

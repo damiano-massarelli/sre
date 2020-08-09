@@ -87,16 +87,15 @@ public:
 
 	/**
 	 * Sets this shader as the current one.
-	 * The previous shader will be restored once Shader::stop is called.
 	 */
 	void use();
 
 	/**
-	 * 
+	 * This shader will no longer be the one in use.
 	 */
 	void stop() const;
 
-	bool isInUse();
+	bool isInUse() const;
 
 	operator bool() const;
 

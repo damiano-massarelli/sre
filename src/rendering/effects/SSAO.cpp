@@ -11,7 +11,7 @@ SSAO::SSAO()
 	mNoiseTextureIndex = Engine::renderSys.effectManager.getTexture();
 	mNormalTextureIndex = Engine::renderSys.effectManager.getTexture();
 
-	Texture::TextureLoadOptions loadOptions;
+	Texture::Settings loadOptions;
 	loadOptions.dataPixelFormat = GL_RGBA;
 	loadOptions.dataPixelType = GL_FLOAT;
 	loadOptions.internalFormat = GL_RED;
@@ -88,7 +88,7 @@ void SSAO::createNoiseTexture(std::uniform_real_distribution<float>& dist, std::
 		noiseData.push_back(rotation);
 	}
 
-	Texture::TextureLoadOptions loadOptions;
+	Texture::Settings loadOptions;
 	loadOptions.dataPixelType = GL_FLOAT;
 	loadOptions.dataPixelFormat = GL_RGB;
 	loadOptions.internalFormat = GL_RGB16F;

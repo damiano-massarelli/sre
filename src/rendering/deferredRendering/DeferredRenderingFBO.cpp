@@ -6,14 +6,14 @@ void DeferredRenderingFBO::init(std::uint32_t width, std::uint32_t height)
 	mWidth = width;
 	mHeight = height;
 
-	Texture::TextureLoadOptions loadOptions;
+	Texture::Settings loadOptions;
 	loadOptions.internalFormat = GL_RGBA16F;
 	loadOptions.dataPixelType = GL_FLOAT;
 	loadOptions.appearanceOptions.createMipmap = false;
 	loadOptions.appearanceOptions.wrapS = GL_REPEAT;
 	loadOptions.appearanceOptions.wrapT = GL_REPEAT;
 
-	Texture::TextureLoadOptions depthLoadOptions = loadOptions;
+	Texture::Settings depthLoadOptions = loadOptions;
 	depthLoadOptions.internalFormat = GL_DEPTH24_STENCIL8;
 	depthLoadOptions.dataPixelFormat = GL_DEPTH_STENCIL;
 	depthLoadOptions.dataPixelType = GL_UNSIGNED_INT_24_8;

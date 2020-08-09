@@ -51,18 +51,16 @@ void BlinnPhongMaterial::setDiffuseMap(const Texture& texture)
 {
     diffuseMap = texture;
 
-    diffuseMap.nameInShader = "material.diffuse";
- ShaderScopedUsage useShader(   shader);
-    shader.setInt(diffuseMap.nameInShader, 0);
+	ShaderScopedUsage useShader(shader);
+    shader.setInt("material.diffuse", 0);
 }
 
 void BlinnPhongMaterial::setSpecularMap(const Texture& texture)
 {
     specularMap = texture;
 
-    specularMap.nameInShader = "material.specular";
- ShaderScopedUsage useShader(   shader);
-    shader.setInt(specularMap.nameInShader, 1);
+	ShaderScopedUsage useShader(shader);
+    shader.setInt("material.specular", 1);
 }
 
 void BlinnPhongMaterial::setBumpMap(const Texture& texture)

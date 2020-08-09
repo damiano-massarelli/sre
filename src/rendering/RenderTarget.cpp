@@ -7,14 +7,14 @@ void RenderTarget::create(std::uint32_t width, std::uint32_t height, bool wantCo
 	Texture colorBuffer;
 	Texture depthBuffer;
 
-	Texture::TextureLoadOptions colorLoadOptions;
+	Texture::Settings colorLoadOptions;
 	colorLoadOptions.internalFormat = GL_RGBA16F;
 	colorLoadOptions.dataPixelType = GL_FLOAT;
 	colorLoadOptions.appearanceOptions.wrapS = GL_REPEAT;
 	colorLoadOptions.appearanceOptions.wrapT = GL_REPEAT;
 	colorLoadOptions.appearanceOptions.createMipmap = false;
 
-	Texture::TextureLoadOptions depthLoadOptions = colorLoadOptions;
+	Texture::Settings depthLoadOptions = colorLoadOptions;
 	depthLoadOptions.internalFormat = GL_DEPTH24_STENCIL8;
 	depthLoadOptions.dataPixelFormat = GL_DEPTH_STENCIL;
 	depthLoadOptions.dataPixelType = GL_UNSIGNED_INT_24_8;
@@ -63,9 +63,6 @@ void RenderTarget::createWith(const Texture& colorBuffer, const Texture& depthBu
 	}
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		GLenum error;
-		while ((error = glGetError()) != GL_NO_ERROR)
-			std::cout << error << "\n";
 		std::cout << "RenderTarget frame buffer is incomplete\n";
 	}
 

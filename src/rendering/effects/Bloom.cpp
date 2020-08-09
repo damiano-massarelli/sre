@@ -3,7 +3,7 @@
 
 Bloom::Bloom(float scaleFactor) : Effect{ "bloom", "effects/bloom.glsl" }, mGaussianBlur{ scaleFactor }
 {
-	Texture::TextureLoadOptions loadOptions;
+	Texture::Settings loadOptions;
 	loadOptions.internalFormat = GL_RGB16F;
 	loadOptions.appearanceOptions.createMipmap = false;
 	loadOptions.appearanceOptions.wrapS = GL_REPEAT;

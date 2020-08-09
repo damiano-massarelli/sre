@@ -13,8 +13,32 @@ class Texture {
 	public:
 		RefCount refCount;
 
+		/**
+		  * Appearance settings used on the loaded texture.
+		  */
+		struct AppearanceSettings {
+			bool createMipmap = true;
+			GLint minFilter = GL_LINEAR;
+			GLint magFilter = GL_LINEAR;
+			GLint wrapS = GL_CLAMP_TO_EDGE;
+			GLint wrapT = GL_CLAMP_TO_EDGE;
+		};
+
+		/**
+		  * Settings used when loading a texture.
+		  * These settings include both data format settings and appearance settings.
+		  */
+		struct Settings {
+			GLint internalFormat = GL_RGBA;
+			GLenum dataPixelFormat = GL_RGBA;
+			GLenum dataPixelType = GL_UNSIGNED_BYTE;
+			AppearanceSettings appearanceOptions{};
+		};
+
     private:
 		static std::map<std::string, Texture> textureCache;
+
+		Settings mSettings;
 
         std::uint32_t mTextureId = 0;
 
@@ -28,29 +52,6 @@ class Texture {
 		void cleanUpIfNeeded();
 
     public:
-		/**
-		  * Appearance settings used on the loaded texture.
-		  */
-		struct TextureLoadAppearanceOptions {
-			bool createMipmap = true;
-			GLint minFilter = GL_LINEAR;
-			GLint magFilter = GL_LINEAR;
-			GLint wrapS = GL_CLAMP_TO_EDGE;
-			GLint wrapT = GL_CLAMP_TO_EDGE;
-		};
-
-		/**
-		  * Settings used when loading a texture.
-		  * These settings include both data format settings and appearance settings.
- 		  */
-		struct TextureLoadOptions {
-			GLint internalFormat = GL_RGBA;
-			GLenum dataPixelFormat = GL_RGBA;
-			GLenum dataPixelType = GL_UNSIGNED_BYTE;
-			TextureLoadAppearanceOptions appearanceOptions{};
-		};
-		
-
         /**
           * Creates an invalid texture.
           * Use one of the static load* methods to load a texture. */
@@ -64,7 +65,7 @@ class Texture {
 		  * @param options appearance settings used on the loaded texture
           * @return the loaded texture
           */
-		static Texture loadFromFile(const std::string& path, const TextureLoadAppearanceOptions& options = TextureLoadAppearanceOptions{});
+		static Texture loadFromFile(const std::string& path, const AppearanceSettings& options = AppearanceSettings{});
 
         /**
           * Loads a texture from a buffer in memory.
@@ -75,7 +76,7 @@ class Texture {
           * @param len length of the buffer
 		  * @param options settigns used when loading the texture.
           * @return the loaded texture */
-		static Texture loadFromMemory(std::uint8_t* data, std::int32_t len, const TextureLoadAppearanceOptions& options = TextureLoadAppearanceOptions{});
+		static Texture loadFromMemory(std::uint8_t* data, std::int32_t len, const AppearanceSettings& options = AppearanceSettings{});
 		
 		/**
 		 * Loads a texture from a buffer in memory and caches it.
@@ -85,7 +86,7 @@ class Texture {
 		 * @param len length of the buffer
 		 * @param options settings used when loading the texture
 		 * @return the loaded texture */
-		static Texture loadFromMemoryCached(const std::string& cacheKey, std::uint8_t* data, std::int32_t len, const TextureLoadAppearanceOptions& options = TextureLoadAppearanceOptions{});
+		static Texture loadFromMemoryCached(const std::string& cacheKey, std::uint8_t* data, std::int32_t len, const AppearanceSettings& options = AppearanceSettings{});
 
 		/**
 		 * Creates a new Texture.
@@ -94,7 +95,7 @@ class Texture {
 		 * @param height height of the texture
 		 * @param options settings used when loading the texture
 		 */
-		static Texture load(void* data, int width, int height, const TextureLoadOptions& options = TextureLoadOptions{});
+		static Texture load(void* data, int width, int height, const Settings& options = Settings{});
 
         /**
           * Loads a cubemap from file.
@@ -121,7 +122,12 @@ class Texture {
 		static Texture loadCubemap(const std::map<std::string, void*>& data, int width, int height,
 			int wrapS = GL_REPEAT, int wrapT = GL_REPEAT, int wrapR = GL_REPEAT, int format = GL_RGBA, int type = GL_UNSIGNED_BYTE, int internalFormat = GL_REPEAT);
 
-        std::string nameInShader;
+		/**
+		 * Regenerates mip maps for this texture.
+		 * This may be needed if the texture uses mip maps and new content is written on it.
+		 * @see RenderTarget.
+		 */
+		void regenerateMipmap() const;
 
         /**
           * Returns the texture id for this texture.
@@ -137,6 +143,11 @@ class Texture {
 		 * @return the height of the texture
 		 */
 		int getHeight() const;
+
+		/**
+		 * @return the settings for this texture. 
+		 */
+		const Settings& getSettings() const;
 
 		bool isCubeMap() const;
 
@@ -155,5 +166,7 @@ class Texture {
 
 		virtual ~Texture();
 };
+
+using TexturePtr = std::shared_ptr<Texture>;
 
 #endif // TEXTURE_H

@@ -47,10 +47,33 @@ void PBRLoadingTestScene::start() {
 	Engine::renderSys.setCamera(camera);
 
 	auto helmet = GameObjectLoader{}.fromFile("test_data/damaged_helmet_pbr/DamagedHelmet.gltf");
-	MaterialPtr mat = helmet->getMaterials()[0];
+	PBRMaterial* pbrMaterial = static_cast<PBRMaterial*>(helmet->getMaterials()[0].get());
 
-	PBRMaterial* pbrMat = static_cast<PBRMaterial*>(mat.get());
-	
+	Engine::uiRenderer.addUIDrawer([pbrMaterial, cam]() {
+		float roughness = pbrMaterial->getRoughness();
+		bool useRoughnessMap = pbrMaterial->getUseRoughnessMap();
+		float metalness = pbrMaterial->getMetalness();
+		bool useMetalnessMap = pbrMaterial->getUseMetalnessMap();
+		float cameraSensitivity = cam->getCameraSensitivity();
+
+		ImGui::Begin("Settings");
+		ImGui::SliderFloat("Roughness", &roughness, 0.f, 1.f);
+		ImGui::Checkbox("Use Roughness Map", &useRoughnessMap);
+
+		ImGui::SliderFloat("Metalness", &metalness, 0.f, 1.f);
+		ImGui::Checkbox("Use Metalness Map", &useMetalnessMap);
+
+		pbrMaterial->setRoughness(roughness);
+		pbrMaterial->setUseRoughnessMap(useRoughnessMap);
+
+		pbrMaterial->setMetalness(metalness);
+		pbrMaterial->setUseMetalnessMap(useMetalnessMap);
+
+		ImGui::SliderFloat("Sensitivity", &cameraSensitivity, 0.1f, 2.f, "%.1f");
+		cam->setCameraSensitivity(cameraSensitivity);
+
+		ImGui::End();
+	});
 
 	// Create an empy GameObject for the light
 	auto sun = Engine::gameObjectManager.createGameObject();
@@ -58,13 +81,11 @@ void PBRLoadingTestScene::start() {
 
 	// Lights are implemented as Components
 	sun->addComponent(std::make_shared<DirectionalLight>(sun));
-	sun->transform.setPosition(glm::vec3{ 50.0f, 205.0f, -65.0f });
-
 	Engine::renderSys.addLight(sun);
 	sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
 	sun->getComponent<Light>()->ambientColor = glm::vec3{ 0.1f } / 150.0f;
-	sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 5.0f;
-	sun->transform.setPosition(glm::vec3{ 5.f, 5.f, 5.f });
+	sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 50.0f;
+	sun->transform.setPosition(glm::vec3{ 0.f, 5.f, 1.f });
 	sun->transform.lookAt(glm::vec3{0.f});
 }
 

@@ -357,7 +357,7 @@ void Shader::stop() const
 	glUseProgram(0);
 }
 
-bool Shader::isInUse()
+bool Shader::isInUse() const
 {
 	return Shader::mInUse == mProgramId;
 }

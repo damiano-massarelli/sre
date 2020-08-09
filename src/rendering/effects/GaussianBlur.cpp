@@ -3,7 +3,7 @@
 
 GaussianBlur::GaussianBlur(float scaleFactor)
 {
-	Texture::TextureLoadOptions loadOptions;
+	Texture::Settings loadOptions;
 	loadOptions.internalFormat = GL_RGB16F;
 	loadOptions.appearanceOptions.createMipmap = false;
 

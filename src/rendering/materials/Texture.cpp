@@ -7,7 +7,7 @@
 
 std::map<std::string, Texture> Texture::textureCache;
 
-Texture Texture::loadFromFile(const std::string& path, const TextureLoadAppearanceOptions& options)
+Texture Texture::loadFromFile(const std::string& path, const AppearanceSettings& options)
 {
 	auto cached = textureCache.find(path);
 	if (cached != textureCache.end()) 
@@ -23,7 +23,7 @@ Texture Texture::loadFromFile(const std::string& path, const TextureLoadAppearan
         std::cerr << "unable to load texture " << path << "\n";
         return texture;
     } else {
-		const TextureLoadOptions loadOptions{ GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, options };
+		const Settings loadOptions{ GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, options };
         texture = Texture::load(data, width, height, loadOptions);
         stbi_image_free(data);
     }
@@ -35,21 +35,21 @@ Texture Texture::loadFromFile(const std::string& path, const TextureLoadAppearan
     return texture;
 }
 
-Texture Texture::loadFromMemory(std::uint8_t* data, std::int32_t len, const TextureLoadAppearanceOptions& options)
+Texture Texture::loadFromMemory(std::uint8_t* data, std::int32_t len, const AppearanceSettings& options)
 {
     stbi_set_flip_vertically_on_load(true);
 
     int width, height, cmp;
     std::uint8_t* convertedData = stbi_load_from_memory(data, len, &width, &height, &cmp, STBI_rgb_alpha);
 
-	TextureLoadOptions loadOptions{ GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, options };
+	Settings loadOptions{ GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, options };
     return Texture::load(convertedData, width, height, loadOptions);
 	if (convertedData) {
 		stbi_image_free(convertedData);
 	}
 }
 
-Texture Texture::loadFromMemoryCached(const std::string& cacheKey, std::uint8_t* data, std::int32_t len, const TextureLoadAppearanceOptions& options)
+Texture Texture::loadFromMemoryCached(const std::string& cacheKey, std::uint8_t* data, std::int32_t len, const AppearanceSettings& options)
 {
 	auto cached = textureCache.find(cacheKey);
 	if (cached != textureCache.end()) {
@@ -154,7 +154,7 @@ Texture Texture::loadCubemap(const std::map<std::string, void*>& data, int width
 	return t;
 }
 
-Texture Texture::load(void* data, int width, int height, const TextureLoadOptions& options)
+Texture Texture::load(void* data, int width, int height, const Settings& options)
 {
     std::uint32_t texture;
     glGenTextures(1, &texture);
@@ -168,25 +168,26 @@ Texture Texture::load(void* data, int width, int height, const TextureLoadOption
 	if (options.appearanceOptions.createMipmap) {
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+		if (GLAD_GL_ARB_texture_filter_anisotropic) {
+			float maxAniso = 0;
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, std::min(maxAniso, 4.0f));
+		}
+		else {
+			std::cout << "anisotropic filtering not available\n";
+		}
 	}
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, options.appearanceOptions.wrapS);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, options.appearanceOptions.wrapT);
-
-	if (GLAD_GL_ARB_texture_filter_anisotropic) {
-		float maxAniso = 0;
-		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, std::min(maxAniso, 4.0f));
-	}
-	else {
-		std::cout << "anisotropic filtering not available\n";
-	}
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
     auto tex = Texture{texture};
 	tex.mWidth = width;
 	tex.mHeight = height;
+	tex.mSettings = options;
 
 	return tex;
 }
@@ -199,6 +200,15 @@ void Texture::cleanUpIfNeeded()
 	if (refCount.shouldCleanUp() && mTextureId != 0) {
 		glDeleteTextures(1, &mTextureId);
 		mTextureId = 0;
+	}
+}
+
+void Texture::regenerateMipmap() const
+{
+	if (mSettings.appearanceOptions.createMipmap && isValid()) {
+		glBindTexture(GL_TEXTURE_2D, mTextureId);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
 
@@ -215,6 +225,11 @@ int Texture::getWidth() const
 int Texture::getHeight() const
 {
 	return mHeight;
+}
+
+const Texture::Settings& Texture::getSettings() const
+{
+	return mSettings;
 }
 
 bool Texture::isCubeMap() const
@@ -242,6 +257,7 @@ Texture& Texture::operator=(const Texture& rhs)
 	mWidth = rhs.mWidth;
 	mHeight = rhs.mHeight;
 	mIsCubeMap = rhs.mIsCubeMap;
+	mSettings = rhs.mSettings;
 
 	refCount = rhs.refCount;
 
