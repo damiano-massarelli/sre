@@ -298,7 +298,7 @@ void RenderSystem::updateMatrices(const glm::mat4* projection, const glm::mat4* 
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-glm::mat4 RenderSystem::getViewMatrix(const Transform& transform)
+glm::mat4 RenderSystem::getViewMatrix(const Transform& transform) const
 {
 	glm::mat4 view = glm::mat4{ 1.0f };
 	view = glm::translate(glm::mat4{ 1.0f }, -transform.getPosition());

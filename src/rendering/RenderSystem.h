@@ -222,7 +222,7 @@ public:
 	 * The actual matrix is multiplied by mInvertView
 	 * @return the view matrix for the given Transform
 	 */
-	glm::mat4 getViewMatrix(const Transform& transform);
+	glm::mat4 getViewMatrix(const Transform& transform) const;
 
 	/**
 	 * @return the projection matrix
