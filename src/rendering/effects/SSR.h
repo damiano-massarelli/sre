@@ -15,5 +15,7 @@ public:
 	virtual void onSetup(Shader& postProcessingShader) override;
 
 	virtual void update(Shader& postProcessingShader) override;
+
+	~SSR();
 };
 

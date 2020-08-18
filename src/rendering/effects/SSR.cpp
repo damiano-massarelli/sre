@@ -26,7 +26,7 @@ void SSR::onSetup(Shader& postProcessingShader) {
 void SSR::update(Shader& postProcessingShader) {
 	ShaderScopedUsage useShader{ postProcessingShader };
 
-	RenderSystem& rsys = Engine::renderSys;
+	const RenderSystem& rsys = Engine::renderSys;
 	const glm::mat4 currentProjectViewMatrix = rsys.getProjectionMatrix() * rsys.getViewMatrix(rsys.getCamera()->transform);
 
 	// TODO optimize me
@@ -41,4 +41,11 @@ void SSR::update(Shader& postProcessingShader) {
 
 	glActiveTexture(GL_TEXTURE0 + mSpecularTexture);
 	glBindTexture(GL_TEXTURE_2D, Engine::renderSys.deferredRenderingFBO.getAdditionalBuffer().getId());
+}
+
+SSR::~SSR()
+{
+	Engine::renderSys.effectManager.releaseTexture(mPositionTexture);
+	Engine::renderSys.effectManager.releaseTexture(mNormalTexture);
+	Engine::renderSys.effectManager.releaseTexture(mSpecularTexture);
 }
