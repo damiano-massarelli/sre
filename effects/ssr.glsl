@@ -1,62 +1,133 @@
 uniform mat4 _ssr_projectionView; // current projection view matrix
-uniform vec3 _ssr_cameraPosition; // current camera position
-uniform mat4 _ssr_view; // current camera direction
+uniform vec3 _ssr_cameraPosition; // current camera position in world space
+uniform vec3 _ssr_cameraDirection; // current camera direction
 
 uniform sampler2D _ssr_position; // position data coming from deferred rendering
 uniform sampler2D _ssr_normals;  // normals coming from deferred rendering
 uniform sampler2D _ssr_specular;
 
-const float _SSR_RAY_LENGTH = 3;
-const int _SSR_RAY_ITERATIONS = 250;
+uniform float _ssr_ray_max_distance;
+uniform float _ssr_ray_resolution; // 1 to procede every pixel, within 0 and 1 to sample further
+uniform int _ssr_ray_steps;
+uniform float _ssr_ray_hit_threshold;
+
 
 vec4 ssr(vec4 color) {
 	const vec2 screenSize = textureSize(_ssr_position, 0);
 
-	const vec3 position = texture(_ssr_position, texCoord).xyz;
-	const vec3 normal = texture(_ssr_normals, texCoord).xyz;
-	const float shininess = texture(_ssr_specular, texCoord).a / 320;
+	const vec3 fragmentWorldPosition = texture(_ssr_position, texCoord).xyz;
+	vec3 worldNormal = texture(_ssr_normals, texCoord).xyz;
 
-	/* Dirty trick to avoid applying this effect to fragment
-	 * for which this information is not existent. That is,
-	 * fragments not rendered using deferred rendering */
-	if (normal == vec3(0.0)) {
+	// Dirty trick to skip fragments that are not rendered into the GBuffer
+	if (worldNormal == vec3(0.0)) {
 		return color;
 	}
 
-	const vec3 rayFromCamera = position - _ssr_cameraPosition;
-	const vec3 rayDirection = reflect(normalize(rayFromCamera), normal);
+	// Now we can safely normalize
+	worldNormal = normalize(worldNormal);
 
-	int found = 0;
-	vec4 reflected = vec4(0, 0, 0, 0);
-	for (int i = 1; i < _SSR_RAY_ITERATIONS; ++i) {
-		// computes the ray position for this iteration
-		const vec3 rayPosition = position + rayDirection * _SSR_RAY_LENGTH * i;
+	const vec3 viewDirection = normalize(fragmentWorldPosition - _ssr_cameraPosition);
+	const vec3 rayDirection = normalize(reflect(viewDirection, worldNormal));
 
-		// projects the ray onto the screen
-		vec4 projected = _ssr_projectionView * vec4(rayPosition, 1.0);
-		projected.xyz /= projected.w;
+	vec3 rayStart = fragmentWorldPosition.xyz;
+	vec3 rayEnd = rayStart + (rayDirection * _ssr_ray_max_distance);
+	
+	float rayStartViewSpaceDepth = dot(rayStart - _ssr_cameraPosition, _ssr_cameraDirection);
+	float rayEndViewSpaceDepth = dot(rayEnd - _ssr_cameraPosition, _ssr_cameraDirection);
+	
+	// Project the start point from world to screen space
+    vec4 rayStartScreenSpace = _ssr_projectionView * vec4(rayStart, 1.0);
+	rayStartScreenSpace.xyz /= rayStartScreenSpace.w;
+	rayStartScreenSpace.xy = rayStartScreenSpace.xy * 0.5 + 0.5;
 
-		// Gets the screen space coordinates of the ray (from ndc to ss)
-		const vec2 rayScreenSpacePosition = projected.xy * 0.5 + 0.5;
-		
-		// depth of the ray
-		const float rayDepth = projected.z * 0.5 +  0.5;
+	// Project the end point from world to screen space
+	vec4 rayEndScreenSpace = _ssr_projectionView * vec4(rayEnd, 1.0);
+	rayEndScreenSpace.xyz /= rayEndScreenSpace.w;
+	rayEndScreenSpace.xy = rayEndScreenSpace.xy * 0.5 + 0.5;
+	if (rayEndScreenSpace.z < 0.0 || rayEndScreenSpace.z > 1.0) {
+		return color;
+	}
 
-		// TODO TEMP
-		if (any(lessThan(rayScreenSpacePosition, vec2(0.01))) || any(greaterThan(rayScreenSpacePosition, vec2(0.99)))) {
-			break;
+	// Convert the UV coordinates to fragment/pixel coordinates
+	vec2 startFrag = rayStartScreenSpace.xy * screenSize;
+	vec2 endFrag = rayEndScreenSpace.xy * screenSize;
+	endFrag = clamp(endFrag, vec2(0.0), screenSize); // There is not benefit going outside the screen, there is nothing to sample there
+
+	float deltaX = endFrag.x - startFrag.x;
+  	float deltaY = endFrag.y - startFrag.y;
+
+	// Make sure that we move along rayDirection on the longest side between 
+	// deltaX and deltaY by a pixel at a time (if resolution is 1)
+	float delta = max(abs(deltaX), abs(deltaY)) * clamp(_ssr_ray_resolution, 0, 1);
+  	vec2 increment = vec2(deltaX, deltaY) / max(delta, 0.01);
+
+	// Percentage of the sample previous the hit
+	float search0 = 0;
+	// Percentage of movement
+	float search1 = 0;
+
+	// Whether or not we hit something
+	int hit = 0;
+
+	float viewDistance = 0;
+	float depth = 0;
+
+	vec2 uv = vec2(0.0);
+	vec3 testPosition = vec3(0.0);
+
+	vec2 frag = startFrag;
+	
+	for (float i = 0; i < int(delta); ++i) {
+		frag += increment;
+		uv = frag / screenSize;
+		testPosition = texture(_ssr_position, uv).xyz;
+		if (testPosition == vec3(0.0)) {
+			continue;
 		}
 
-		// The actual position of scene geometry where the ray is
-		const vec3 geometryPosition = texture(_ssr_position, rayScreenSpacePosition).xyz;
-		const float geometryDepth = texture(depthTexture, rayScreenSpacePosition).r;
-		if (geometryDepth < rayDepth && distance(rayPosition, geometryPosition) < 3.5) {
-			reflected = texture(screenTexture, rayScreenSpacePosition);
-			found = 1;
+		search1 = i / int(delta);
+
+		viewDistance = (rayStartViewSpaceDepth * rayEndViewSpaceDepth) / mix(rayEndViewSpaceDepth, rayStartViewSpaceDepth, search1);
+		depth = viewDistance - dot(testPosition - _ssr_cameraPosition, _ssr_cameraDirection);
+
+		if (depth > 0 && depth < _ssr_ray_hit_threshold) {
+			hit = 1;
 			break;
+		} else {
+			search0 = search1;
 		}
 	}
 
-	//return vec4(vec3(shininess), 1.0);
-	return vec4(mix(color, reflected, shininess * found));
+	// No hit
+	if (hit == 0) {
+		return color;
+	}
+
+	// Reset the hit as we are going to search for it again
+	//hit = 0;
+
+	// Step 2: do a "binary" search midway the start and the hit point
+	search1 = search0 + ((search1 - search0) / 2.0);
+
+	for (int i = 0; i < _ssr_ray_steps; ++i) {
+    	frag = mix(startFrag.xy, endFrag.xy, search1);
+    	uv = frag / screenSize;
+    	testPosition = texture(_ssr_position, uv).xyz;
+		if (testPosition != vec3(0.0)) {
+
+			viewDistance = (rayStartViewSpaceDepth * rayEndViewSpaceDepth) / mix(rayEndViewSpaceDepth, rayStartViewSpaceDepth, search1);
+			depth        = viewDistance - dot(testPosition - _ssr_cameraPosition, _ssr_cameraDirection);
+
+			if (depth > 0 && depth < _ssr_ray_hit_threshold) {
+				hit = 1;
+				search1 = search0 + ((search1 - search0) / 2.0);
+			} else {
+				float temp = search1;
+				search1 = search1 + ((search1 - search0) / 2.0);
+				search0 = temp;
+			}
+		}
+  	}
+
+	return mix(color, vec4(hit, 0.0, 0.0, 1.0), hit);
 }
