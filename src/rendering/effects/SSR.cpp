@@ -4,8 +4,7 @@
 #include "rendering/effects/EffectManager.h"
 #include <cassert>
 
-SSR::SSR() : Effect{"ssr", "effects/ssr.glsl"}
-{
+SSR::SSR() : Effect{"ssr", "effects/ssr.glsl"} {
 	mPositionTexture = Engine::renderSys.effectManager.getTexture();
 	mNormalTexture = Engine::renderSys.effectManager.getTexture();
 	mSpecularTexture = Engine::renderSys.effectManager.getTexture();
@@ -17,20 +16,28 @@ SSR::SSR() : Effect{"ssr", "effects/ssr.glsl"}
 void SSR::onSetup(Shader& postProcessingShader) {
 	//ShaderScopedUsage useShader{ postProcessingShader };
 
-	postProcessingShader.setInt("_ssr_position", mPositionTexture);
-	postProcessingShader.setInt("_ssr_normals", mNormalTexture);
-	postProcessingShader.setInt("_ssr_specular", mSpecularTexture);
+	mPostProcessingShader = postProcessingShader;
 
+	mPostProcessingShader.setInt("_ssr_position", mPositionTexture);
+	mPostProcessingShader.setInt("_ssr_normals", mNormalTexture);
+	mPostProcessingShader.setInt("_ssr_specular", mSpecularTexture);
+
+	// Parameter defaults
+	mPostProcessingShader.setFloat("_ssr_ray_max_distance", mMaxDistance);
+	mPostProcessingShader.setFloat("_ssr_ray_resolution", mResolution);
+	mPostProcessingShader.setInt("_ssr_ray_steps", mSteps);
+	mPostProcessingShader.setFloat("_ssr_ray_hit_threshold", mHitThreshold);
 }
 
 void SSR::update(Shader& postProcessingShader) {
 	ShaderScopedUsage useShader{ postProcessingShader };
 
-	const RenderSystem& rsys = Engine::renderSys;
-	const glm::mat4 currentProjectViewMatrix = rsys.getProjectionMatrix() * rsys.getViewMatrix(rsys.getCamera()->transform);
+	const RenderSystem& renderSystem = Engine::renderSys;
+	const glm::mat4 currentProjectViewMatrix = renderSystem.getProjectionMatrix() * renderSystem.getViewMatrix(renderSystem.getCamera()->transform);
 
 	// TODO optimize me
-	postProcessingShader.setVec3("_ssr_cameraPosition", rsys.getCamera()->transform.getPosition());
+	postProcessingShader.setVec3("_ssr_cameraPosition", renderSystem.getCamera()->transform.getPosition());
+	postProcessingShader.setVec3("_ssr_cameraDirection", renderSystem.getCamera()->transform.forward());
 	postProcessingShader.setMat4("_ssr_projectionView", currentProjectViewMatrix);
 
 	glActiveTexture(GL_TEXTURE0 + mPositionTexture);
@@ -43,8 +50,43 @@ void SSR::update(Shader& postProcessingShader) {
 	glBindTexture(GL_TEXTURE_2D, Engine::renderSys.deferredRenderingFBO.getAdditionalBuffer().getId());
 }
 
-SSR::~SSR()
-{
+void SSR::setMaxDistance(float maxDistance) {
+	if (mMaxDistance != maxDistance) {
+		mMaxDistance = maxDistance;
+
+		ShaderScopedUsage useShader{ mPostProcessingShader };
+		mPostProcessingShader.setFloat("_ssr_ray_max_distance", mMaxDistance);
+	}	
+}
+
+void SSR::setResolution(float resolution) {
+	if (mResolution != resolution) {
+		mResolution = resolution;
+
+		ShaderScopedUsage useShader{ mPostProcessingShader };
+		mPostProcessingShader.setFloat("_ssr_ray_resolution", mResolution);
+	}
+}
+
+void SSR::setSteps(int steps) {
+	if (mSteps != steps) {
+		mSteps = steps;
+
+		ShaderScopedUsage useShader{ mPostProcessingShader };
+		mPostProcessingShader.setInt("_ssr_ray_steps", mSteps);
+	}
+}
+
+void SSR::setHitThreshold(float hitThreshold) {
+	if (mHitThreshold != hitThreshold) {
+		mHitThreshold = hitThreshold;
+
+		ShaderScopedUsage useShader{ mPostProcessingShader };
+		mPostProcessingShader.setFloat("_ssr_ray_hit_threshold", mHitThreshold);
+	}
+}
+
+SSR::~SSR() {
 	Engine::renderSys.effectManager.releaseTexture(mPositionTexture);
 	Engine::renderSys.effectManager.releaseTexture(mNormalTexture);
 	Engine::renderSys.effectManager.releaseTexture(mSpecularTexture);

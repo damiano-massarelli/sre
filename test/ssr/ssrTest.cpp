@@ -18,11 +18,13 @@
 DECLARE_TEST_SCENE("Screen Space Reflections", SSRTestScene)
 
 void SSRTestScene::start() {
-    //Engine::renderSys.effectManager.addEffect(std::make_shared<SSR>());
     auto gammaPost = std::make_shared<GammaCorrection>();
     gammaPost->setGamma(2.2f);
     gammaPost->setExposure(1.0f);
     Engine::renderSys.effectManager.addEffect(gammaPost);
+
+    auto ssrEffect = std::make_shared<SSR>();
+    Engine::renderSys.effectManager.addEffect(ssrEffect);
     Engine::renderSys.effectManager.enableEffects();
 
     auto camera = Engine::gameObjectManager.createGameObject();
@@ -34,8 +36,6 @@ void SSRTestScene::start() {
     camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
 
     Engine::renderSys.setCamera(camera);
-
-    //GameObjectEH scene = GameObjectLoader{}.fromFile("test_data/ssr/scene.fbx");
 
     auto skyTexture = Texture::loadCubemapFromFile({
                    {"front", "test_data/skybox/front.tga"},
@@ -66,16 +66,48 @@ void SSRTestScene::start() {
     gizmo->transform.setLocalRotation(glm::quat{0.f, 0.f, 0.f, 1.f});
 
     // Ground
-    std::shared_ptr<PBRMaterial> planeMat = std::make_shared<PBRMaterial>();
-    planeMat->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/metal/albedo.jpg"));
-    planeMat->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughness.jpg"));
-    planeMat->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg"));
-    planeMat->setNormalMap(Texture::loadFromFile("test_data/ssr/textures/metal/normal.jpg"));
-    planeMat->setAmbientOcclusionMap(Texture::loadFromFile("test_data/ssr/textures/metal/ao.jpg"));
+    std::shared_ptr<PBRMaterial> planeMaterial = std::make_shared<PBRMaterial>();
+    planeMaterial->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/metal/albedo.jpg"));
+    planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughness.jpg"));
+    planeMaterial->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg"));
+    planeMaterial->setNormalMap(Texture::loadFromFile("test_data/ssr/textures/metal/normal.jpg"));
+    planeMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/ssr/textures/metal/ao.jpg"));
     
-    GameObjectEH plane = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), planeMat);
+    GameObjectEH plane = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), planeMaterial);
     plane->transform.setRotation(glm::angleAxis(glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f)));
     plane->transform.scaleBy(glm::vec3(30.f));
+
+    // Sphere
+    std::shared_ptr<PBRMaterial> sphereMaterial = std::make_shared<PBRMaterial>();
+    /*sphereMaterial->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/metal/albedo.jpg"));
+    sphereMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughness.jpg"));
+    sphereMaterial->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg"));
+    sphereMaterial->setNormalMap(Texture::loadFromFile("test_data/ssr/textures/metal/normal.jpg"));
+    sphereMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/ssr/textures/metal/ao.jpg"));*/
+
+    GameObjectEH sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(), sphereMaterial);
+    sphere->transform.setPosition(glm::vec3(0.f, 5.f, 0.f));
+    sphere->transform.scaleBy(glm::vec3(5.f));
+
+    Engine::uiRenderer.addUIDrawer([ssrEffect, cam]() {
+        float maxDistance = ssrEffect->getMaxDistance();
+        float resolution = ssrEffect->getResolution();
+        int steps = ssrEffect->getSteps();
+        float hitThreshold = ssrEffect->geHitThreshold();
+
+        ImGui::Begin("Settings");
+        ImGui::SliderFloat("Max Distance", &maxDistance, 0.f, 50.f);
+        ImGui::SliderFloat("Resolution", &resolution, 0.f, 1.f);
+        ImGui::SliderInt("Steps", &steps, 5, 30);
+        ImGui::SliderFloat("Hit Threshold", &hitThreshold, 0.01f, 2.f);
+
+        ssrEffect->setMaxDistance(maxDistance);
+        ssrEffect->setResolution(resolution);
+        ssrEffect->setSteps(steps);
+        ssrEffect->setHitThreshold(hitThreshold);
+
+        ImGui::End();
+    });
 }
 
 void SSRTestScene::end() {}
