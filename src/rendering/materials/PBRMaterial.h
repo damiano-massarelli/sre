@@ -13,9 +13,9 @@ private:
 	Texture mAOMap;
 
 	glm::vec3 mAlbedo{ 1.f, 1.f, 1.f };
-	float mMetalness{ 1.f };
+	float mMetalness{ 0.f };
 	float mRoughness{ 1.f };
-	float mAO{ 1.f };
+	float mAO{ 0.f };
 
 	bool mUseAlbedoMap = true;
 	bool mUseNormalMap = true;
