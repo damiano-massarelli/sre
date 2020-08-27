@@ -9,10 +9,14 @@ private:
 	int mNormalTexture = -1;
 	int mSpecularTexture = -1;
 
-	float mMaxDistance = 15.f;
-	float mResolution = 0.5f; // 1 to procede every pixel, within 0 and 1 to sample further
+	float mMaxDistance = 20.f;
+	
+	// 1 to procede every pixel, within 0 and 1 to sample further
+	// 0.5 seems pretty reasonable
+	// 1 is very expensive and doesn't seem to add quality
+	float mResolution = 0.5f;
 	int mSteps = 15;
-	float mHitThreshold = 0.5f;
+	float mHitThreshold = 0.15f;
 	
 	Shader mPostProcessingShader;
 
