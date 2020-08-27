@@ -116,7 +116,7 @@ vec4 ssr(vec4 color) {
 		if (testPosition != vec3(0.0)) {
 
 			viewDistance = (rayStartViewSpaceDepth * rayEndViewSpaceDepth) / mix(rayEndViewSpaceDepth, rayStartViewSpaceDepth, search1);
-			depth        = viewDistance - dot(testPosition - _ssr_cameraPosition, _ssr_cameraDirection);
+			depth = viewDistance - dot(testPosition - _ssr_cameraPosition, _ssr_cameraDirection);
 
 			if (depth > 0 && depth < _ssr_ray_hit_threshold) {
 				hit = 1;
@@ -129,5 +129,18 @@ vec4 ssr(vec4 color) {
 		}
   	}
 
-	return mix(color, vec4(hit, 0.0, 0.0, 1.0), hit);
+	// How much the reflection vector point to the same direction of the view
+	//float reflectionCloseToViewDirection = (1 - max(dot(viewDirection, -rayDirection), 0)); // His version
+	float reflectionCloseToViewDirection = (1 - abs(dot(viewDirection, -rayDirection))); // My version
+
+	// How far is reflection point compared to the respective step
+	float furtherFromHit = (1 - clamp(depth / _ssr_ray_hit_threshold, 0, 1));
+
+	// How far the reflection point is compared to the starting point
+	float furtherFromFirstRefl = (1 - clamp(length(testPosition - fragmentWorldPosition) / _ssr_ray_max_distance, 0, 1));
+
+	float attenuation = reflectionCloseToViewDirection * furtherFromHit * furtherFromFirstRefl;
+
+	//return mix(color, vec4(hit, 0.0, 0.0, 1.0), hit) * attenuation;
+	return mix(color, vec4(hit, 0.0, 0.0, 1.0), attenuation);
 }
