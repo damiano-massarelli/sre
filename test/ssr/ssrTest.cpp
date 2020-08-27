@@ -29,11 +29,11 @@ void SSRTestScene::start() {
 
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
-    camera->transform.moveBy(glm::vec3{0.0f, 30.0f, 30.0f});
+    camera->transform.moveBy(glm::vec3{0.0f, 15.0f, 15.0f});
 
     auto cam = std::make_shared<FreeCameraComponent>(camera);
     camera->addComponent(cam);
-    camera->transform.setRotation(glm::quat{glm::vec3{0, glm::radians(180.0f), 0}});
+    camera->transform.setRotation(glm::quat{glm::vec3{glm::radians(30.0f), glm::radians(180.0f), 0}});
 
     Engine::renderSys.setCamera(camera);
 
@@ -86,8 +86,13 @@ void SSRTestScene::start() {
     sphereMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/ssr/textures/metal/ao.jpg"));*/
 
     GameObjectEH sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(), sphereMaterial);
-    sphere->transform.setPosition(glm::vec3(0.f, 5.f, 0.f));
+    sphere->transform.setPosition(glm::vec3(3.f, 3.f, 0.f));
     sphere->transform.scaleBy(glm::vec3(5.f));
+
+    // Cube
+    GameObjectEH cube = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), sphereMaterial);
+    cube->transform.setPosition(glm::vec3(-3.f, 2.5f, 0.f));
+    cube->transform.scaleBy(glm::vec3(5.f));
 
     Engine::uiRenderer.addUIDrawer([ssrEffect, cam]() {
         float maxDistance = ssrEffect->getMaxDistance();
