@@ -13,19 +13,17 @@
 #include "rendering/effects/SSR.h"
 #include "rendering/materials/SkyboxMaterial.h"
 
-#include <iostream>
-
 DECLARE_TEST_SCENE("Screen Space Reflections", SSRTestScene)
 
 void SSRTestScene::start() {
+    auto ssrEffect = std::make_shared<SSR>();
+    Engine::renderSys.effectManager.addEffect(ssrEffect);
+    Engine::renderSys.effectManager.enableEffects();
+
     auto gammaPost = std::make_shared<GammaCorrection>();
     gammaPost->setGamma(2.2f);
     gammaPost->setExposure(1.0f);
     Engine::renderSys.effectManager.addEffect(gammaPost);
-
-    auto ssrEffect = std::make_shared<SSR>();
-    Engine::renderSys.effectManager.addEffect(ssrEffect);
-    Engine::renderSys.effectManager.enableEffects();
 
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
@@ -55,8 +53,8 @@ void SSRTestScene::start() {
     sun->addComponent(std::make_shared<DirectionalLight>(sun));
     sun->transform.setPosition(glm::vec3{ 0.0f, 5.0f, 0.0f });
     Engine::renderSys.addLight(sun);
-    sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
-    sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 15.0f;
+    sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
+    sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 1.0f;
     sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 1.0f;
     sun->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), sun->transform.right()));
 
@@ -78,16 +76,18 @@ void SSRTestScene::start() {
     plane->transform.scaleBy(glm::vec3(30.f));
 
     // Sphere
-    std::shared_ptr<PBRMaterial> sphereMaterial = std::make_shared<PBRMaterial>();
-    /*sphereMaterial->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/metal/albedo.jpg"));
-    sphereMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughness.jpg"));
-    sphereMaterial->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg"));
-    sphereMaterial->setNormalMap(Texture::loadFromFile("test_data/ssr/textures/metal/normal.jpg"));
-    sphereMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/ssr/textures/metal/ao.jpg"));*/
+    std::shared_ptr<PBRMaterial> redMaterial = std::make_shared<PBRMaterial>();
+    redMaterial->setAlbedo(glm::vec3{ 1.0, 0.0, 0.0 });
 
-    GameObjectEH sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(), sphereMaterial);
+    GameObjectEH sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(), redMaterial);
     sphere->transform.setPosition(glm::vec3(0.f, 5.f, 0.f));
     sphere->transform.scaleBy(glm::vec3(5.f));
+
+
+    // Cube 
+    GameObjectEH cube = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), redMaterial);
+    cube->transform.setPosition(glm::vec3(10.f, 0.f, 0.f));
+    cube->transform.scaleBy(glm::vec3(5.f));
 
     Engine::uiRenderer.addUIDrawer([ssrEffect, cam]() {
         float maxDistance = ssrEffect->getMaxDistance();
@@ -98,7 +98,7 @@ void SSRTestScene::start() {
         ImGui::Begin("Settings");
         ImGui::SliderFloat("Max Distance", &maxDistance, 0.f, 50.f);
         ImGui::SliderFloat("Resolution", &resolution, 0.f, 1.f);
-        ImGui::SliderInt("Steps", &steps, 5, 30);
+        ImGui::SliderInt("Steps", &steps, 0, 30);
         ImGui::SliderFloat("Hit Threshold", &hitThreshold, 0.01f, 2.f);
 
         ssrEffect->setMaxDistance(maxDistance);
