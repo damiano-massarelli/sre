@@ -1,6 +1,7 @@
 #pragma once
 #include "Effect.h"
 #include "rendering/materials/Shader.h"
+#include <cstdint>
 
 class SSR : public Effect
 {
@@ -8,15 +9,17 @@ private:
 	int mPositionTexture = -1;
 	int mNormalTexture = -1;
 	int mSpecularTexture = -1;
+	std::int32_t mCameraPositionLocation = -1;
+	std::int32_t mCameraDirectionLocation = -1;
+	std::int32_t mProjectionViewLocation = -1;
 
-	float mMaxDistance = 20.f;
-	
-	// 1 to procede every pixel, within 0 and 1 to sample further
-	// 0.5 seems pretty reasonable
-	// 1 is very expensive and doesn't seem to add quality
-	float mResolution = 0.5f;
-	int mSteps = 15;
-	float mHitThreshold = 0.15f;
+
+	float mMaxDistance = 15.f;
+	float mResolution = 0.5f; // 1 to procede every pixel, within 0 and 1 to sample further
+	int mSteps = 5;
+	float mHitThreshold = 0.5f;
+	float mNearPlane = 0.f;
+	float mFarPlane = 0.f;
 	
 	Shader mPostProcessingShader;
 

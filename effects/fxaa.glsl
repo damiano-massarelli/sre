@@ -13,7 +13,7 @@ uniform float near;
 uniform float far;
 
 float fxaaDepthAt(vec2 coord) {
-    float z = texture2D(depthTexture, coord).r;
+    float z = texture(depthTexture, coord).r;
     float d = (2.0 * near * far) / (far + near - z * (far - near));
 
     return d / far;
