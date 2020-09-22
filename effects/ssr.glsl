@@ -55,7 +55,6 @@ vec4 ssr(vec4 color) {
 	rayEndScreenSpace.xyz /= rayEndScreenSpace.w;
 	rayEndScreenSpace.xyz = rayEndScreenSpace.xyz * 0.5 + 0.5;
 
-	// TODO handle this and clamp endFrag
 	if (rayEndScreenSpace.z < 0.0 || rayEndScreenSpace.z > 1.0) {
 		return color;
 	}
