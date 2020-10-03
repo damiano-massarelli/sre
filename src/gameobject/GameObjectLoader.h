@@ -7,7 +7,7 @@
 #include "rendering/materials/Texture.h"
 #include "skeletalAnimation/Bone.h"
 #include "skeletalAnimation/SkeletalAnimation.h"
-#include "skeletalAnimation/SkeletralAnimationControllerComponent.h"
+#include "skeletalAnimation/SkeletalAnimationControllerComponent.h"
 #include <string>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>

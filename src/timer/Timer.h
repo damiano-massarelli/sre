@@ -4,7 +4,7 @@
 #include <SDL.h>
 
 /**
-  * A simple timer class to measure time intervals
+  * A simple timer class to measure time intervals.
   */
 class Timer
 {
@@ -13,10 +13,12 @@ private:
     bool mPaused = false;
 
     Uint32 mStartTime = 0;
-    Uint32 mPauseStartTime = 0;
+    Uint32 mSnapshot = 0;
+
+    float mTimeSpeedMultiplier = 1.f;
 
 public:
-    Timer();
+    Timer() = default;
 
     /**
      * Starts the timer.
@@ -27,7 +29,7 @@ public:
 	/**
 	 * @return whether the timer is started (true even if paused)
 	 */
-	bool isStarted();
+	bool isStarted() const;
 
     /**
      * Pauses the timer */
@@ -36,7 +38,7 @@ public:
 	/**
 	 * @return whether the  timer is paused (true even if not started) 
 	 */
-	bool isPaused();
+	bool isPaused() const;
 
     /**
      * Resumes the timer */
@@ -53,17 +55,36 @@ public:
 	void reset();
 
     /**
+     * Sets a multiplier for the speed of time.
+     * This value defaults to 1.f which means that time proceeds normally.
+     * @param multiplier the time multiplier
+     */
+    void setTimeSpeedMultiplier(const float multiplier);
+
+    /**
+     * @return the time speed multiplier.
+     */
+    float getTimeSpeedMultiplier() const;
+
+    /**
 	 * Returns the elapsed time in seconds from start
 	 * Pauses are taken into account.
 	 * @see start
-	 * @return elapsed time in seconds, -1.0f if the timer is stopped */
+	 * @return elapsed time in seconds, 0.0f if the timer is stopped */
     float getSeconds() const;
 
     /**
-	 * Returns the elapsed time in milliseconds from start
+     * Sets the elapsed time in seconds.
+     * Only works if the timer is started or paused.
+     * @param seconds the number of elapsed seconds
+     */
+    void setSeconds(float seconds);
+
+    /**
+	 * Returns the elapsed time in milliseconds from start.
 	 * Pauses are taken into account.
 	 * @see start
-	 * @return elapsed time in milliseconds, -1.0f if the timer is stopped */
+	 * @return elapsed time in milliseconds, 0.0f if the timer is stopped */
     float getMillis() const;
 };
 

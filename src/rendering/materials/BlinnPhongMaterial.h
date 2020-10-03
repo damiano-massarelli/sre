@@ -4,7 +4,7 @@
 #include "rendering/materials/Texture.h"
 #include <glm/common.hpp>
 #include <memory>
-#include "skeletalAnimation/SkeletralAnimationControllerComponent.h"
+#include "skeletalAnimation/SkeletalAnimationControllerComponent.h"
 
 /**
  * Blinn-Phong Material.

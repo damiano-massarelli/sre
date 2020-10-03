@@ -4,7 +4,7 @@
 #include "geometry/BoundingBox.h"
 #include <vector>
 #include <glm/glm.hpp>
-#include<glm/gtc/quaternion.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <filesystem>
 
 class Transform {
@@ -16,10 +16,10 @@ private:
     glm::vec3 mScale{1.0f, 1.0f, 1.0f};
 
 	bool mModelWorldCacheValid = false;
-	glm::mat4 mCacheModelToWorld;
+    glm::mat4 mCacheModelToWorld{ 1.f };
 
 	bool mModelWorldNormalCacheValid = false;
-	glm::mat4 mCacheModelToWorldNormal;
+    glm::mat4 mCacheModelToWorldNormal{ 1.f };
 
 	/**
 	 * This is the bb taking into account the GameObject

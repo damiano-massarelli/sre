@@ -9,6 +9,8 @@
 class MeshCreator
 {
 public:
+    MeshCreator() = delete;
+
     /**
       * Creates a game object representing axis gizmo */
     static GameObjectEH axisGizmo();

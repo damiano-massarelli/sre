@@ -26,7 +26,7 @@ void CameraComponent::calculateFrustumVertices()
 
 	glm::vec3 toNearTopLeft = up * halfNearHeight + left * halfNearWidth;
 	glm::vec3 toNearBottomRight = -toNearTopLeft;
-	glm::vec3 toNearTopRight = up * halfNearHeight - left * halfNearHeight;
+	glm::vec3 toNearTopRight = up * halfNearHeight - left * halfNearWidth;
 	glm::vec3 toNearBottomLeft = -toNearTopRight;
 
 	mFrustumVertices = std::array<glm::vec3, 8> {

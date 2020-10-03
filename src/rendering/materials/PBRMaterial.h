@@ -1,6 +1,7 @@
 #pragma once
 #include "rendering/materials/Material.h"
 #include "rendering/materials/Texture.h"
+#include <memory>
 
 class PBRMaterial :
 	public Material
@@ -34,8 +35,13 @@ private:
 	std::int32_t mUseRoughnessMapLocation;
 	std::int32_t mUseAOMapLocation;
 
+	bool mHasSkeletalAnimation;
+	std::int32_t mBonesLocation = -1;
+
+	std::weak_ptr<class SkeletalAnimationControllerComponent> mSkeletalAnimationController;
+
 public:
-	PBRMaterial();
+	PBRMaterial(bool hasSkeletalAnimation = false);
 
 	// Setters
 	void setAlbedoMap(const Texture& albedo);
@@ -66,6 +72,8 @@ public:
 	float getMetalness() const { return mMetalness; }	
 	float getRoughness() const { return mRoughness; }
 	float getAO() const { return mAO; }
+
+	void setSkeletalAnimationController(std::shared_ptr<class SkeletalAnimationControllerComponent> controller);
 
 	// Material base class implementation
 	virtual void use() override;

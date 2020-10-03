@@ -1,10 +1,10 @@
 #include "skeletalAnimation/SkeletalAnimation.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
+#include <algorithm>
 
-SkeletalAnimation::SkeletalAnimation(float duration)
+SkeletalAnimation::SkeletalAnimation(float duration) : mDuration{duration}
 {
-	mDuration = duration;
 }
 
 float SkeletalAnimation::getDuration() const
@@ -19,12 +19,8 @@ bool SkeletalAnimation::isEmpty() const
 
 std::vector<glm::mat4> SkeletalAnimation::getAt(float ticks, const std::vector<Bone>& skeleton) const
 {
-	if (loopDirection == LoopDirection::REPEAT) ticks = std::fmod(ticks, mDuration);
-	if (loopDirection == LoopDirection::BOUNCE) ticks = (static_cast<int>(ticks / mDuration) % 2 == 0 ?
-		std::fmod(ticks, mDuration) : mDuration - std::fmod(ticks, mDuration));
-
-
 	std::vector<glm::mat4> transforms;
+	transforms.reserve(skeleton.size());
 	for (std::size_t boneIndex = 0; boneIndex < skeleton.size(); boneIndex++) {
 		const auto& originalBone = skeleton[boneIndex];
 
@@ -36,10 +32,8 @@ std::vector<glm::mat4> SkeletalAnimation::getAt(float ticks, const std::vector<B
 			const auto& boneKey = mBoneKeyFrames[boneIndex];
 
 			// positions
-			std::uint32_t positionIndex = 0;
-			for (positionIndex = 0; positionIndex < boneKey.positionKeys.size(); ++positionIndex)
-				if (ticks < boneKey.positionKeys[positionIndex]) break;
-
+			const auto nextPositionIt = std::lower_bound(boneKey.positionKeys.begin(), boneKey.positionKeys.end(), ticks);
+			const auto positionIndex = std::distance(boneKey.positionKeys.begin(), nextPositionIt);
 			if (positionIndex == 0) position = originalBone.position; // default position;
 			else if (positionIndex == boneKey.positionKeys.size()) position = boneKey.positions[positionIndex - 1];
 			else {
@@ -51,10 +45,8 @@ std::vector<glm::mat4> SkeletalAnimation::getAt(float ticks, const std::vector<B
 			}
 
 			// scaling
-			std::uint32_t scalingIndex = 0;
-			for (scalingIndex = 0; scalingIndex < boneKey.scalingKeys.size(); ++scalingIndex)
-				if (ticks < boneKey.scalingKeys[scalingIndex]) break;
-
+			const auto nextScalingIt = std::lower_bound(boneKey.scalingKeys.begin(), boneKey.scalingKeys.end(), ticks);
+			const auto scalingIndex = std::distance(boneKey.scalingKeys.begin(), nextScalingIt);
 			if (scalingIndex == 0) scale = originalBone.scale; // default scale;
 			else if (scalingIndex == boneKey.scalingKeys.size()) scale = boneKey.scalings[scalingIndex - 1];
 			else {
@@ -66,10 +58,8 @@ std::vector<glm::mat4> SkeletalAnimation::getAt(float ticks, const std::vector<B
 			}
 
 			// rotation
-			std::uint32_t rotationIndex = 0;
-			for (rotationIndex = 0; rotationIndex < boneKey.rotationKeys.size(); ++rotationIndex)
-				if (ticks < boneKey.rotationKeys[rotationIndex]) break;
-
+			const auto nextRotationIt = std::lower_bound(boneKey.rotationKeys.begin(), boneKey.rotationKeys.end(), ticks);
+			const auto rotationIndex = std::distance(boneKey.rotationKeys.begin(), nextRotationIt);
 			if (rotationIndex == 0) rotation = originalBone.rotation; // default rotation;
 			else if (rotationIndex == boneKey.rotationKeys.size()) rotation = boneKey.rotations[rotationIndex - 1];
 			else {

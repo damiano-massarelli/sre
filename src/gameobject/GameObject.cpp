@@ -27,7 +27,7 @@ void GameObject::removeAllMeshes()
 	transform.updateMeshBoundingBox();
 }
 
-void GameObject::addComponent(const std::shared_ptr<Component>& component)
+void GameObject::addComponent(std::shared_ptr<Component> component)
 {
     mComponents.push_back(component);
 }

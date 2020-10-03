@@ -3,7 +3,7 @@
 #include "rendering/mesh/MeshLoader.h"
 #include "rendering/materials/BlinnPhongMaterial.h"
 #include "gameobject/Transform.h"
-#include "skeletalAnimation/SkeletralAnimationControllerComponent.h"
+#include "skeletalAnimation/SkeletalAnimationControllerComponent.h"
 #include "skeletalAnimation/SkeletalAnimationLoader.h"
 #include "geometry/BoundingBox.h"
 #include <iostream>
@@ -109,11 +109,13 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 	if (!mesh->HasTextureCoords(0))
 		std::cout << "Mesh: " << mesh->mName.C_Str() << " node: " << node->mName.C_Str() << ": cannot find uv coords, setting them to (0, 0)\n";
 
-	bool needsTangents = ((scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_HEIGHT) != 0
+	const bool needsTangents = !mesh->HasTangentsAndBitangents();
+	const bool shouldHaveTangents = ((scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_HEIGHT) != 0
 		|| scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_NORMALS) != 0
-		|| scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_DISPLACEMENT)) && !mesh->HasTangentsAndBitangents());
-	if (needsTangents)
+		|| scene->mMaterials[mesh->mMaterialIndex]->GetTextureCount(aiTextureType_DISPLACEMENT)));
+	if (needsTangents && shouldHaveTangents) {
 		std::cout << "Mesh: " << mesh->mName.C_Str() << " node: " << node->mName.C_Str() << ": has bump map/parallax map but no tangent data, will be calculated\n";
+	}
 
     std::vector<float> positions;
     std::vector<float> normals;
@@ -183,9 +185,7 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
     loader.loadData(positions.data(), positions.size(), 3);
     loader.loadData(normals.data(), normals.size(), 3);
     loader.loadData(texCoords.data(), texCoords.size(), 2);
-
-	if (tangents.size() != 0)
-		loader.loadData(tangents.data(), tangents.size(), 3);
+	loader.loadData(tangents.data(), tangents.size(), 3);
 
 	if (mesh->mNumBones != 0) { // add bone data only if this mesh needs it
 		loader.loadData(influencingBones.data(), influencingBones.size(), 4, GL_ARRAY_BUFFER, GL_INT);
@@ -208,7 +208,7 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
     BlinnPhongMaterialBuilder phongBuilder;
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-	auto pbrMaterial = std::make_shared<PBRMaterial>();
+	auto pbrMaterial = std::make_shared<PBRMaterial>(mesh->mNumBones != 0);
 
 	aiShadingMode shadingMode;
 	const aiReturn shadingModeHintDefined = material->Get(AI_MATKEY_SHADING_MODEL, shadingMode);
@@ -248,9 +248,10 @@ MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene
 	}
 
 	// add animationController
-	/*if (mesh->mNumBones != 0) 
-		loadedMaterial->skeletalAnimationController = mSkeletalAnimationController;
-	*/
+	if (mesh->mNumBones != 0) {
+		pbrMaterial->setSkeletalAnimationController(mSkeletalAnimationController);
+	}
+	
     return pbrMaterial;
 }
 
@@ -358,17 +359,29 @@ void GameObjectLoader::findBones(const aiScene* scene)
 			b.offset = convertMatrix(bone->mOffsetMatrix);
 
 			// this is not very cache friendly but for now it is ok
-			auto boneName = std::string{ bone->mName.C_Str() };
-			auto boneIndex = static_cast<std::uint32_t>(mBones.size());
-			mBoneName2Index[boneName] = boneIndex;
-			mBones.push_back(b);
+			const auto boneName = std::string{ bone->mName.C_Str() };
+			const auto boneEntry = mBoneName2Index.find(boneName);
+			std::uint32_t boneIndex = 0;
+
+			// multiple meshes may reference the same bone, add it only the first time
+			// it is encountered
+			if (boneEntry == mBoneName2Index.end()) {
+				boneIndex = static_cast<std::uint32_t>(mBones.size());
+				mBoneName2Index[boneName] = boneIndex;
+				mBones.push_back(b);
+			}
+			else {
+				boneIndex = boneEntry->second;
+			}
 
 			// loads weights for the vertices influenced by this bone
 			for (unsigned int k = 0; k < bone->mNumWeights; k++) {
-				auto vertexIndex = bone->mWeights[k].mVertexId;
-				float weight = bone->mWeights[k].mWeight;
-				mVertexToInfluencingBones[std::make_pair(vertexIndex, mesh)].push_back(boneIndex);
-				mVertexToInfluencingBonesWeights[std::make_pair(vertexIndex, mesh)].push_back(weight);
+				const auto vertexIndex = bone->mWeights[k].mVertexId;
+				const float weight = bone->mWeights[k].mWeight;
+				if (weight > 0.f) {
+					mVertexToInfluencingBones[std::make_pair(vertexIndex, mesh)].push_back(boneIndex);
+					mVertexToInfluencingBonesWeights[std::make_pair(vertexIndex, mesh)].push_back(weight);
+				}
 			}
 		}
 	}
@@ -409,7 +422,7 @@ void GameObjectLoader::computeTangentsAndBitangentSign(const aiMesh* mesh, std::
 	if (!mesh->HasTextureCoords(0)) {
 		tangents.resize(3 * static_cast<std::size_t>(mesh->mNumVertices), 0.0f);
 		bitangentSign.resize(mesh->mNumVertices, 0);
-		std::cerr << "cannot calculate tangent space: texture coordinates are missing\n";
+		std::cerr << "Cannot calculate tangent space: texture coordinates are missing\n";
 		return;
 	}
 

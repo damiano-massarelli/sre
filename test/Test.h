@@ -60,3 +60,16 @@ class testClass : public sre::ITestScene { \
     virtual void end() override; \
 }; \
 sre::TestSceneRegisterer testClass::registerer(testName, std::make_unique<testClass>()); \
+
+#define BEGIN_DECLARE_TEST_SCENE(testClass) \
+class testClass : public sre::ITestScene { \
+public: \
+    testClass() = default; \
+private: \
+    static sre::TestSceneRegisterer registerer; \
+    virtual void start() override; \
+    virtual void end() override; \
+
+#define END_DECLARE_TEST_SCENE(testName, testClass) \
+}; \
+sre::TestSceneRegisterer testClass::registerer(testName, std::make_unique<testClass>()); \

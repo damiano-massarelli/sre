@@ -682,11 +682,12 @@ std::int32_t RenderSystem::getScreenWidth() const
 
 void RenderSystem::setCamera(const GameObjectEH& camera)
 {
-	std::shared_ptr<CameraComponent> cameraComponent = camera->getComponent<CameraComponent>();
 	if (!camera || !camera->getComponent<CameraComponent>()) {
 		std::cerr << "Setting a camera without a CameraComponent, discarded\n";
 		return;
 	}
+
+	std::shared_ptr<CameraComponent> cameraComponent = camera->getComponent<CameraComponent>();
 
 	mCamera = camera;
 

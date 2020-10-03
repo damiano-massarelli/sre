@@ -1,5 +1,6 @@
 #include "rendering/materials/PBRMaterial.h"
 #include "glm/gtc/epsilon.hpp"
+#include "skeletalAnimation/SkeletalAnimationControllerComponent.h"
 #include <functional>
 
 template <typename T, typename... Rest>
@@ -12,8 +13,9 @@ inline void hash_combine(std::size_t& seed, const T& v, Rest... rest) {
 	}
 }
 
-PBRMaterial::PBRMaterial()
-	: Material{ {"shaders/bumpedPhongVS.glsl"}, {"shaders/pbrFS.glsl"} }
+PBRMaterial::PBRMaterial(bool hasSkeletalAnimation)
+	: Material{ { (hasSkeletalAnimation ? "shaders/animatedPhongVS.glsl" : "shaders/bumpedPhongVS.glsl") }, { "shaders/pbrFS.glsl" } },
+	mHasSkeletalAnimation{hasSkeletalAnimation}
 {
 	unSupportedRenderPhases = (RenderPhase::FORWARD_RENDERING | RenderPhase::DEFERRED_RENDERING);
 
@@ -23,7 +25,8 @@ PBRMaterial::PBRMaterial()
 	mMetalnessLocation = shader.getLocationOf("material.metalness");
 	mRoughnessLocation = shader.getLocationOf("material.roughness");
 	mAOLocation = shader.getLocationOf("material.ao");
-
+	mBonesLocation = shader.getLocationOf("bones", hasSkeletalAnimation); // only used when animations are available
+	
 	mUseAlbedoMapLocation = shader.getLocationOf("material.useAlbedoMap");
 	mUseNormalMapLocation = shader.getLocationOf("material.useNormalMap");
 	mUseMetalnessMapLocation = shader.getLocationOf("material.useMetalnessMap");
@@ -98,9 +101,19 @@ void PBRMaterial::setAmbientOcclusion(float ao)
 	mAO = ao;
 }
 
+void PBRMaterial::setSkeletalAnimationController(std::shared_ptr<class SkeletalAnimationControllerComponent> controller)
+{
+	mSkeletalAnimationController = controller;
+}
+
 void PBRMaterial::use()
 {
 	shader.use();
+
+	// update animation
+	if (auto sac = mSkeletalAnimationController.lock()) {
+		sac->updateBones(mBonesLocation, shader);
+	}
 
 	const bool useAlbedoMap = mUseAlbedoMap && mAlbedoMap.isValid();
 	if (useAlbedoMap) {
@@ -156,7 +169,7 @@ std::size_t PBRMaterial::hash() const
 {
 	// Creating an int stacking 5 bits corresponding to each boolean
 	// This is to avoid to put five other args in the hash_combine below
-	const std::size_t boolMask = (mUseAlbedoMap << 0) | (mUseNormalMap << 1) | (mUseMetalnessMap << 2) | (mUseRoughnessMap << 3) | (mUseAOMap << 4);
+	const std::size_t boolMask = (mUseAlbedoMap << 0) | (mUseNormalMap << 1) | (mUseMetalnessMap << 2) | (mUseRoughnessMap << 3) | (mUseAOMap << 4) | (mHasSkeletalAnimation << 5);
 	
 	std::size_t seed = Material::hash();
 	
@@ -190,7 +203,8 @@ bool PBRMaterial::equalsTo(const Material* rhs) const
 		&& mUseNormalMap == other->mUseNormalMap
 		&& mUseMetalnessMap == other->mUseMetalnessMap
 		&& mUseRoughnessMap == other->mUseRoughnessMap
-		&& mUseAOMap == other->mUseAOMap;
+		&& mUseAOMap == other->mUseAOMap
+		&& mHasSkeletalAnimation == other->mHasSkeletalAnimation;
 }
 
 PBRMaterial::~PBRMaterial()

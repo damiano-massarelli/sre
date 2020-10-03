@@ -30,7 +30,7 @@ SkeletalAnimation SkeletalAnimationLoader::fromAssimpScene(const aiScene* scene,
 		float tps = static_cast<float>(animation->mTicksPerSecond);
 		if (tps != ticksPerSecond) std::cerr << "animation : different ticks per second: " << animation->mName.C_Str() << ": " << tps << " (used value: " << ticksPerSecond << ")\n";
 		
-		float animTime = static_cast<float>(animation->mDuration) / ticksPerSecond;
+		float animTime = static_cast<float>(animation->mDuration) / 1000.f;
 		duration = std::max(duration, animTime);
 
 		for (std::uint32_t c = 0; c < animation->mNumChannels; ++c) {
@@ -48,7 +48,7 @@ SkeletalAnimation SkeletalAnimationLoader::fromAssimpScene(const aiScene* scene,
 			for (std::uint32_t p = 0; p < channel->mNumPositionKeys; ++p) {
 				aiVectorKey& key = channel->mPositionKeys[p];
 				aiVector3D& position = key.mValue;
-				bone.positionKeys.push_back(static_cast<float>(key.mTime));
+				bone.positionKeys.push_back(static_cast<float>(key.mTime / 1000.f));
 				bone.positions.push_back(glm::vec3{ position.x, position.y, position.z });
 			}
 
@@ -56,7 +56,7 @@ SkeletalAnimation SkeletalAnimationLoader::fromAssimpScene(const aiScene* scene,
 			for (std::uint32_t s = 0; s < channel->mNumScalingKeys; ++s) {
 				aiVectorKey& key = channel->mScalingKeys[s];
 				aiVector3D& scaling = key.mValue;
-				bone.scalingKeys.push_back(static_cast<float>(key.mTime));
+				bone.scalingKeys.push_back(static_cast<float>(key.mTime / 1000.f));
 				bone.scalings.push_back(glm::vec3{ scaling.x, scaling.y, scaling.z });
 			}
 
@@ -65,7 +65,7 @@ SkeletalAnimation SkeletalAnimationLoader::fromAssimpScene(const aiScene* scene,
 				aiQuatKey& key = channel->mRotationKeys[r];
 				aiQuaternion& rotation = key.mValue;
 				glm::quat convRotation{ rotation.w, rotation.x, rotation.y, rotation.z };
-				bone.rotationKeys.push_back(static_cast<float>(key.mTime));
+				bone.rotationKeys.push_back(static_cast<float>(key.mTime / 1000.f));
 				bone.rotations.push_back(convRotation);
 			}
 

@@ -3,7 +3,8 @@
 #include "skeletalAnimation/Bone.h"
 #include <vector>
 #include <glm/glm.hpp>
-#include<glm/gtx/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <cstdint>
 
 /**
  * Key frames for a bone.
@@ -53,7 +54,7 @@ private:
 
 public:
 	/** How an animation behaves once it reaches the end */
-	enum class LoopDirection {
+	enum class LoopDirection : std::int8_t {
 		/** Stop when the animation finishes */
 		STOP,
 		/** Start over the animation once it is over */
@@ -65,6 +66,9 @@ public:
 	/** how the animation behaves once it is over */
 	LoopDirection loopDirection = LoopDirection::STOP;
 
+	/** playback speed for this animation. 1.0f is the normal speed */
+	float playbackSpeed = 1.f;
+
 	SkeletalAnimation(float duration = 0.0f);
 
 	/**
@@ -72,6 +76,9 @@ public:
 	 */
 	float getDuration() const;
 
+	/**
+	 * @return whether this animation duration is 0.
+	 */
 	bool isEmpty() const;
 
 	std::vector<glm::mat4> getAt(float ticks, const std::vector<Bone>& skeleton) const;

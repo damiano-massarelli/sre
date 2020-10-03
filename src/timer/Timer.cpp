@@ -1,33 +1,29 @@
 #include "timer/Timer.h"
 
-Timer::Timer()
-{
-
-}
-
 void Timer::start()
 {
     if (!mStarted) {
 		mPaused = false;
         mStarted = true;
         mStartTime = SDL_GetTicks();
+        mSnapshot = 0;
     }
 }
 
-bool Timer::isStarted()
+bool Timer::isStarted() const
 {
 	return mStarted;
 }
 
 void Timer::pause()
 {
-    if (!mPaused) {
+    if (mStarted && !mPaused) {
+        mSnapshot = static_cast<Uint32>(getMillis());
         mPaused = true;
-        mPauseStartTime = SDL_GetTicks();
     }
 }
 
-bool Timer::isPaused()
+bool Timer::isPaused() const
 {
 	return mPaused;
 }
@@ -35,8 +31,7 @@ bool Timer::isPaused()
 void Timer::resume()
 {
     if (mPaused) {
-        Uint32 elapsedPaused = SDL_GetTicks() - mPauseStartTime;
-        mStartTime += elapsedPaused;
+        mStartTime = SDL_GetTicks();
         mPaused = false;
     }
 }
@@ -53,13 +48,29 @@ void Timer::reset()
 	start();
 }
 
+void Timer::setTimeSpeedMultiplier(const float multiplier)
+{
+    mSnapshot = static_cast<Uint32>(getMillis());
+    mStartTime = SDL_GetTicks();
+    mTimeSpeedMultiplier = multiplier;
+}
+
+float Timer::getTimeSpeedMultiplier() const
+{
+    return mTimeSpeedMultiplier;
+}
+
 float Timer::getSeconds() const
 {
-    float elapsed = getMillis();
-    if (elapsed <= 0.0f)
-        return elapsed;
-    else
-        return getMillis() / 1000.0f;
+    return getMillis() / 1000.0f;
+}
+
+void Timer::setSeconds(float seconds)
+{
+    if (mStarted) {
+        mSnapshot = static_cast<Uint32>(seconds * 1000);
+        mStartTime = SDL_GetTicks();
+    }
 }
 
 float Timer::getMillis() const
@@ -68,7 +79,7 @@ float Timer::getMillis() const
         return 0.0f;
 
     if (mPaused)
-        return static_cast<float>(SDL_GetTicks() - (mStartTime + SDL_GetTicks() - mPauseStartTime));
+        return static_cast<float>(mSnapshot);
 
-    return static_cast<float>(SDL_GetTicks() - mStartTime);
+    return static_cast<float>(mSnapshot + (SDL_GetTicks() - mStartTime) * mTimeSpeedMultiplier);
 }

@@ -49,7 +49,7 @@ class GameObject
         /**
           * Adds a component to this game object.
           * @param component the component to add (a shared_ptr to it) */
-        void addComponent(const std::shared_ptr<Component>& component);
+        void addComponent(std::shared_ptr<Component> component);
 
         /**
           * Gets the first component of type T
