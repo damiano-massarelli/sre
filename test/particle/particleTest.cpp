@@ -1,7 +1,6 @@
 #include "Engine.h"
 #include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
-#include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
 
 #include "cameras/FreeCameraComponent.h"

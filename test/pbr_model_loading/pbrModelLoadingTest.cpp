@@ -1,9 +1,7 @@
 #include "Engine.h"
 #include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
-#include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
-
 #include "cameras/FreeCameraComponent.h"
 #include "rendering/light/DirectionalLight.h"
 #include "rendering/mesh/MeshCreator.h"
@@ -15,7 +13,6 @@
 #include "rendering/effects/MotionBlur.h"
 #include "rendering/materials/PBRMaterial.h"
 #include "rendering/effects/GammaCorrection.h"
-#include "rendering/effects/SSAO.h"
 
 #include <iostream>
 

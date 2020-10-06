@@ -1,7 +1,6 @@
 #include "Engine.h"
 #include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
-#include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
 #include "debugUtils/DisplayBoundingBoxComponent.h"
 #include "cameras/FreeCameraComponent.h"
@@ -9,14 +8,10 @@
 #include "rendering/mesh/MeshCreator.h"
 #include "gameobject/GameObjectLoader.h"
 #include "rendering/effects/FXAA.h"
-#include "rendering/effects/Bloom.h"
 #include "rendering/materials/SkyboxMaterial.h"
-#include "rendering/effects/MotionBlur.h"
 #include "rendering/effects/GammaCorrection.h"
 #include "debugUtils/DisplayCameraFrustumComponent.h"
 #include "cameras/CameraComponent.h"
-
-#include <imgui/imgui.h>
 
 #include <iostream>
 
@@ -48,9 +43,8 @@ void BoundingBoxTestScene::start() {
     // add effects
     Engine::renderSys.effectManager.enableEffects();
     Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
-    Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
     auto gammaPost = std::make_shared<GammaCorrection>();
-    gammaPost->setGamma(1.8f);
+    gammaPost->setGamma(2.2f);
     gammaPost->setExposure(1.0f);
     Engine::renderSys.effectManager.addEffect(gammaPost);
 
@@ -74,20 +68,6 @@ void BoundingBoxTestScene::start() {
     auto cube = scene->transform.findAll("pCube1")[0];
     auto sphere = scene->transform.findAll("pSphere1")[0];
     auto torus = scene->transform.findAll("pTorus1")[0];
-
-    //Engine::uiRenderer.setDebugUIDrawer([cube]() {
-    //    auto material = dynamic_cast<BlinnPhongMaterial*>((cube->getMaterials()[0]).get());
-    //    glm::vec3 diffuse = material->diffuseColor;
-    //    ImVec4 clear_color = ImVec4(diffuse.r, diffuse.g, diffuse.b, 1.00f);
-
-    //    ImGui::Begin("Hello Window");
-    //    ImGui::Text("This is a very useful text.");
-    //    ImGui::ColorEdit3("Cube diffuse color: ", (float*)&clear_color);
-
-    //    material->diffuseColor = glm::vec3{ clear_color.x, clear_color.y, clear_color.z };
-
-    //    ImGui::End();
-    //});
 
     auto gizmo = MeshCreator::axisGizmo();
     gizmo->transform.scaleBy(glm::vec3{ 10.0f });
@@ -124,13 +104,13 @@ void BoundingBoxTestScene::start() {
         {"right", "test_data/skybox/right.tga"},
     });
 
-    // Create a Skybox material
+    // Skybox material
     auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
 
     // Create the actual Skybox
     auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
     
-    // Create an empy GameObject for the light
+    // GameObject for the sun
     auto sun = Engine::gameObjectManager.createGameObject();
     sun->name = "sun";
 
@@ -138,7 +118,7 @@ void BoundingBoxTestScene::start() {
     sun->addComponent(std::make_shared<DirectionalLight>(sun));
     sun->transform.setPosition(glm::vec3{ 50.0f, 205.0f, -65.0f });
 
-    //
+    // configure sun
     Engine::renderSys.addLight(sun);
     sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
     sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 15.0f;

@@ -9,7 +9,7 @@ GodRays::GodRays(float scaleFactor) : Effect{ "godRays", "effects/godRays.glsl" 
 	mOcclusionTarget.create(width, height, true, false);
 
 	mOcclusionCreator = Shader::loadFromFile(
-		std::vector<std::string>{"effects/godraysCreateVS.glsl"},
+		std::vector<std::string>{"effects/genericEffectVS.glsl"},
 		{},
 		{"effects/godraysCreateFS.glsl"}
 	);

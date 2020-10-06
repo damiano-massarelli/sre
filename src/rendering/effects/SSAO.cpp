@@ -33,7 +33,7 @@ SSAO::SSAO()
 	createSamples(dist, engine);
 	createNoiseTexture(dist, engine);
 
-	mSSAOCreationShader = Shader::loadFromFile({ "effects/ssaoCreateVS.glsl" }, std::vector<std::string>{}, { "effects/ssaoCreateFS.glsl" }, false);
+	mSSAOCreationShader = Shader::loadFromFile({ "effects/genericEffectVS.glsl" }, std::vector<std::string>{}, { "effects/ssaoCreateFS.glsl" }, false);
 
 	{
 		ShaderScopedUsage useShader{ mSSAOCreationShader };

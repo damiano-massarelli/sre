@@ -1,10 +1,8 @@
 #include "Engine.h"
 #include "Test.h"
 #include "rendering/mesh/MeshLoader.h"
-#include "rendering/materials/BlinnPhongMaterial.h"
 #include "rendering/materials/PropMaterial.h"
 #include "rendering/materials/SkyboxMaterial.h"
-
 #include "cameras/FreeCameraComponent.h"
 #include "rendering/light/Light.h"
 #include "rendering/mesh/MeshCreator.h"
@@ -13,7 +11,6 @@
 #include "terrain/HeightMapTerrainHeightProvider.h"
 #include "resourceManagment/RefCount.h"
 #include "rendering/effects/FXAA.h"
-#include "rendering/materials/MultiTextureBlinnPhongMaterial.h"
 #include "rendering/shadow/ShadowOnVisibleSceneComponent.h"
 #include "rendering/materials/WaterMaterial.h"
 #include "rendering/light/PointLight.h"
@@ -59,17 +56,8 @@ void WaterTestScene::start() {
     auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
     auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
 
-	auto multiTextured = std::make_shared<MultiTextureBlinnPhongMaterial>();
-	multiTextured->baseTexture = Texture::loadFromFile("test_data/multiple_textures_blinn/grass.jpg");
-	multiTextured->baseTextureBump = Texture::loadFromFile("test_data/multiple_textures_blinn/grass_bump.png");
-	multiTextured->greenTexture = Texture::loadFromFile("test_data/multiple_textures_blinn/path.jpg");
-	multiTextured->greenTextureSpecular = Texture::loadFromFile("test_data/multiple_textures_blinn/path.jpg");
-	multiTextured->greenTextureBump = Texture::loadFromFile("test_data/multiple_textures_blinn/path_bump.jpg");
-	multiTextured->redTexture = Texture::loadFromFile("test_data/multiple_textures_blinn/ground.jpg");
-	multiTextured->redTextureSpecular = Texture::loadFromFile("test_data/multiple_textures_blinn/ground.jpg");
-	multiTextured->redTextureBump = Texture::loadFromFile("test_data/multiple_textures_blinn/ground_bump.jpg");
-	multiTextured->blendTexture = Texture::loadFromFile("test_data/multiple_textures_blinn/blend.png");
-	multiTextured->greenShininess = 8.0f;
+	// FIXME
+	auto multiTextured = nullptr;
 
 	HeightMapTerrainHeightProvider hProvider{ "test_data/multiple_textures_blinn/height.jpg", -10, 10 };
 	TerrainGenerator generator{ 500, 500, 500, 500 };

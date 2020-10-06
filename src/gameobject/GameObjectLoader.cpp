@@ -1,7 +1,6 @@
 #include "gameobject/GameObjectLoader.h"
 #include "Engine.h"
 #include "rendering/mesh/MeshLoader.h"
-#include "rendering/materials/BlinnPhongMaterial.h"
 #include "gameobject/Transform.h"
 #include "skeletalAnimation/SkeletalAnimationControllerComponent.h"
 #include "skeletalAnimation/SkeletalAnimationLoader.h"
@@ -205,7 +204,6 @@ void GameObjectLoader::processMesh(const GameObjectEH& go, aiNode* node, int mes
 
 MaterialPtr GameObjectLoader::processMaterial(aiMesh* mesh, const aiScene* scene, const std::string& cacheName)
 {
-    BlinnPhongMaterialBuilder phongBuilder;
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
 	auto pbrMaterial = std::make_shared<PBRMaterial>(mesh->mNumBones != 0);
@@ -480,7 +478,7 @@ std::vector<float>& GameObjectLoader::getInfluencingBonesWeights(std::uint32_t v
 
 GameObjectLoader::GameObjectLoader()
 {
-	mTextureChannelFilter = Shader::loadFromFile({ "effects/textureChannelExtractorVS.glsl" }, {}, std::vector<std::string>{ "effects/textureChannelExtractorFS.glsl" });
+	mTextureChannelFilter = Shader::loadFromFile({ "effects/genericEffectVS.glsl" }, {}, std::vector<std::string>{ "effects/textureChannelExtractorFS.glsl" });
 }
 
 GameObjectEH GameObjectLoader::fromFile(const std::string& path)

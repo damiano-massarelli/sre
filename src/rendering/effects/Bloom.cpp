@@ -13,7 +13,7 @@ Bloom::Bloom(float scaleFactor) : Effect{ "bloom", "effects/bloom.glsl" }, mGaus
 
 	mTarget.createWith(mBloom, Texture{});
 
-	mBloomExtractor = Shader::loadFromFile(std::vector<std::string>{ "effects/bloomExtractVS.glsl" }, {}, { "effects/bloomExtractFS.glsl" });
+	mBloomExtractor = Shader::loadFromFile(std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/bloomExtractFS.glsl" });
 
 	mBlurredTexture = Engine::renderSys.effectManager.getTexture();
 }

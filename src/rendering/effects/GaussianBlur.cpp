@@ -12,8 +12,8 @@ GaussianBlur::GaussianBlur(float scaleFactor)
 	mBlurred = Texture::load(nullptr, static_cast<std::int32_t>(width), static_cast<std::int32_t>(height), loadOptions);
 	mTarget.createWith(mBlurred, Texture{});
 
-	hBlur = Shader::loadFromFile(std::vector<std::string>{ "effects/gaussianBlurVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
-	vBlur = Shader::loadFromFile(std::vector<std::string>{ "effects/gaussianBlurVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
+	hBlur = Shader::loadFromFile(std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
+	vBlur = Shader::loadFromFile(std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
 
 	{
 		ShaderScopedUsage useShader{ hBlur };
@@ -28,15 +28,19 @@ GaussianBlur::GaussianBlur(float scaleFactor)
 
 const Texture& GaussianBlur::getBlurred(const Texture& src, int iterations)
 {
+	if (iterations == 0) {
+		return src;
+	}
 	Texture origin = src;
 	for (int i = 0; i < iterations * 2; i++) {
-		if (i % 2 == 0)
+		if (i % 2 == 0) {
 			Engine::renderSys.copyTexture(origin, mTarget, hBlur, false);
-		else
+		}
+		else {
 			Engine::renderSys.copyTexture(origin, mTarget, vBlur, false);
+		}
 
-		if (i == 0)
-			origin = mBlurred;
+		origin = mBlurred;
 	}
 
 	return mBlurred;

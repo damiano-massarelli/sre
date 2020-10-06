@@ -57,7 +57,7 @@ public:
     virtual void onEvent(SDL_Event e) override;
 
 private:
-    struct SDL_Window* mWindow;
+    struct SDL_Window* mWindow = nullptr;
     
     std::function<void()> mDebugUIDrawer = nullptr;
 
