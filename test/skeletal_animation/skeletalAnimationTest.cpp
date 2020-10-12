@@ -30,7 +30,7 @@ void SkeletalAnimationTestScene::start() {
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
     camera->transform.moveBy(glm::vec3(0.0f, 5.f, 30.0f));
-    camera->transform.lookAt(glm::vec3 { 0.f });
+    camera->transform.lookAt(glm::vec3{ 0.f });
 
     auto cam = std::make_shared<FreeCameraComponent>(camera);
     camera->addComponent(cam);
@@ -51,24 +51,24 @@ void SkeletalAnimationTestScene::start() {
     const auto gridMaterial = std::make_shared<PBRMaterial>();
     gridMaterial->setAlbedoMap(Texture::loadFromFile("test_data/textures/grid-texture.jpg"));
     auto grid = Engine::gameObjectManager.createGameObject(plane, gridMaterial);
-    grid->transform.scaleBy(glm::vec3 { 25.f });
-    grid->transform.rotateBy(glm::angleAxis(glm::radians(-90.f), glm::vec3 { 1.f, 0.f, 0.f }));
+    grid->transform.scaleBy(glm::vec3{ 25.f });
+    grid->transform.rotateBy(glm::angleAxis(glm::radians(-90.f), glm::vec3{ 1.f, 0.f, 0.f }));
 
-    object = GameObjectLoader {}.fromFile("test_data/skeletal_animation/RiggedSimple.gltf");
+    object = GameObjectLoader{}.fromFile("test_data/skeletal_animation/RiggedSimple.gltf");
     object->getComponent<SkeletalAnimationControllerComponent>()->setCurrentAnimation("default");
     assert(object.isValid());
 
     Engine::uiRenderer.addUIDrawer([this] {
-        ImGui::SetNextWindowSizeConstraints(ImVec2 { 0.f, 0.f }, ImVec2 { 220.f, 190.f });
+        ImGui::SetNextWindowSizeConstraints(ImVec2{ 0.f, 0.f }, ImVec2{ 220.f, 190.f });
         ImGui::Begin("Animation Settings");
 
         // Model Selection
-        constexpr char* modelNames[] { "RiggedSimple", "RiggedFigure", "BrainStem" };
+        constexpr char* modelNames[]{ "RiggedSimple", "RiggedFigure", "BrainStem" };
         ImGui::Text("Model: ");
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::BeginCombo("##model", modelNames[chosenModelIndex])) {
-            const ImVec2 size { 135.f, 0.f };
+            const ImVec2 size{ 135.f, 0.f };
             for (auto i = 0; i < 3; ++i) {
                 auto selectedModel = chosenModelIndex;
                 if (ImGui::Selectable(modelNames[i], chosenModelIndex == i, 0, size)) {
@@ -78,7 +78,8 @@ void SkeletalAnimationTestScene::start() {
                 if (selectedModel != chosenModelIndex) {
                     Engine::gameObjectManager.remove(object);
                     chosenModelIndex = selectedModel;
-                    object = GameObjectLoader {}.fromFile("test_data/skeletal_animation/" + std::string { modelNames[chosenModelIndex] } + ".gltf");
+                    object = GameObjectLoader{}.fromFile(
+                        "test_data/skeletal_animation/" + std::string{ modelNames[chosenModelIndex] } + ".gltf");
                     object->getComponent<SkeletalAnimationControllerComponent>()->setCurrentAnimation("default");
                 }
             }
@@ -105,9 +106,9 @@ void SkeletalAnimationTestScene::start() {
         ImGui::Text("Loop direction: ");
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-        constexpr char* loopDirectionNames[] { "Stop", "Repeat", "Bounce" };
+        constexpr char* loopDirectionNames[]{ "Stop", "Repeat", "Bounce" };
         if (ImGui::BeginCombo("##loopDirection", loopDirectionNames[static_cast<std::int8_t>(loopDirection)])) {
-            const ImVec2 size { 75.f, 0.f };
+            const ImVec2 size{ 75.f, 0.f };
             if (ImGui::Selectable("Stop", loopDirection == SkeletalAnimation::LoopDirection::STOP, 0, size)) {
                 loopDirection = SkeletalAnimation::LoopDirection::STOP;
             }
@@ -134,9 +135,10 @@ void SkeletalAnimationTestScene::start() {
 
         // playback Buttons
         const bool displayPlay = !skeletalAnimController->isCurrentAnimationPlaying();
-        const bool playPausePressed = ImGui::Button(displayPlay ? "Play" : "Pause", ImVec2 { ImGui::GetContentRegionAvail().x / 2.f - 2.5f, 0.f });
+        const bool playPausePressed = ImGui::Button(
+            displayPlay ? "Play" : "Pause", ImVec2{ ImGui::GetContentRegionAvail().x / 2.f - 2.5f, 0.f });
         ImGui::SameLine(0.f, -5.f);
-        const bool stopPressed = ImGui::Button("Stop", ImVec2 { ImGui::GetContentRegionAvail().x, 0.f });
+        const bool stopPressed = ImGui::Button("Stop", ImVec2{ ImGui::GetContentRegionAvail().x, 0.f });
 
         float time = skeletalAnimController->getCurrentAnimationTime();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
@@ -164,17 +166,17 @@ void SkeletalAnimationTestScene::start() {
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
     light->addComponent(std::make_shared<DirectionalLight>(light));
-    light->transform.setPosition(glm::vec3 { -2.0f, 10.0f, 15.0f });
-    light->transform.lookAt(glm::vec3 { 0.f });
+    light->transform.setPosition(glm::vec3{ -2.0f, 10.0f, 15.0f });
+    light->transform.lookAt(glm::vec3{ 0.f });
     Engine::renderSys.addLight(light);
-    light->getComponent<Light>()->diffuseColor = glm::vec3 { 10.0f, 10.0f, 10.0f };
+    light->getComponent<Light>()->diffuseColor = glm::vec3{ 10.0f, 10.0f, 10.0f };
     light->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::DYNAMIC);
 
-    light->transform.scaleBy(glm::vec3 { 0.2f, 0.2f, 0.2f });
+    light->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
     auto gizmo = MeshCreator::axisGizmo();
     gizmo->transform.setParent(light);
-    gizmo->transform.setLocalPosition(glm::vec3 { 0.0f });
-    gizmo->transform.setLocalRotation(glm::quat { 1.f, 0.f, 0.f, 0.f });
+    gizmo->transform.setLocalPosition(glm::vec3{ 0.0f });
+    gizmo->transform.setLocalRotation(glm::quat{ 1.f, 0.f, 0.f, 0.f });
 }
 
 void SkeletalAnimationTestScene::end() { }

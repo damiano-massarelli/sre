@@ -1,10 +1,10 @@
 #pragma once
-#include "rendering/materials/Material.h"
-#include "rendering/RenderTarget.h"
 #include "events/EventListener.h"
 #include "events/EventListenerCrumb.h"
 #include "gameobject/GameObjectEH.h"
+#include "rendering/RenderTarget.h"
 #include "rendering/deferredRendering/DeferredRenderingFBO.h"
+#include "rendering/materials/Material.h"
 #include "rendering/materials/Texture.h"
 
 /**
@@ -19,58 +19,59 @@
  *
  * Based on ThinMatrix tutorial.
  */
-class WaterMaterial :
-	public Material, public EventListener
-{
+class WaterMaterial : public Material, public EventListener {
 private:
-	// invalid render target so that lights lights calculations are not carried out (see RenderSystem::renderScene)
-	RenderTarget mEmptyReflectionTarget;
-	DeferredRenderingFBO mReflectionFbo;
+    // invalid render target so that lights lights calculations are not carried
+    // out (see RenderSystem::renderScene)
+    RenderTarget mEmptyReflectionTarget;
+    DeferredRenderingFBO mReflectionFbo;
 
-	// invalid render target so that lights lights calculations are not carried out
-	RenderTarget mEmptyRefractionTarget;
-	DeferredRenderingFBO mRefractionFbo;
+    // invalid render target so that lights lights calculations are not carried
+    // out
+    RenderTarget mEmptyRefractionTarget;
+    DeferredRenderingFBO mRefractionFbo;
 
-	// render target for forward and particles
-	RenderTarget mReflectionRarget;
+    // render target for forward and particles
+    RenderTarget mReflectionRarget;
 
-	GameObjectEH mReflectionCamera;
+    GameObjectEH mReflectionCamera;
 
-	CrumbPtr mEventCrumb;
+    CrumbPtr mEventCrumb;
 
-	Texture mDuDvMap;
-	std::int32_t mMoveDuDvLocation = 0;
-	float mMoveDuDv = 0.0f;
+    Texture mDuDvMap;
+    std::int32_t mMoveDuDvLocation = 0;
+    float mMoveDuDv = 0.0f;
 
-	Texture mNormalMap;
+    Texture mNormalMap;
 
-	float mWaterY = 0.0f;
+    float mWaterY = 0.0f;
 
-	void renderReflection();
+    void renderReflection();
 
-	void renderRefraction();
+    void renderRefraction();
 
 public:
-	/** Speed of the wave movement */
-	float waveSpeed = 0.05f;
+    /** Speed of the wave movement */
+    float waveSpeed = 0.05f;
 
-	/**
-	 * Creates a new WaterMaterial.
-	 * @param waterY the height of the water (should be the same as the y component of Transform::getPosition)
-	 * @param dudvMap Texuture used to create the wave effect
-	 * @param normalMap Texture used to create specular reflections on waves
-	 */
-	WaterMaterial(float waterY, const Texture& dudvMap, const Texture& normalMap);
+    /**
+     * Creates a new WaterMaterial.
+     * @param waterY the height of the water (should be the same as the y
+     * component of Transform::getPosition)
+     * @param dudvMap Texuture used to create the wave effect
+     * @param normalMap Texture used to create specular reflections on waves
+     */
+    WaterMaterial(float waterY, const Texture& dudvMap, const Texture& normalMap);
 
-	virtual void use() override;
+    virtual void use() override;
 
-	virtual void after() override;
+    virtual void after() override;
 
-	virtual void onEvent(SDL_Event e) override;
+    virtual void onEvent(SDL_Event e) override;
 
-	virtual std::size_t hash() const override;
+    virtual std::size_t hash() const override;
 
-	virtual bool equalsTo(const Material* rhs) const override;
+    virtual bool equalsTo(const Material* rhs) const override;
 
-	~WaterMaterial() = default;
+    ~WaterMaterial() = default;
 };

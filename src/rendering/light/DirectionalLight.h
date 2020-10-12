@@ -1,20 +1,17 @@
 #pragma once
-#include "rendering/light/Light.h"
 #include "rendering/RenderTarget.h"
+#include "rendering/light/Light.h"
 
-class DirectionalLight
-	: public Light
-{
+class DirectionalLight : public Light {
 private:
-	RenderTarget mShadowMapTarget;
+    RenderTarget mShadowMapTarget;
 
 public:
-	DirectionalLight(const GameObjectEH& go);
+    DirectionalLight(const GameObjectEH& go);
 
-	const RenderTarget& getShadowMapTarget() const;
+    const RenderTarget& getShadowMapTarget() const;
 
-	virtual void setCastShadowMode(Light::ShadowCasterMode mode) override;
+    virtual void setCastShadowMode(Light::ShadowCasterMode mode) override;
 
-	virtual ~DirectionalLight() = default;
+    virtual ~DirectionalLight() = default;
 };
-

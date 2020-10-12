@@ -3,25 +3,25 @@
 #include "events/EventListener.h"
 
 #include <imgui/imgui.h>
-#include <imgui/imgui_impl_sdl.h>
 #include <imgui/imgui_impl_opengl3.h>
+#include <imgui/imgui_impl_sdl.h>
 
 #include <functional>
 
-
-class UIRenderer : public EventListener
-{
+class UIRenderer : public EventListener {
 public:
     UIRenderer() = default;
 
     /**
-     *  This will create the render context for the UI and set the initial settings
+     *  This will create the render context for the UI and set the initial
+     * settings
      */
     void init();
 
     /**
      *  Render the UI calling all the registered draw functions
-     *  TODO: Set the default to false and decide whether or not in the render system render function
+     *  TODO: Set the default to false and decide whether or not in the render
+     * system render function
      */
     void render(bool showDebugUI = true);
 
@@ -43,7 +43,7 @@ public:
     void addUIDrawer(std::function<void()> drawer);
 
     // TODO: Remove drawer
-    
+
     /**
      *  To use for UI that is for debug purposes (e.g. FPS counter)
      *  This will not be cleaned when cleanUp() is called.
@@ -58,7 +58,7 @@ public:
 
 private:
     struct SDL_Window* mWindow = nullptr;
-    
+
     std::function<void()> mDebugUIDrawer = nullptr;
 
     std::vector<std::function<void()>> mUIDrawers;

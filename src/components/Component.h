@@ -3,16 +3,15 @@
 #include "gameobject/GameObject.h"
 #include <memory>
 
-class Component
-{
-    public:
-        GameObjectEH gameObject;
+class Component {
+public:
+    GameObjectEH gameObject;
 
-        Component(const GameObjectEH& go);
+    Component(const GameObjectEH& go);
 
-        virtual ~Component() {}
+    virtual ~Component() { }
 };
 
 using ComponentPtr = std::shared_ptr<Component>;
 
-#endif // COMPONENT_H
+#endif  // COMPONENT_H

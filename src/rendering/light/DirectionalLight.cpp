@@ -3,26 +3,19 @@
 #include "rendering/shadow/ShadowMappingSettings.h"
 
 DirectionalLight::DirectionalLight(const GameObjectEH& go)
-	: Light{ go, Light::Type::DIRECTIONAL }
-{
+    : Light{ go, Light::Type::DIRECTIONAL } { }
 
-}
+const RenderTarget& DirectionalLight::getShadowMapTarget() const { return mShadowMapTarget; }
 
-const RenderTarget& DirectionalLight::getShadowMapTarget() const
-{
-	return mShadowMapTarget;
-}
+void DirectionalLight::setCastShadowMode(Light::ShadowCasterMode mode) {
+    Light::setCastShadowMode(mode);
 
-void DirectionalLight::setCastShadowMode(Light::ShadowCasterMode mode)
-{
-	Light::setCastShadowMode(mode);
+    if (mode == Light::ShadowCasterMode::NO_SHADOWS)
+        return;
 
-	if (mode == Light::ShadowCasterMode::NO_SHADOWS)
-		return;
+    // destroys the old target if existed
+    mShadowMapTarget = RenderTarget{};
 
-	// destroys the old target if existed
-	mShadowMapTarget = RenderTarget{};
-
-	ShadowMappingSettings& settings = Engine::renderSys.shadowMappingSettings;
-	mShadowMapTarget.create(settings.mapWidth, settings.mapHeight, false, true);
+    ShadowMappingSettings& settings = Engine::renderSys.shadowMappingSettings;
+    mShadowMapTarget.create(settings.mapWidth, settings.mapHeight, false, true);
 }
