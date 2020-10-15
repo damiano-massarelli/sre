@@ -1,38 +1,36 @@
 #include "gameobject/GameObjectManager.h"
 #include "Engine.h"
 
-GameObjectManager::GameObjectManager() : mGameObjectsHL{mGameObjects}
-{
+GameObjectManager::GameObjectManager()
+    : mGameObjectsHL{ mGameObjects } { }
 
-}
-
-GameObjectEH GameObjectManager::createGameObject(const Mesh& mesh, MaterialPtr material)
-{
+GameObjectEH GameObjectManager::createGameObject(const Mesh& mesh, MaterialPtr material) {
     std::uint32_t index, gen;
     mGameObjectsHL.add(GameObject(), index, gen);
     GameObjectEH eh = GameObjectEH(&mGameObjectsHL, index, gen);
-	eh->addMesh(mesh, material);
-	return eh;
+    eh->addMesh(mesh, material);
+    return eh;
 }
 
-GameObjectEH GameObjectManager::createGameObject()
-{
+GameObjectEH GameObjectManager::createGameObject() {
     std::uint32_t index, gen;
     mGameObjectsHL.add(GameObject(), index, gen);
     return GameObjectEH(&mGameObjectsHL, index, gen);
 }
 
-void GameObjectManager::remove(const GameObjectEH& go)
-{
-    /* GameObjects form a hierarchy through their transform objects. Removing GameObjects recursively
-     * (a parent calls remove on its children) is, however, impossible. In fact, while we are operating on
-     * a GameObject living in a vector (mGameObjects) we also change this vector by deleting its children. When
-     * control goes back to the parent GameObject the vector it is living in might be moved somewhere else in memory
-     * thus invalidating pointers (among which the this pointer). The solution here is to batch delete a node and
-     * all its children. Another solution might be to delete the parent first and then its children */
+void GameObjectManager::remove(const GameObjectEH& go) {
+    /* GameObjects form a hierarchy through their transform objects. Removing
+     * GameObjects recursively (a parent calls remove on its children) is,
+     * however, impossible. In fact, while we are operating on a GameObject
+     * living in a vector (mGameObjects) we also change this vector by deleting
+     * its children. When control goes back to the parent GameObject the vector
+     * it is living in might be moved somewhere else in memory thus invalidating
+     * pointers (among which the this pointer). The solution here is to batch
+     * delete a node and all its children. Another solution might be to delete
+     * the parent first and then its children */
 
-    go->transform.removeParent(); // breaks the hierarchy here
-    std::vector<GameObjectEH> toRemove{go};
+    go->transform.removeParent();  // breaks the hierarchy here
+    std::vector<GameObjectEH> toRemove{ go };
 
     // fills this vector with all the GameObjects in the hierarchy
     for (std::size_t i = 0; i < toRemove.size(); ++i) {
@@ -46,19 +44,11 @@ void GameObjectManager::remove(const GameObjectEH& go)
     }
 }
 
-const std::vector<GameObject>& GameObjectManager::getGameObjects() const
-{
-	return mGameObjects;
-}
+const std::vector<GameObject>& GameObjectManager::getGameObjects() const { return mGameObjects; }
 
-void GameObjectManager::cleanUp()
-{
+void GameObjectManager::cleanUp() {
     mGameObjectsHL.removeAll();
     mGameObjects.clear();
 }
 
-void GameObjectManager::shutdown()
-{
-	mGameObjects.clear();
-}
-
+void GameObjectManager::shutdown() { mGameObjects.clear(); }

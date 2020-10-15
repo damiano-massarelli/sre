@@ -2,16 +2,15 @@
 #define TERRAINHEIGHTPROVIDER_H
 #include <glm/vec3.hpp>
 
-class TerrainHeightProvider
-{
-    public:
-        TerrainHeightProvider();
+class TerrainHeightProvider {
+public:
+    TerrainHeightProvider();
 
-        virtual float get(float x, float z) const = 0;
+    virtual float get(float x, float z) const = 0;
 
-        virtual glm::vec3 getNormal(float x, float z) const = 0;
+    virtual glm::vec3 getNormal(float x, float z) const = 0;
 
-        virtual ~TerrainHeightProvider();
+    virtual ~TerrainHeightProvider();
 };
 
-#endif // TERRAINHEIGHTPROVIDER_H
+#endif  // TERRAINHEIGHTPROVIDER_H

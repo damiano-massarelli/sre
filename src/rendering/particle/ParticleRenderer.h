@@ -1,80 +1,79 @@
 #pragma once
-#include "ParticleEmitter.h"
 #include "Particle.h"
+#include "ParticleEmitter.h"
 #include "rendering/materials/Shader.h"
 #include "rendering/mesh/Mesh.h"
-#include <vector>
 #include <cstdint>
 #include <glm/glm.hpp>
+#include <vector>
 
 /**
  * Renderer for particles.
  * ParticleEmitter%s send particles to this renderer in order to render
  * the particles they generate.
  */
-class ParticleRenderer
-{
+class ParticleRenderer {
 private:
-	static constexpr int MAX_PARTICLES = 10000;
-	static constexpr int FLOATS_PER_PARTICLE = 21;
+    static constexpr int MAX_PARTICLES = 10000;
+    static constexpr int FLOATS_PER_PARTICLE = 21;
 
-	std::vector<ParticleEmitter*> mEmitters;
+    std::vector<ParticleEmitter*> mEmitters;
 
-	Shader mParticleShader;
-	std::int32_t mFrameSizeLocation;
+    Shader mParticleShader;
+    std::int32_t mFrameSizeLocation;
 
-	Mesh mParticleMesh;
-	
-	std::uint32_t mParticleDataVBO = 0;
+    Mesh mParticleMesh;
 
-	glm::mat4 mInverseView;
+    std::uint32_t mParticleDataVBO = 0;
 
-	void renderParticles(ParticleEmitter* emitter);
+    glm::mat4 mInverseView;
 
-	void storeModelMatrix(const Particle& p, std::vector<float>& data);
+    void renderParticles(ParticleEmitter* emitter);
 
-	void storeOffsetsAndBlendFactor(const Particle& p, const ParticleEmitter* emitter, std::vector<float>& data);
+    void storeModelMatrix(const Particle& p, std::vector<float>& data);
 
-	void setUpTextureAtlas(const ParticleEmitter* emitter);
+    void storeOffsetsAndBlendFactor(const Particle& p, const ParticleEmitter* emitter, std::vector<float>& data);
 
-	void prepareParticleQuad();
+    void setUpTextureAtlas(const ParticleEmitter* emitter);
 
-	void updateParticleVBO(const std::vector<float>& data);
+    void prepareParticleQuad();
 
-	void computeInverseViewMatrix();
+    void updateParticleVBO(const std::vector<float>& data);
+
+    void computeInverseViewMatrix();
 
 public:
-	ParticleRenderer() = default;
+    ParticleRenderer() = default;
 
-	/**
-	 * Inits the renderer.
-	 * Should only be called by the RenderSystem.
-	 */
-	void init();
+    /**
+     * Inits the renderer.
+     * Should only be called by the RenderSystem.
+     */
+    void init();
 
-	/**
-	 * Add a ParticleEmitter to this renderer.
-	 * ParticleEmitter%s call this method automatically when they are created.
-	 * @param emitter the ParticleEmitter to add.
-	 */
-	void addEmitter(ParticleEmitter* emitter);
+    /**
+     * Add a ParticleEmitter to this renderer.
+     * ParticleEmitter%s call this method automatically when they are created.
+     * @param emitter the ParticleEmitter to add.
+     */
+    void addEmitter(ParticleEmitter* emitter);
 
-	/**
-	 * Remove a ParticleEmitter.
-	 * ParticleEmitter%s call this method automatically when they are destroyed.
-	 * @param emitter the emitter to remove. 
-	 */
-	void removeEmitter(const ParticleEmitter* emitter);
+    /**
+     * Remove a ParticleEmitter.
+     * ParticleEmitter%s call this method automatically when they are destroyed.
+     * @param emitter the emitter to remove.
+     */
+    void removeEmitter(const ParticleEmitter* emitter);
 
-	/**
-	 * Renders the particles.
-	 */
-	void render();
+    /**
+     * Renders the particles.
+     */
+    void render();
 
-	/**
-	 * TODO
-	 */
-	void cleanUp();
+    /**
+     * TODO
+     */
+    void cleanUp();
 
     /**
      * Cleans up rendering data.
@@ -82,6 +81,5 @@ public:
      */
     void shutdown();
 
-	~ParticleRenderer();
+    ~ParticleRenderer();
 };
-
