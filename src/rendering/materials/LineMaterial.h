@@ -2,8 +2,7 @@
 #define LINEMATERIAL_H
 #include "rendering/materials/Material.h"
 
-class LineMaterial : public Material
-{
+class LineMaterial : public Material {
 public:
     LineMaterial();
 
@@ -14,4 +13,4 @@ public:
     virtual ~LineMaterial();
 };
 
-#endif // LINEMATERIAL_H
+#endif  // LINEMATERIAL_H

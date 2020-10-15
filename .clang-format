@@ -1,0 +1,21 @@
+# Format Style Options - Created with Clang Power Tools
+---
+Language: Cpp
+BasedOnStyle: WebKit
+BreakBeforeBraces: Attach
+AlignConsecutiveMacros: true
+AlignConsecutiveAssignments: false
+AlignEscapedNewlines: Right
+AlignTrailingComments: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BinPackArguments: false
+BinPackParameters: false
+SpacesBeforeTrailingComments: 2
+ColumnLimit: 120
+Standard: Auto
+TabWidth: 4
+SpaceBeforeCpp11BracedList: false
+...

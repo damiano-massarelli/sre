@@ -13,19 +13,14 @@ GameObjectRenderer Engine::gameObjectRenderer;
 ParticleRenderer Engine::particleRenderer;
 UIRenderer Engine::uiRenderer;
 
-Engine::Engine()
-{
-    eventManager.addListenerFor(SDL_QUIT, this, false);
-}
+Engine::Engine() { eventManager.addListenerFor(SDL_QUIT, this, false); }
 
-void Engine::onEvent(SDL_Event e)
-{
+void Engine::onEvent(SDL_Event e) {
     if (e.type == SDL_QUIT)
         shouldQuit = true;
 }
 
-void Engine::init()
-{
+void Engine::init() {
     if (instance == nullptr)
         instance = std::make_unique<Engine>();
 }
@@ -33,8 +28,7 @@ void Engine::init()
 unsigned int frames = 0;
 float totDeltas;
 
-void Engine::start()
-{
+void Engine::start() {
     if (instance == nullptr) {
         std::cerr << "Use of uninitialized engine, use init()";
         return;
@@ -46,8 +40,8 @@ void Engine::start()
     while (!shouldQuit) {
         elapsedMillis = actualTime.getMillis();
 
-		totDeltas += elapsedMillis;
-		frames++;
+        totDeltas += elapsedMillis;
+        frames++;
 
         actualTime.stop();
         actualTime.start();
@@ -55,18 +49,17 @@ void Engine::start()
         eventManager.pushEnterFrameEvent(&elapsedMillis);
         eventManager.dispatchEvents();
 
-		eventManager.pushPreRenderEvent(&elapsedMillis);
-		renderSys.renderScene();
-		eventManager.pushExitFrameEvent(&elapsedMillis);
+        eventManager.pushPreRenderEvent(&elapsedMillis);
+        renderSys.renderScene();
+        eventManager.pushExitFrameEvent(&elapsedMillis);
     }
 
     shutdown();
 
-	std::cout << totDeltas / frames << "\n";
+    std::cout << totDeltas / frames << "\n";
 }
 
-void Engine::cleanUp()
-{
+void Engine::cleanUp() {
     renderSys.cleanUp();
     gameObjectManager.cleanUp();
     particleRenderer.cleanUp();
@@ -75,14 +68,11 @@ void Engine::cleanUp()
     renderSys.setDefaultCamera();
 }
 
-void Engine::shutdown()
-{
+void Engine::shutdown() {
     renderSys.shutdown();
     gameObjectManager.shutdown();
     particleRenderer.shutdown();
     uiRenderer.shutdown();
 }
 
-Engine::~Engine()
-{
-}
+Engine::~Engine() { }

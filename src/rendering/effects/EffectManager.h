@@ -1,50 +1,48 @@
 #pragma once
 #include "rendering/effects/Effect.h"
 #include "rendering/materials/Shader.h"
-#include <vector>
-#include <utility>
-#include <string.h>
 #include <memory.h>
 #include <set>
+#include <string.h>
+#include <utility>
+#include <vector>
 
-class EffectManager
-{
-friend class RenderSystem;
+class EffectManager {
+    friend class RenderSystem;
 
 private:
-	bool mEnabled = false;
+    bool mEnabled = false;
 
-	Shader mPostProcessingShader;
+    Shader mPostProcessingShader;
 
-	std::set<int> mInUseTextures;
+    std::set<int> mInUseTextures;
 
-	std::vector<std::shared_ptr<Effect>> mEffects;
+    std::vector<std::shared_ptr<Effect>> mEffects;
 
-	void createShader(std::vector<std::shared_ptr<Effect>> effects);
+    void createShader(std::vector<std::shared_ptr<Effect>> effects);
 
 public:
-	EffectManager();
+    EffectManager();
 
-	EffectManager(const EffectManager& em) = delete;
+    EffectManager(const EffectManager& em) = delete;
 
-	EffectManager& operator=(const EffectManager& em) = delete;
+    EffectManager& operator=(const EffectManager& em) = delete;
 
-	void init();
+    void init();
 
-	void addEffect(const std::shared_ptr<Effect>& effect);
+    void addEffect(const std::shared_ptr<Effect>& effect);
 
-	void enableEffects();
+    void enableEffects();
 
-	void disableEffects();
+    void disableEffects();
 
-	int getTexture();
+    int getTexture();
 
-	void releaseTexture(int texture);
+    void releaseTexture(int texture);
 
-	void update();
+    void update();
 
-	void cleanUp();
+    void cleanUp();
 
     void shutdown();
 };
-

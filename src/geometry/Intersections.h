@@ -3,7 +3,7 @@
 /**
  * This file contains some utility functions
  * to check for intersections between shapes.
- */ 
+ */
 
 #include <cstdint>
 
@@ -15,9 +15,10 @@ struct Frustum;
  * The possible results of an intersection test.
  */
 enum class IntersectionTestResult : std::int8_t {
-	INSIDE		= 0x03, // so that INSIDE & OVERLAP = OVERLAP and (INSIDE/OVERLAP) & OUTSIDE = OUTSIDE
-	OVERLAP		= 0x01,
-	OUTSIDE		= 0
+    INSIDE = 0x03,  // so that INSIDE & OVERLAP = OVERLAP and (INSIDE/OVERLAP) &
+                    // OUTSIDE = OUTSIDE
+    OVERLAP = 0x01,
+    OUTSIDE = 0
 };
 
 /**

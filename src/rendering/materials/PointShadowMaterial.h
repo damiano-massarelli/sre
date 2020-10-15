@@ -1,27 +1,23 @@
 #pragma once
 #include "rendering/materials/Material.h"
-#include <vector>
-#include <glm/glm.hpp>
 #include <cstdint>
+#include <glm/glm.hpp>
+#include <vector>
 
-class PointShadowMaterial :
-	public Material
-{
+class PointShadowMaterial : public Material {
 private:
-	std::int32_t mTransformLocation;
-	std::int32_t mFarPlaneLocation;
-	std::int32_t mLightPositionLocation;
+    std::int32_t mTransformLocation;
+    std::int32_t mFarPlaneLocation;
+    std::int32_t mLightPositionLocation;
 
 public:
-	PointShadowMaterial();
+    PointShadowMaterial();
 
-	virtual void use() override;
+    virtual void use() override;
 
-	virtual void after() override;
+    virtual void after() override;
 
-	void setTransformations(const std::vector<glm::mat4>& transforms, float farPlane, const glm::vec3& lightPosition);
+    void setTransformations(const std::vector<glm::mat4>& transforms, float farPlane, const glm::vec3& lightPosition);
 
-	~PointShadowMaterial() = default;
-
+    ~PointShadowMaterial() = default;
 };
-

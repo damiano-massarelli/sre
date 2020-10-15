@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.8)
+# Clang-tidy
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ### MACRO for sort file inside a project in VS
 MACRO(SOURCE_GROUP_BY_FOLDER target)
@@ -36,6 +38,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 # Set C++ to use the C++17 standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Debug macros
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DSRE_DEBUG")
 
 # C++ 17 for Visual Studio build
 if(MSVC)

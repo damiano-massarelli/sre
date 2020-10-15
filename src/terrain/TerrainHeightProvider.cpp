@@ -1,11 +1,9 @@
 #include "terrain/TerrainHeightProvider.h"
 
-TerrainHeightProvider::TerrainHeightProvider()
-{
-    //ctor
+TerrainHeightProvider::TerrainHeightProvider() {
+    // ctor
 }
 
-TerrainHeightProvider::~TerrainHeightProvider()
-{
-    //dtor
+TerrainHeightProvider::~TerrainHeightProvider() {
+    // dtor
 }

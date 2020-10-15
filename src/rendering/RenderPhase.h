@@ -10,11 +10,11 @@
  * not be rendered during shadow mapping.
  */
 enum RenderPhase {
-	NONE				= 0,
-	FORWARD_RENDERING	= 1 << 0,
-	SHADOW_MAPPING		= 1 << 1,
-	DEFERRED_RENDERING  = 1 << 2,
-	WATER				= 1 << 3,
-	PBR					= 1 << 4,
-	ALL					= ~0
+    NONE = 0,
+    FORWARD_RENDERING = 1 << 0,
+    SHADOW_MAPPING = 1 << 1,
+    DEFERRED_RENDERING = 1 << 2,
+    WATER = 1 << 3,
+    PBR = 1 << 4,
+    ALL = ~0
 };
