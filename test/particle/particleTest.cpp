@@ -45,7 +45,6 @@ static void addParticles(const GameObjectEH& eh) {
     eh->transform.moveBy(glm::vec3{ 0, 1.0f, 0 });
     eh->addComponent(std::make_shared<PointLight>(eh));
     eh->getComponent<PointLight>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
-    eh->getComponent<PointLight>()->ambientColor = glm::vec3{ 0.89f, 0.75f, 0.276f } / 5.0f;
     eh->getComponent<PointLight>()->diffuseColor = glm::vec3{ 0.89f, 0.75f, 0.276f };
     eh->getComponent<PointLight>()->specularColor = glm::vec3{ 0.89f, 0.75f, 0.276f };
     Engine::renderSys.addLight(eh);
@@ -109,7 +108,6 @@ void ParticleTestScene::start() {
     sun->transform.setPosition(glm::vec3{ 50.0f, 205.0f, -65.0f });
     Engine::renderSys.addLight(sun);
     sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
-    sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 15.0f;
     sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f };
     sun->getComponent<Light>()->specularColor = glm::vec3{ .9f, .9f, .9f };
     sun->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
@@ -127,7 +125,6 @@ void ParticleTestScene::start() {
     fakeSun->transform.setPosition(glm::vec3{ -10.0f, 105, 10.0f });
     Engine::renderSys.addLight(fakeSun);
     fakeSun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
-    fakeSun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 15.0f;
     fakeSun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } / 10.0f;
     fakeSun->getComponent<Light>()->specularColor = glm::vec3{ .9f, .9f, .9f } / 10.0f;
     fakeSun->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });

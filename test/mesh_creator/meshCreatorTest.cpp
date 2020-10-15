@@ -57,7 +57,6 @@ void MeshCreatorTestScene::start() {
     light->transform.setPosition(glm::vec3{ 0.0f, 0.0f, 15.0f });
     Engine::renderSys.addLight(light);
     light->getComponent<Light>()->diffuseColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
-    light->getComponent<Light>()->ambientColor = glm::vec3{ 0.1f, 0.1f, 0.1f };
     light->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
 
     auto gizmo = MeshCreator::axisGizmo();

@@ -122,7 +122,6 @@ void BoundingBoxTestScene::start() {
     // configure sun
     Engine::renderSys.addLight(sun);
     sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
-    sun->getComponent<Light>()->ambientColor = glm::vec3{ .9f, .9f, .9f } / 15.0f;
     sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 5.0f;
     sun->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), sun->transform.right()));
 }

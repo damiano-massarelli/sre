@@ -56,26 +56,21 @@ private:
     // used for rendering meshes with point lights
     std::shared_ptr<PointShadowMaterial> mPointShadowMaterial;
 
-    /** Shader used to render DirectionalLight's light on normal materials using
-     * deferred rendering */
+    /** Shader used to render DirectionalLight's light on normal materials using deferred rendering */
     DeferredLightShader mDirectionalLightDeferred;
 
-    /** Shader used to render DirectionalLight's light on PBR materials using
-     * deferred rendering */
+    /** Shader used to render DirectionalLight's light on PBR materials using deferred rendering */
     DeferredLightShader mDirectionalLightDeferredPBR;
 
-    Shader mPointLightDeferredStencil;  // shader used for stencil pass of point
-                                        // lights
+    Shader mPointLightDeferredStencil;  // shader used for stencil pass of point lights
     std::uint32_t mPointLightStencilLightIndexLocation = 0;
     std::uint32_t mPointLightStencilScaleLocation = 0;
     std::uint32_t mPointLightDeferredLightRadiusLocation = 0;
 
-    /** Shader used to render PointLight's light on normal materials using
-     * deferred rendering */
+    /** Shader used to render PointLight's light on normal materials using deferred rendering */
     DeferredLightShader mPointLightDeferred;
 
-    /** Shader used to render PointLight's light on PBR materials using deferred
-     * rendering */
+    /** Shader used to render PointLight's light on PBR materials using deferred rendering */
     DeferredLightShader mPointLightDeferredPBR;
 
     /** The camera used for rendering */
@@ -99,15 +94,13 @@ private:
     /** Updates the common matrices ubo */
     void updateMatrices(const glm::mat4* projection, const glm::mat4* view);
 
-    /** Performs all the operations needed by all the rendering pipelines
-     * (deferred, pbr, ecc...) */
+    /** Performs all the operations needed by all the rendering pipelines (deferred, pbr, ecc...) */
     void prepareRendering(const RenderTarget* target);
 
     /** Performs all operations needed by deferred rendering */
     void prepareDeferredRendering();
 
-    /** Performs all operations needed to finalize deferred rendering: combine
-     * g-buffer data */
+    /** Performs all operations needed to finalize deferred rendering: combine g-buffer data */
     void finalizeDeferredRendering(const RenderTarget* target);
 
     void finalizeRendering();
@@ -179,8 +172,7 @@ public:
      * Adds a light to the scene
      * if the GameObject does not have a Light component it is silently
      * discarded.
-     * @param light a GameObjectEH. The referenced GameObject should contain a
-     * Light component.
+     * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
      */
     void addLight(const GameObjectEH& light);
 
@@ -213,8 +205,7 @@ public:
 
     /**
      * Render the current scene.
-     * @param renderTarget the target onto which the scene is rendered. if
-     * nullptr the screen is used.
+     * @param renderTarget the target onto which the scene is rendered. if nullptr the screen is used.
      * @param phase specifies which render phase to use
      */
     void renderScene(const RenderTarget* target = nullptr, RenderPhase phase = RenderPhase::NONE);
@@ -230,7 +221,7 @@ public:
      * The actual matrix is multiplied by mInvertView
      * @return the view matrix for the given Transform
      */
-    glm::mat4 getViewMatrix(const Transform& transform);
+    glm::mat4 getViewMatrix(const Transform& transform) const;
 
     /**
      * @return the projection matrix
@@ -258,11 +249,9 @@ public:
     /**
      * Copies a texture into another applying a shader.
      * @param src the source texture
-     * @param dst a render target whose color buffer contains the destination
-     * texture.
+     * @param dst a render target whose color buffer contains the destination texture.
      * @param shader the shader used to copy the texture
-     * @param clear clear the dst texture before copying. Set it to false if src
-     * and destination texture are the same
+     * @param clear clear the dst texture before copying. Set it to false if src and destination texture are the same
      */
     void copyTexture(const Texture& src, RenderTarget& dst, Shader& shader, bool clear = true);
 
