@@ -80,5 +80,5 @@ vec3 pbrComputeColor(Light light, vec3 L, float forceAttenuation, float inShadow
     // add to outgoing radiance Lo
     vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
 
-    return ao * (light.ambientColor + (1.0 - inShadow) * Lo);
+    return ao * (light.ambientColor * albedo + (1.0 - inShadow) * Lo);
 }
