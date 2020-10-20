@@ -25,7 +25,7 @@ void PointLight::setCastShadowMode(ShadowCasterMode mode) {
     if (mode == ShadowCasterMode::NO_SHADOWS)
         return;
 
-    Texture cube = Texture::loadCubemap({ { "front", nullptr },
+     mPointShadowCubeTexture = Texture::loadCubemap({ { "front", nullptr },
                                             { "back", nullptr },
                                             { "top", nullptr },
                                             { "bottom", nullptr },
@@ -40,7 +40,7 @@ void PointLight::setCastShadowMode(ShadowCasterMode mode) {
         GL_UNSIGNED_INT_24_8,
         GL_DEPTH24_STENCIL8);
 
-    mPointShadowTarget.createWith(Texture{}, cube);
+    mPointShadowTarget = RenderTarget{ nullptr, &mPointShadowCubeTexture };
 }
 
 const RenderTarget& PointLight::getPointShadowTarget() const { return mPointShadowTarget; }

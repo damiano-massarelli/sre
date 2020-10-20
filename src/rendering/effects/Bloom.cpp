@@ -13,7 +13,7 @@ Bloom::Bloom(float scaleFactor)
     mBloom
         = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), loadOptions);
 
-    mTarget.createWith(mBloom, Texture{});
+    mTarget = RenderTarget{ &mBloom, nullptr };
 
     mBloomExtractor = Shader::loadFromFile(
         std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/bloomExtractFS.glsl" });
@@ -31,7 +31,7 @@ void Bloom::update(Shader& postProcessingShader) {
     }
     RenderSystem& rsys = Engine::renderSys;
 
-    Engine::renderSys.copyTexture(rsys.effectTarget.getColorBuffer(), mTarget, mBloomExtractor);
+    Engine::renderSys.copyTexture(*(rsys.lightPassRenderTarget.getColorBuffer()), mTarget, mBloomExtractor);
 
     const auto& blurred = mGaussianBlur.getBlurred(mBloom, 1);
 

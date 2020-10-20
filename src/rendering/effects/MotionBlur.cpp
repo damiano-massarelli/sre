@@ -33,7 +33,7 @@ void MotionBlur::update(Shader& postProcessingShader) {
     postProcessingShader.setMat4(mPrevProjViewMatrixLocation, mPrevProjViewMatrix);
     postProcessingShader.setMat4(mCurrentProjViewMatrixLocation, currProjViewMat);
     glActiveTexture(GL_TEXTURE0 + mPositionTexture);
-    glBindTexture(GL_TEXTURE_2D, Engine::renderSys.deferredRenderingFBO.getPositionBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getPositionBuffer().getId());
 
     mPrevProjViewMatrix = currProjViewMat;
 }

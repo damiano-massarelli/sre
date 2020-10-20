@@ -11,16 +11,18 @@ SSAO::SSAO()
     Texture::Settings loadOptions;
     loadOptions.dataPixelFormat = GL_RGBA;
     loadOptions.dataPixelType = GL_FLOAT;
-    loadOptions.internalFormat = GL_RED;
+    loadOptions.internalFormat = GL_RED;         // only red component is used
     loadOptions.appearanceOptions.createMipmap = false;
     loadOptions.appearanceOptions.magFilter = GL_NEAREST;
     loadOptions.appearanceOptions.minFilter = GL_NEAREST;
     loadOptions.appearanceOptions.wrapS = GL_REPEAT;
     loadOptions.appearanceOptions.wrapT = GL_REPEAT;
-    mSSAOCreationTarget.createWith(
-        // only red component is used
-        Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), loadOptions),
-        Texture{});
+
+    mTargetTexture = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), loadOptions);
+
+    mSSAOCreationTarget = RenderTarget{
+        &mTargetTexture,
+        nullptr };
 
     std::uniform_real_distribution<float> dist;
     std::default_random_engine engine;
@@ -102,13 +104,13 @@ void SSAO::update(Shader& postProcessingShader) {
     RenderSystem& rsys = Engine::renderSys;
 
     glActiveTexture(GL_TEXTURE0 + mNormalTextureIndex);
-    glBindTexture(GL_TEXTURE_2D, rsys.deferredRenderingFBO.getNormalBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, rsys.gBuffer.getNormalBuffer().getId());
 
     glActiveTexture(GL_TEXTURE0 + mNoiseTextureIndex);
     glBindTexture(GL_TEXTURE_2D, mNoiseTexture.getId());
 
     Engine::renderSys.copyTexture(
-        rsys.deferredRenderingFBO.getPositionBuffer(), mSSAOCreationTarget, mSSAOCreationShader);
+        rsys.gBuffer.getPositionBuffer(), mSSAOCreationTarget, mSSAOCreationShader);
 
     // unbind
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -118,7 +120,7 @@ void SSAO::update(Shader& postProcessingShader) {
 
     // bind the ssao texture
     glActiveTexture(GL_TEXTURE0 + mSSAOTextureIndex);
-    glBindTexture(GL_TEXTURE_2D, mSSAOCreationTarget.getColorBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, mTargetTexture.getId());
 }
 
 void SSAO::setKernelSize(int size) {

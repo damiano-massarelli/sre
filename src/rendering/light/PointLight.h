@@ -1,10 +1,12 @@
 #pragma once
 #include "gameobject/GameObjectEH.h"
 #include "rendering/RenderTarget.h"
+#include "rendering/materials/Texture.h"
 #include "rendering/light/Light.h"
 
 class PointLight : public Light {
 private:
+    Texture mPointShadowCubeTexture;
     RenderTarget mPointShadowTarget;
 
 public:

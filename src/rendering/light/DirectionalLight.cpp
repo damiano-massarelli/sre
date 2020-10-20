@@ -13,9 +13,7 @@ void DirectionalLight::setCastShadowMode(Light::ShadowCasterMode mode) {
     if (mode == Light::ShadowCasterMode::NO_SHADOWS)
         return;
 
-    // destroys the old target if existed
-    mShadowMapTarget = RenderTarget{};
-
     ShadowMappingSettings& settings = Engine::renderSys.shadowMappingSettings;
-    mShadowMapTarget.create(settings.mapWidth, settings.mapHeight, false, true);
+    mShadowTexture = Texture::load(nullptr, settings.mapWidth, settings.mapHeight, DeferredRenderingFBO::DEPTH_BUFFER_SETTINGS);
+    mShadowMapTarget = RenderTarget{ nullptr, &mShadowTexture };
 }

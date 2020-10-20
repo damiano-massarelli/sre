@@ -6,7 +6,8 @@ GodRays::GodRays(float scaleFactor)
     auto width = static_cast<std::uint32_t>(Engine::renderSys.getScreenWidth() * scaleFactor);
     auto height = static_cast<std::uint32_t>(Engine::renderSys.getScreenHeight() * scaleFactor);
 
-    mOcclusionTarget.create(width, height, true, false);
+    mOcclusionTexture = Texture::load(nullptr, width, height, DeferredRenderingFBO::DIFFUSE_BUFFER_SETTINGS);
+    mOcclusionTarget = RenderTarget{ &mOcclusionTexture, nullptr };
 
     mOcclusionCreator = Shader::loadFromFile(
         std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/godraysCreateFS.glsl" });
@@ -68,11 +69,11 @@ void GodRays::update(Shader& postProcessingShader) {
         mOcclusionCreator.setFloat(mRadiusLocation, projectedRadius);
 
         // create the radial blurred image
-        rsys.copyTexture(Engine::renderSys.deferredRenderingFBO.getDepthBuffer(), mOcclusionTarget, mOcclusionCreator);
+        rsys.copyTexture(Engine::renderSys.gBuffer.getDepthBuffer(), mOcclusionTarget, mOcclusionCreator);
     }
 
     glActiveTexture(GL_TEXTURE0 + mBlurredTexture);
-    glBindTexture(GL_TEXTURE_2D, mOcclusionTarget.getColorBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, mOcclusionTarget.getColorBuffer()->getId());
 
     {
         ShaderScopedUsage useShader{ postProcessingShader };

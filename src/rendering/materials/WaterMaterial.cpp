@@ -11,42 +11,43 @@ WaterMaterial::WaterMaterial(float waterY, const Texture& dudv, const Texture& n
     , mWaterY{ waterY }
     , mDuDvMap{ dudv }
     , mNormalMap{ normalMap } {
-    mEmptyReflectionTarget.create(320, 180, false, false);
-    mReflectionFbo.init(320, 180);
+    //mEmptyReflectionTarget.create(320, 180, false, false);
+    //mReflectionFbo.init(320, 180);
 
-    mEmptyRefractionTarget.create(1280, 720, false, false);
-    mRefractionFbo.init(1280, 720);
+    //mEmptyRefractionTarget.create(1280, 720, false, false);
+    //mRefractionFbo.init(1280, 720);
 
-    /**
-     * This is a target whose initial color is the diffuse color added by the
-     * deferred and pbr rendering. On top of that, the result of forward
-     * rendering and particle rendering is added in another render pass (see
-     * renderRefraction)
-     */
-    mReflectionRarget.createWith(mReflectionFbo.getDiffuseBuffer(), mReflectionFbo.getDepthBuffer());
+    ///**
+    // * This is a target whose initial color is the diffuse color added by the
+    // * deferred and pbr rendering. On top of that, the result of forward
+    // * rendering and particle rendering is added in another render pass (see
+    // * renderRefraction)
+    // */
+    //mReflectionRarget.createWith(mReflectionFbo.getDiffuseBuffer(), mReflectionFbo.getDepthBuffer());
 
-    mReflectionCamera = Engine::gameObjectManager.createGameObject();
+    //mReflectionCamera = Engine::gameObjectManager.createGameObject();
 
-    // don't render when rendering for water or shadows
-    unSupportedRenderPhases |= RenderPhase::ALL & ~RenderPhase::DEFERRED_RENDERING;
+    //// don't render when rendering for water or shadows
+    //unSupportedRenderPhases |= RenderPhase::ALL & ~RenderPhase::DEFERRED_RENDERING;
 
-    mEventCrumb = Engine::eventManager.addListenerFor(EventManager::PRE_RENDER_EVENT, this, true);
+    //mEventCrumb = Engine::eventManager.addListenerFor(EventManager::PRE_RENDER_EVENT, this, true);
 
-    ShaderScopedUsage useShader{ shader };
+    //ShaderScopedUsage useShader{ shader };
 
-    shader.setInt("reflection", 0);
-    shader.setInt("refraction", 1);
-    shader.setInt("dudvMap", 2);
-    shader.setInt("normalMap", 3);
-    shader.setInt("depthMap", 4);
+    //shader.setInt("reflection", 0);
+    //shader.setInt("refraction", 1);
+    //shader.setInt("dudvMap", 2);
+    //shader.setInt("normalMap", 3);
+    //shader.setInt("depthMap", 4);
 
-    shader.setFloat("near", Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getNearPlaneDistance());
-    shader.setFloat("far", Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getFarPlaneDistance());
+    //shader.setFloat("near", Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getNearPlaneDistance());
+    //shader.setFloat("far", Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getFarPlaneDistance());
 
-    shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
-    shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
+    //shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
+    //shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
 
-    mMoveDuDvLocation = shader.getLocationOf("moveDuDv");
+    //mMoveDuDvLocation = shader.getLocationOf("moveDuDv");
+    
 }
 
 void WaterMaterial::onEvent(SDL_Event e) {
@@ -65,7 +66,7 @@ void WaterMaterial::onEvent(SDL_Event e) {
     if (enabled)
         renderSys.shadowMappingSettings.disableShadowRendering();
 
-    auto oldDeferredFbo = renderSys.deferredRenderingFBO;
+    auto oldDeferredFbo = renderSys.gBuffer;
     renderSys.enableClipPlane();
 
     renderRefraction();
@@ -76,7 +77,7 @@ void WaterMaterial::onEvent(SDL_Event e) {
         renderSys.shadowMappingSettings.enableShadowRendering();
 
     renderSys.disableClipPlane();
-    renderSys.deferredRenderingFBO = oldDeferredFbo;
+    renderSys.gBuffer = oldDeferredFbo;
 }
 
 std::size_t WaterMaterial::hash() const { return Material::hash() + mDuDvMap.getId() + mNormalMap.getId(); }
@@ -114,7 +115,7 @@ void WaterMaterial::renderReflection() {
     camTransform.moveBy(glm::vec3{ 0, -2 * offset, 0 });
 
     // render to reflection target
-    Engine::renderSys.deferredRenderingFBO = mReflectionFbo;
+    Engine::renderSys.gBuffer = mReflectionFbo;
     Engine::renderSys.setClipPlane(glm::vec4{ 0, 1, 0, -mWaterY });
     Engine::renderSys.renderScene(&mEmptyReflectionTarget, RenderPhase::WATER);
 
@@ -131,14 +132,14 @@ void WaterMaterial::renderReflection() {
 }
 
 void WaterMaterial::renderRefraction() {
-    Engine::renderSys.deferredRenderingFBO = mRefractionFbo;
+    Engine::renderSys.gBuffer = mRefractionFbo;
     Engine::renderSys.setClipPlane(glm::vec4{ 0, -1, 0, mWaterY + 1 });
     Engine::renderSys.renderScene(&mEmptyRefractionTarget, RenderPhase::WATER);
 }
 
 void WaterMaterial::use() {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mReflectionRarget.getColorBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, mReflectionRarget.getColorBuffer()->getId());
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getDiffuseBuffer().getId());

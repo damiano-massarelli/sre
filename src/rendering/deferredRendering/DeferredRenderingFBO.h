@@ -24,6 +24,20 @@ private:
     void cleanUpIfNeeded();
 
 public:
+    /**
+     * Texture settings used for the diffuse buffer.
+     */
+    static constexpr Texture::Settings DIFFUSE_BUFFER_SETTINGS{
+        GL_RGBA16F, GL_RGBA, GL_FLOAT, { false, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE }
+    };
+
+    /**
+     * Texture settings used for the depth buffer.
+     */
+    static constexpr Texture::Settings DEPTH_BUFFER_SETTINGS{
+        GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, { false, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE }
+    };
+
     DeferredRenderingFBO() = default;
 
     /**
