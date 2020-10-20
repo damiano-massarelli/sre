@@ -7,9 +7,20 @@ GameObjectEH::GameObjectEH(HandleList<GameObject>* handleList, std::uint32_t ind
     /* Transform component hold a reference to the game object they belong to.
      * To do so they need an external handle which is created after the game
      * object itself. So the external handle must take care of this. */
-    if (isValid())
+    if (isValid()) {
         mHandleList->get(mHandleIndex, mGeneration).transform.gameObject = *this;
+    }
 }
 
 GameObjectEH::GameObjectEH()
     : GameObjectEH{ nullptr, 0, 0 } { }
+
+bool GameObjectEH::operator==(const GameObjectEH& rhs) const
+{
+    return isValid() && rhs.isValid() && mHandleIndex == rhs.mHandleIndex && mGeneration == rhs.mGeneration;
+}
+
+bool GameObjectEH::operator!=(const GameObjectEH& rhs) const
+{
+    return (isValid() || rhs.isValid()) && !(*this == rhs);
+}
