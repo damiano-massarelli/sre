@@ -24,12 +24,12 @@ private:
     // invalid render target so that lights lights calculations are not carried
     // out (see RenderSystem::renderScene)
     RenderTarget mEmptyReflectionTarget;
-    DeferredRenderingFBO mReflectionFbo;
+    GBuffer mReflectionFbo;
 
     // invalid render target so that lights lights calculations are not carried
     // out
     RenderTarget mEmptyRefractionTarget;
-    DeferredRenderingFBO mRefractionFbo;
+    GBuffer mRefractionFbo;
 
     // render target for forward and particles
     RenderTarget mReflectionRarget;

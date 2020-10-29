@@ -32,7 +32,11 @@ struct GameObjectEH : public ExternalHandle {
         return mGeneration != 0 && mHandleList != nullptr && mHandleList->isValid(mHandleIndex, mGeneration);
     }
 
-    operator bool() const { return isValid(); }
+    explicit operator bool() const { return isValid(); }
+
+    bool operator==(const GameObjectEH& rhs) const;
+
+    bool operator!=(const GameObjectEH& rhs) const;
 };
 
 #endif  // GAMEOBJECTEH_H

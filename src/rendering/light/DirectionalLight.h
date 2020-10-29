@@ -4,6 +4,7 @@
 
 class DirectionalLight : public Light {
 private:
+    Texture mShadowTexture;
     RenderTarget mShadowMapTarget;
 
 public:
