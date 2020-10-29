@@ -11,18 +11,17 @@ SSAO::SSAO()
     Texture::Settings loadOptions;
     loadOptions.dataPixelFormat = GL_RGBA;
     loadOptions.dataPixelType = GL_FLOAT;
-    loadOptions.internalFormat = GL_RED;         // only red component is used
+    loadOptions.internalFormat = GL_RED;  // only red component is used
     loadOptions.appearanceOptions.createMipmap = false;
     loadOptions.appearanceOptions.magFilter = GL_NEAREST;
     loadOptions.appearanceOptions.minFilter = GL_NEAREST;
     loadOptions.appearanceOptions.wrapS = GL_REPEAT;
     loadOptions.appearanceOptions.wrapT = GL_REPEAT;
 
-    mTargetTexture = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), loadOptions);
+    mTargetTexture
+        = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), loadOptions);
 
-    mSSAOCreationTarget = RenderTarget{
-        &mTargetTexture,
-        nullptr };
+    mSSAOCreationTarget = RenderTarget{ &mTargetTexture, nullptr };
 
     std::uniform_real_distribution<float> dist;
     std::default_random_engine engine;
@@ -109,8 +108,7 @@ void SSAO::update(Shader& postProcessingShader) {
     glActiveTexture(GL_TEXTURE0 + mNoiseTextureIndex);
     glBindTexture(GL_TEXTURE_2D, mNoiseTexture.getId());
 
-    Engine::renderSys.copyTexture(
-        rsys.gBuffer.getPositionBuffer(), mSSAOCreationTarget, mSSAOCreationShader);
+    Engine::renderSys.copyTexture(rsys.gBuffer.getPositionBuffer(), mSSAOCreationTarget, mSSAOCreationShader);
 
     // unbind
     glBindTexture(GL_TEXTURE_2D, 0);

@@ -15,12 +15,8 @@ GameObjectEH::GameObjectEH(HandleList<GameObject>* handleList, std::uint32_t ind
 GameObjectEH::GameObjectEH()
     : GameObjectEH{ nullptr, 0, 0 } { }
 
-bool GameObjectEH::operator==(const GameObjectEH& rhs) const
-{
+bool GameObjectEH::operator==(const GameObjectEH& rhs) const {
     return isValid() && rhs.isValid() && mHandleIndex == rhs.mHandleIndex && mGeneration == rhs.mGeneration;
 }
 
-bool GameObjectEH::operator!=(const GameObjectEH& rhs) const
-{
-    return (isValid() || rhs.isValid()) && !(*this == rhs);
-}
+bool GameObjectEH::operator!=(const GameObjectEH& rhs) const { return (isValid() || rhs.isValid()) && !(*this == rhs); }

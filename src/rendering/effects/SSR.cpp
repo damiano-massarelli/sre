@@ -40,5 +40,5 @@ void SSR::update(Shader& postProcessingShader) {
     glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getNormalBuffer().getId());
 
     glActiveTexture(GL_TEXTURE0 + mSpecularTexture);
-    glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getAdditionalBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getMaterialBuffer().getId());
 }

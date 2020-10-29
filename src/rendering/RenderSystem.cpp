@@ -81,7 +81,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height) {
 
     initDeferredRendering();
 
-    lightPassTarget = Texture::load(nullptr, width, height, DeferredRenderingFBO::DIFFUSE_BUFFER_SETTINGS);
+    lightPassTarget = Texture::load(nullptr, width, height, GBuffer::DIFFUSE_BUFFER_SETTINGS);
     lightPassRenderTarget = RenderTarget{ &lightPassTarget, &(gBuffer.getDepthBuffer()) };
     effectManager.init();
     fogSettings.init();
@@ -138,7 +138,7 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height) {
 }
 
 void RenderSystem::initDeferredRendering() {
-    gBuffer.init(getScreenWidth(), getScreenHeight());
+    gBuffer = GBuffer(getScreenWidth(), getScreenHeight());
 
     mDirectionalLightDeferred.init({ "shaders/deferred_rendering/directionalLightVS.glsl" },
         { "shaders/Light.glsl",
@@ -404,15 +404,15 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target) {
     if (target->getDepthBuffer()->getId() != gBuffer.getDepthBuffer().getId()) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer.getFBO());
         glBlitFramebuffer(0,
-                0,
-                gBuffer.getWidth(),
-                gBuffer.getHeight(),
-                0,
-                0,
-                gBuffer.getWidth(),
-                gBuffer.getHeight(),
-                GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
-                GL_NEAREST);
+            0,
+            gBuffer.getWidth(),
+            gBuffer.getHeight(),
+            0,
+            0,
+            gBuffer.getWidth(),
+            gBuffer.getHeight(),
+            GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
+            GL_NEAREST);
     }
 
     // clear the color buffer of the currently bound fbo (can be either effects
@@ -429,7 +429,7 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gBuffer.getDiffuseBuffer().getId());
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, gBuffer.getAdditionalBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, gBuffer.getMaterialBuffer().getId());
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, gBuffer.getPositionBuffer().getId());
     glActiveTexture(GL_TEXTURE3);
@@ -733,8 +733,9 @@ void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, Shader& sh
     glBindVertexArray(mScreenMesh.mVao);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, src.getId());
-
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindVertexArray(0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

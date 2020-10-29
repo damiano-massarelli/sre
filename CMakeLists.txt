@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
+
 # Clang-tidy
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -7,7 +8,7 @@ MACRO(SOURCE_GROUP_BY_FOLDER target)
   SET(SOURCE_GROUP_DELIMITER "/")
   SET(last_dir "")
   SET(files "")
-  FOREACH(file ${${target}_HEADERS} ${${target}_SRC})
+  FOREACH(file ${${target}_SRC})
     file(RELATIVE_PATH relative_file "${PROJECT_SOURCE_DIR}" ${file})
     GET_FILENAME_COMPONENT(dir "${relative_file}" PATH)
     IF (NOT "${dir}" STREQUAL "${last_dir}")
@@ -47,20 +48,12 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
 endif(MSVC)
 
-# Searching files
-file(GLOB ${TARGET}_HEADERS
-    ${PROJECT_SOURCE_DIR}/test/*.h
-    ${PROJECT_SOURCE_DIR}/src/*.h
-    ${PROJECT_SOURCE_DIR}/src/*/*.h
-    ${PROJECT_SOURCE_DIR}/src/rendering/*/*.h
-)
-file(GLOB ${TARGET}_SRC
+file(GLOB_RECURSE ${TARGET}_SRC
     ${PROJECT_SOURCE_DIR}/Application.cpp
     ${PROJECT_SOURCE_DIR}/test/*.cpp
-    ${PROJECT_SOURCE_DIR}/test/*/*.cpp
-    ${PROJECT_SOURCE_DIR}/src/Engine.cpp
-    ${PROJECT_SOURCE_DIR}/src/*/*.cpp
-    ${PROJECT_SOURCE_DIR}/src/rendering/*/*.cpp
+    ${PROJECT_SOURCE_DIR}/test/*.h
+    ${PROJECT_SOURCE_DIR}/src/*.h
+    ${PROJECT_SOURCE_DIR}/src/*.cpp
 )
 
 include_directories(

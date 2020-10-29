@@ -6,7 +6,7 @@ GodRays::GodRays(float scaleFactor)
     auto width = static_cast<std::uint32_t>(Engine::renderSys.getScreenWidth() * scaleFactor);
     auto height = static_cast<std::uint32_t>(Engine::renderSys.getScreenHeight() * scaleFactor);
 
-    mOcclusionTexture = Texture::load(nullptr, width, height, DeferredRenderingFBO::DIFFUSE_BUFFER_SETTINGS);
+    mOcclusionTexture = Texture::load(nullptr, width, height, GBuffer::DIFFUSE_BUFFER_SETTINGS);
     mOcclusionTarget = RenderTarget{ &mOcclusionTexture, nullptr };
 
     mOcclusionCreator = Shader::loadFromFile(

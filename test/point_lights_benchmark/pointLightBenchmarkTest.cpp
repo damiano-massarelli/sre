@@ -2,15 +2,15 @@
 #include "Test.h"
 #include "cameras/FreeCameraComponent.h"
 #include "rendering/effects/GammaCorrection.h"
-#include "rendering/light/PointLight.h"
 #include "rendering/light/Light.h"
+#include "rendering/light/PointLight.h"
+#include "rendering/materials/PBRMaterial.h"
 #include "rendering/materials/PropMaterial.h"
 #include "rendering/mesh/MeshCreator.h"
-#include "rendering/materials/PBRMaterial.h"
 #include <iostream>
-#include <vector>
 #include <memory>
 #include <random>
+#include <vector>
 
 BEGIN_DECLARE_TEST_SCENE(PointLightsBenchmarkTestScene)
 std::int32_t numberOfLights = 0;
@@ -40,7 +40,7 @@ void PointLightsBenchmarkTestScene::start() {
 
     const auto planeMesh = MeshCreator::plane();
     const auto plane = Engine::gameObjectManager.createGameObject(planeMesh, boxMaterial);
-    plane->transform.scaleBy(glm::vec3{ 5.0F * 15 + 1.F, 5.0F * 15 + 1.F,  1.0F});
+    plane->transform.scaleBy(glm::vec3{ 5.0F * 15 + 1.F, 5.0F * 15 + 1.F, 1.0F });
     plane->transform.rotateBy(glm::angleAxis(glm::radians(-90.F), glm::vec3{ 1.0F, 0.0F, 0.0F }));
     plane->transform.moveBy(glm::vec3{ 2.5F * 15, -0.5F, 2.5F * 15 });
 
@@ -52,8 +52,8 @@ void PointLightsBenchmarkTestScene::start() {
     }
 
     Engine::uiRenderer.addUIDrawer([this, cube] {
-        static std::random_device rd;  //Will be used to obtain a seed for the random number engine
-        static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
         static std::uniform_real_distribution<> dis(0.0F, 1.0F);
 
         ImGui::SetNextWindowSizeConstraints(ImVec2{ 0.f, 0.f }, ImVec2{ 280.f, 250.f });
@@ -62,7 +62,10 @@ void PointLightsBenchmarkTestScene::start() {
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
         int selectedNumberOfLights = numberOfLights;
-        ImGui::SliderInt("##numLights", &selectedNumberOfLights, 0, RenderSystem::MAX_LIGHT_NUMBER);
+        ImGui::SliderInt("##numLights",
+            &selectedNumberOfLights,
+            0,
+            RenderSystem::MAX_LIGHT_NUMBER - 1);  // -1: there is the directional light
 
         if (selectedNumberOfLights < numberOfLights) {
             std::for_each(pointLights.begin() + selectedNumberOfLights, pointLights.end(), [](const auto& light) {
@@ -126,7 +129,7 @@ void PointLightsBenchmarkTestScene::start() {
         }
 
         ImGui::PopItemWidth();
-       
+
         ImGui::End();
     });
 

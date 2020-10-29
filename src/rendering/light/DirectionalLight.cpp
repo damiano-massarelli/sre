@@ -14,6 +14,6 @@ void DirectionalLight::setCastShadowMode(Light::ShadowCasterMode mode) {
         return;
 
     ShadowMappingSettings& settings = Engine::renderSys.shadowMappingSettings;
-    mShadowTexture = Texture::load(nullptr, settings.mapWidth, settings.mapHeight, DeferredRenderingFBO::DEPTH_BUFFER_SETTINGS);
+    mShadowTexture = Texture::load(nullptr, settings.mapWidth, settings.mapHeight, GBuffer::DEPTH_BUFFER_SETTINGS);
     mShadowMapTarget = RenderTarget{ nullptr, &mShadowTexture };
 }

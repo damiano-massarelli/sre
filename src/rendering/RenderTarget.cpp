@@ -1,6 +1,7 @@
 #include "rendering/RenderTarget.h"
 #include <cassert>
 #include <glad/glad.h>
+#include <utility>
 
 RenderTarget::RenderTarget(const Texture* colorBuffer, const Texture* depthBuffer)
     : mColorBuffer{ colorBuffer }
@@ -40,28 +41,24 @@ RenderTarget::RenderTarget(const Texture* colorBuffer, const Texture* depthBuffe
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-RenderTarget::RenderTarget(RenderTarget&& rhs) noexcept {
-    cleanUp();
-    mFbo = rhs.mFbo;
-    mWidth = rhs.mWidth;
-    mHeight = rhs.mHeight;
-    mColorBuffer = rhs.mColorBuffer;
-    mDepthBuffer = rhs.mDepthBuffer;
-    rhs.mFbo = 0;
-    rhs.mColorBuffer = nullptr;
-    rhs.mDepthBuffer = nullptr;
-}
+RenderTarget::RenderTarget(RenderTarget&& rhs) noexcept { *this = std::move(rhs); }
 
 RenderTarget& RenderTarget::operator=(RenderTarget&& rhs) noexcept {
     cleanUp();
     mFbo = rhs.mFbo;
+    rhs.mFbo = 0;
     mWidth = rhs.mWidth;
     mHeight = rhs.mHeight;
     mColorBuffer = rhs.mColorBuffer;
     mDepthBuffer = rhs.mDepthBuffer;
-    rhs.mFbo = 0;
+
+#ifdef SRE_DEBUG
+    // Helpful hints to detect the use of a moved RenderTarget
+    rhs.mWidth = 0;
+    rhs.mHeight = 0;
     rhs.mColorBuffer = nullptr;
     rhs.mDepthBuffer = nullptr;
+#endif  // SRE_DEBUG
 
     return *this;
 }

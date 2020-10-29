@@ -25,12 +25,12 @@ void PointLight::setCastShadowMode(ShadowCasterMode mode) {
     if (mode == ShadowCasterMode::NO_SHADOWS)
         return;
 
-     mPointShadowCubeTexture = Texture::loadCubemap({ { "front", nullptr },
-                                            { "back", nullptr },
-                                            { "top", nullptr },
-                                            { "bottom", nullptr },
-                                            { "left", nullptr },
-                                            { "right", nullptr } },
+    mPointShadowCubeTexture = Texture::loadCubemap({ { "front", nullptr },
+                                                       { "back", nullptr },
+                                                       { "top", nullptr },
+                                                       { "bottom", nullptr },
+                                                       { "left", nullptr },
+                                                       { "right", nullptr } },
         1024,
         1024,
         GL_CLAMP_TO_EDGE,

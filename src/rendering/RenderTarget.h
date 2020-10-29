@@ -27,7 +27,7 @@ private:
 
 public:
     /**
-     * Creates an invalid RenderTarget. 
+     * Creates an invalid RenderTarget.
      */
     RenderTarget() = default;
 
@@ -56,7 +56,7 @@ public:
     std::uint32_t getFbo() const;
 
     /**
-     * @return the color buffer. 
+     * @return the color buffer.
      */
     const Texture* getColorBuffer() const { return mColorBuffer; }
 
@@ -76,7 +76,6 @@ public:
     std::uint32_t getHeight() const;
 
     /**
-     *  
      * @return true if one of the color or depth buffer is valid
      */
     [[nodiscard]] bool isValid() const;

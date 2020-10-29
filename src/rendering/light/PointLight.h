@@ -1,8 +1,8 @@
 #pragma once
 #include "gameobject/GameObjectEH.h"
 #include "rendering/RenderTarget.h"
-#include "rendering/materials/Texture.h"
 #include "rendering/light/Light.h"
+#include "rendering/materials/Texture.h"
 
 class PointLight : public Light {
 private:

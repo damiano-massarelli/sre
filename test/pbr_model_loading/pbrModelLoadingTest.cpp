@@ -80,7 +80,7 @@ void PBRLoadingTestScene::start() {
     Engine::renderSys.addLight(sun);
     sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::NO_SHADOWS);
     sun->getComponent<Light>()->ambientColor = glm::vec3{ 0.1f } / 150.0f;
-    sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 50.0f;
+    sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 5.0f;
     sun->transform.setPosition(glm::vec3{ 0.f, 5.f, 1.f });
     sun->transform.lookAt(glm::vec3{ 0.f });
 }

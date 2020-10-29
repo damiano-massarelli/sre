@@ -348,7 +348,7 @@ void GameObjectLoader::setMetalnessRoughnessTexture(
 
         Texture metalnessTexture
             = Texture::load(nullptr, metalnessRoughness.getWidth(), metalnessRoughness.getHeight(), textureSettings);
-        renderTarget = RenderTarget{ &metalnessRoughness, nullptr };
+        renderTarget = RenderTarget{ &metalnessTexture, nullptr };
 
         mTextureChannelFilter.use();
         mTextureChannelFilter.setInt("channel", 2);  // get blue channel

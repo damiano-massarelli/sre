@@ -157,7 +157,7 @@ public:
     static constexpr std::uint32_t SHADOWMAP_UNIFORM_BLOCK_INDEX = 4;
 
     /** fbo used for deferred rendering */
-    DeferredRenderingFBO gBuffer;
+    GBuffer gBuffer;
 
     /** The texture that contains the outcome of the light pass */
     Texture lightPassTarget;
