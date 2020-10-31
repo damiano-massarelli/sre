@@ -9,19 +9,18 @@ SSR::SSR()
     : Effect{ "ssr", "effects/ssr.glsl" } {
     mPositionTexture = Engine::renderSys.effectManager.getTexture();
     mNormalTexture = Engine::renderSys.effectManager.getTexture();
-    mSpecularTexture = Engine::renderSys.effectManager.getTexture();
+    mMaterialTexture = Engine::renderSys.effectManager.getTexture();
     assert(mPositionTexture != -1);
     assert(mNormalTexture != -1);
 }
 
 void SSR::onSetup(Shader& postProcessingShader) {
     // ShaderScopedUsage useShader{ postProcessingShader };
-
     mPostProcessingShader = postProcessingShader;
 
     mPostProcessingShader.setInt("_ssr_position", mPositionTexture);
     mPostProcessingShader.setInt("_ssr_normals", mNormalTexture);
-    mPostProcessingShader.setInt("_ssr_specular", mSpecularTexture);
+    mPostProcessingShader.setInt("_ssr_materialBuffer", mMaterialTexture);
 
     // Parameter defaults
     mPostProcessingShader.setFloat("_ssr_rayMaxDistance", mMaxDistance);
@@ -38,7 +37,12 @@ void SSR::onSetup(Shader& postProcessingShader) {
 void SSR::update(Shader& postProcessingShader) {
     ShaderScopedUsage useShader{ postProcessingShader };
 
-    const RenderSystem& renderSystem = Engine::renderSys;
+    RenderSystem& renderSystem = Engine::renderSys;
+
+    if (!renderSystem.lightPassTarget.getSettings().appearanceOptions.hasMipmap) {
+        renderSystem.lightPassTarget.setRequireMipmap(true);
+    }
+
     const glm::mat4 currentProjectViewMatrix
         = renderSystem.getProjectionMatrix() * renderSystem.getViewMatrix(renderSystem.getCamera()->transform);
     const auto cameraComponent = renderSystem.getCamera()->getComponent<CameraComponent>();
@@ -64,7 +68,7 @@ void SSR::update(Shader& postProcessingShader) {
     glActiveTexture(GL_TEXTURE0 + mNormalTexture);
     glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getNormalBuffer().getId());
 
-    glActiveTexture(GL_TEXTURE0 + mSpecularTexture);
+    glActiveTexture(GL_TEXTURE0 + mMaterialTexture);
     glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getMaterialBuffer().getId());
 }
 
@@ -105,7 +109,9 @@ void SSR::setHitThreshold(float hitThreshold) {
 }
 
 SSR::~SSR() {
+    Engine::renderSys.lightPassTarget.setRequireMipmap(false);
+
     Engine::renderSys.effectManager.releaseTexture(mPositionTexture);
     Engine::renderSys.effectManager.releaseTexture(mNormalTexture);
-    Engine::renderSys.effectManager.releaseTexture(mSpecularTexture);
+    Engine::renderSys.effectManager.releaseTexture(mMaterialTexture);
 }

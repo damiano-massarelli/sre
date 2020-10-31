@@ -62,10 +62,13 @@ void SSRTestScene::start() {
 
     // Ground
     std::shared_ptr<PBRMaterial> planeMaterial = std::make_shared<PBRMaterial>();
-    planeMaterial->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/metal/albedo.jpg"));
-    planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughness.jpg"));
+    //planeMaterial->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/metal/albedo.jpg"));
+    planeMaterial->setAlbedo(glm::vec3(1.f));
+    //planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughness.jpg"));
+    planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/checker.png"));
     planeMaterial->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg"));
-    planeMaterial->setNormalMap(Texture::loadFromFile("test_data/ssr/textures/metal/normal.jpg"));
+    //planeMaterial->setMetalness(0.f);
+    //planeMaterial->setNormalMap(Texture::loadFromFile("test_data/ssr/textures/metal/normal.jpg"));
     planeMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/ssr/textures/metal/ao.jpg"));
 
     GameObjectEH plane = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), planeMaterial);
@@ -85,11 +88,13 @@ void SSRTestScene::start() {
     cube->transform.setPosition(glm::vec3(10.f, 0.f, 0.f));
     cube->transform.scaleBy(glm::vec3(5.f));
 
-    Engine::uiRenderer.addUIDrawer([ssrEffect, cam]() {
+    Engine::uiRenderer.addUIDrawer([ssrEffect, cam, redMaterial]() {
         float maxDistance = ssrEffect->getMaxDistance();
         float resolution = ssrEffect->getResolution();
         int steps = ssrEffect->getSteps();
         float hitThreshold = ssrEffect->geHitThreshold();
+
+        float roughness = redMaterial->getRoughness();
 
         ImGui::Begin("Settings");
         ImGui::SliderFloat("Max Distance", &maxDistance, 0.f, 50.f);
@@ -97,10 +102,13 @@ void SSRTestScene::start() {
         ImGui::SliderInt("Steps", &steps, 0, 30);
         ImGui::SliderFloat("Hit Threshold", &hitThreshold, 0.01f, 2.f);
 
+        ImGui::SliderFloat("Roughness", &roughness, 0.f, 1.f);
+
         ssrEffect->setMaxDistance(maxDistance);
         ssrEffect->setResolution(resolution);
         ssrEffect->setSteps(steps);
         ssrEffect->setHitThreshold(hitThreshold);
+        redMaterial->setRoughness(roughness);
 
         ImGui::End();
     });

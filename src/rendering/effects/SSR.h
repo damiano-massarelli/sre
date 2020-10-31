@@ -7,7 +7,7 @@ class SSR : public Effect {
 private:
     int mPositionTexture = -1;
     int mNormalTexture = -1;
-    int mSpecularTexture = -1;
+    int mMaterialTexture = -1;
     std::int32_t mCameraPositionLocation = -1;
     std::int32_t mCameraDirectionLocation = -1;
     std::int32_t mProjectionViewLocation = -1;

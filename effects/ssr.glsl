@@ -4,7 +4,7 @@ uniform vec3 _ssr_cameraDirection; // current camera direction
 
 uniform sampler2D _ssr_position; // position data coming from deferred rendering
 uniform sampler2D _ssr_normals;  // normals coming from deferred rendering
-uniform sampler2D _ssr_specular;
+uniform sampler2D _ssr_materialBuffer;
 
 uniform float _ssr_rayMaxDistance;
 uniform float _ssr_rayResolution; // 1 to procede every pixel, within 0 and 1 to sample further
@@ -152,6 +152,9 @@ vec4 ssr(vec4 color) {
 
 	float attenuation = reflectionCloseToViewDirection * furtherFromHit * furtherFromFirstRefl;
 
-	vec4 reflectedColor = texture(screenTexture, uv);
+	float roughness = texture(_ssr_materialBuffer, texCoord).x;
+	const int MAX_LOD = 11;
+	vec4 reflectedColor = textureLod(screenTexture, uv, roughness * MAX_LOD);
+
 	return mix(color, reflectedColor, attenuation * hit * uvOutOfBounds.x * uvOutOfBounds.y * zOutOfBounds);
 }
