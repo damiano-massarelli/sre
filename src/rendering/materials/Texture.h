@@ -17,7 +17,7 @@ public:
      * Appearance settings used on the loaded texture.
      */
     struct AppearanceSettings {
-        bool createMipmap = true;
+        bool hasMipmap = true;
         GLint minFilter = GL_LINEAR;
         GLint magFilter = GL_LINEAR;
         GLint wrapS = GL_CLAMP_TO_EDGE;
@@ -50,6 +50,8 @@ private:
     bool mIsCubeMap = false;
 
     void cleanUpIfNeeded();
+
+    void setupMipmap();
 
 public:
     /**
@@ -136,12 +138,19 @@ public:
         int internalFormat = GL_REPEAT);
 
     /**
+     * Set the mipmap option to the given value.
+     * This is 
+     * @see RenderTarget.
+     */
+    void setRequireMipmap(bool isRequired);
+
+    /**
      * Regenerates mip maps for this texture.
      * This may be needed if the texture uses mip maps and new content is
      * written on it.
      * @see RenderTarget.
      */
-    void regenerateMipmap() const;
+    void updateMipmap() const;
 
     /**
      * Returns the texture id for this texture.

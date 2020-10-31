@@ -168,19 +168,6 @@ Texture Texture::load(void* data, int width, int height, const Settings& options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, options.appearanceOptions.minFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, options.appearanceOptions.magFilter);
 
-    if (options.appearanceOptions.createMipmap) {
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-        if (GLAD_GL_ARB_texture_filter_anisotropic) {
-            float maxAniso = 0;
-            glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, std::min(maxAniso, 4.0f));
-        } else {
-            std::cout << "anisotropic filtering not available\n";
-        }
-    }
-
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, options.appearanceOptions.wrapS);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, options.appearanceOptions.wrapT);
 
@@ -190,6 +177,11 @@ Texture Texture::load(void* data, int width, int height, const Settings& options
     tex.mWidth = width;
     tex.mHeight = height;
     tex.mSettings = options;
+
+    if (options.appearanceOptions.hasMipmap) {
+        tex.setupMipmap();
+        tex.updateMipmap();
+    }
 
     return tex;
 }
@@ -204,8 +196,36 @@ void Texture::cleanUpIfNeeded() {
     }
 }
 
-void Texture::regenerateMipmap() const {
-    if (mSettings.appearanceOptions.createMipmap && isValid()) {
+void Texture::setupMipmap() {
+    glBindTexture(GL_TEXTURE_2D, mTextureId);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+    if (GLAD_GL_ARB_texture_filter_anisotropic) {
+        float maxAniso = 0;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, std::min(maxAniso, 4.0f));
+    }
+    else {
+        std::cout << "anisotropic filtering not available\n";
+    }
+    
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Texture::setRequireMipmap(bool isRequired) {
+    if (mSettings.appearanceOptions.hasMipmap != isRequired) {
+        mSettings.appearanceOptions.hasMipmap = isRequired;
+
+        if (isRequired) {
+            setupMipmap();
+        }
+    }
+}
+
+
+void Texture::updateMipmap() const {
+    if (mSettings.appearanceOptions.hasMipmap && isValid()) {
         glBindTexture(GL_TEXTURE_2D, mTextureId);
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
