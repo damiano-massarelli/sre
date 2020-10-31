@@ -4,7 +4,7 @@
 GaussianBlur::GaussianBlur(float scaleFactor) {
     Texture::Settings loadOptions;
     loadOptions.internalFormat = GL_RGB16F;
-    loadOptions.appearanceOptions.createMipmap = false;
+    loadOptions.appearanceOptions.hasMipmap = false;
 
     auto width = Engine::renderSys.getScreenWidth() * scaleFactor;
     auto height = Engine::renderSys.getScreenHeight() * scaleFactor;

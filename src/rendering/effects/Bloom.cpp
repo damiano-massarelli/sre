@@ -6,7 +6,7 @@ Bloom::Bloom(float scaleFactor)
     , mGaussianBlur{ scaleFactor } {
     Texture::Settings loadOptions;
     loadOptions.internalFormat = GL_RGB16F;
-    loadOptions.appearanceOptions.createMipmap = false;
+    loadOptions.appearanceOptions.hasMipmap = false;
     loadOptions.appearanceOptions.wrapS = GL_REPEAT;
     loadOptions.appearanceOptions.wrapT = GL_REPEAT;
 
