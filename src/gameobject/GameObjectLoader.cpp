@@ -305,7 +305,7 @@ Texture GameObjectLoader::loadTexture(
         const char* texturePath = path.C_Str();
 
         Texture::AppearanceSettings loadOptions;
-        loadOptions.createMipmap = true;
+        loadOptions.hasMipmap = true;
         loadOptions.minFilter = GL_LINEAR;
         loadOptions.magFilter = GL_LINEAR;
         loadOptions.wrapS = mapModeS;
