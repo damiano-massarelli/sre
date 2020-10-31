@@ -1,5 +1,5 @@
-layout (location = 0) out vec4 Diffuse;
-layout (location = 1) out vec4 PBRData;
+layout (location = 0) out vec3 Diffuse;
+layout (location = 1) out vec3 PBRData;
 layout (location = 2) out vec3 Position;
 layout (location = 3) out vec3 Normal;
 
@@ -41,9 +41,9 @@ void main() {
     }    
 	Normal = normal;
 
-    Diffuse = vec4(material.albedo, 1.0);
+    Diffuse = material.albedo;
     if (material.useAlbedoMap) {
-        Diffuse *= texture(material.albedoMap, texCoord);
+        Diffuse *= texture(material.albedoMap, texCoord).rgb;
     }
     Diffuse.rgb = pow(Diffuse.rgb, vec3(2.2));
     

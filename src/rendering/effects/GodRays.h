@@ -11,6 +11,7 @@
  */
 class GodRays : public Effect {
 private:
+    Texture mOcclusionTexture;
     RenderTarget mOcclusionTarget;
 
     int mBlurredTexture;

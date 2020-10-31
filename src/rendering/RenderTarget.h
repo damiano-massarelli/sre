@@ -2,52 +2,68 @@
 #include "rendering/materials/Texture.h"
 #include "resourceManagment/RefCount.h"
 #include <cstdint>
+
 /**
- * A RenderTarget is basically a wrapper for an FBO.
- * RenderTargets can be passed to the RenderSystem in
- * order to render the scene to a texture.
+ * A RenderTarget allows rendering scenes to a texture.
+ * A RenderTarget can be created specifying one of two textures independently:
+ * a color buffer and a depth buffer.
+ * RenderTarge%s do not retain the textures used to create it so it is your
+ * responsibility to make sure that the RenderTarget does not outlive the texture it was
+ * created with.
+ * Creating a RenderTarget can be expensive. It is often convenient to create a Texture and
+ * the corresponding render target only once.
  */
 class RenderTarget {
 private:
     std::uint32_t mFbo = 0;
-    Texture mColorBuffer;
-    Texture mDepthBuffer;
+
+    const Texture* mColorBuffer = nullptr;
+    const Texture* mDepthBuffer = nullptr;
 
     std::uint32_t mWidth = 0;
     std::uint32_t mHeight = 0;
 
-    RefCount mRefCoutner;
-
-private:
-    void cleanUpIfNeeded();
+    void cleanUp();
 
 public:
+    /**
+     * Creates an invalid RenderTarget.
+     */
     RenderTarget() = default;
 
     /**
-     * Creates a RenderTarget with a color and a depth buffer.
-     * @param width the width of the textures
-     * @param height the height of the textures
-     * @param wantColorBuffer whether or not to add a color buffer to this
-     * RenderTarget
-     * @param wantDepthBuffer whether or not to add a depth buffer to this
-     * RenderTarget
+     * Creates a new RenderTarget.
+     * It is possible to provide a colorBuffer and/or a depthBuffer or both.
+     * However, it is an error to create a RenderTarget without any buffer.
+     * The given texture are not retained. Make sure that this RenderTarget does not
+     * outlive the textures it was created with.
      */
-    void create(std::uint32_t width, std::uint32_t height, bool wantColorBuffer = true, bool wantDepthBuffer = true);
+    explicit RenderTarget(const Texture* colorBuffer, const Texture* depthBuffer);
 
-    /**
-     * Creates a RenderTarget with the given Texture%s.
-     * @param colorBuffer the Texture to use as color buffer. If this texture is
-     * invalid, this RenderTarget won't have a color buffer.
-     * @param depthBuffer the Texture to use as depth buffer. If this texture is
-     * invalid, this RenderTarget won't have a depth buffer.
-     */
-    void createWith(const Texture& colorBuffer, const Texture& depthBuffer);
+    RenderTarget(RenderTarget&& rhs) noexcept;
+
+    RenderTarget(const RenderTarget&) = delete;
+
+    RenderTarget& operator=(const RenderTarget&) = delete;
+
+    RenderTarget& operator=(RenderTarget&& rhs) noexcept;
+
+    ~RenderTarget();
 
     /**
      * @return the FBO id for this render target.
      */
     std::uint32_t getFbo() const;
+
+    /**
+     * @return the color buffer.
+     */
+    const Texture* getColorBuffer() const { return mColorBuffer; }
+
+    /**
+     * @return the depth buffer.
+     */
+    const Texture* getDepthBuffer() const { return mDepthBuffer; }
 
     /**
      * @return the width of the color and depth buffers
@@ -60,21 +76,7 @@ public:
     std::uint32_t getHeight() const;
 
     /**
-     * @return the color buffer
-     */
-    const Texture& getColorBuffer() const;
-
-    /**
-     * @return the depth buffer
-     */
-    const Texture& getDepthBuffer() const;
-
-    /**
      * @return true if one of the color or depth buffer is valid
      */
-    bool isValid() const;
-
-    RenderTarget& operator=(const RenderTarget& rhs);
-
-    ~RenderTarget();
+    [[nodiscard]] bool isValid() const;
 };

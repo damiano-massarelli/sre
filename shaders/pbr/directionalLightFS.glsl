@@ -2,7 +2,7 @@ layout (location = 0) out vec4 FragColor;
 
 layout (std140) uniform Lights {
     int numLights;
-    Light lights[10];
+    Light lights[256];
 };
 
 layout (std140) uniform Camera {
@@ -21,7 +21,7 @@ void main() {
     vec2 texCoord = gl_FragCoord.xy / textureSize(DiffuseData, 0);
 
     vec3 albedo = texture(DiffuseData, texCoord).rgb;
-    vec4 data = texture(PBRData, texCoord);
+    vec3 data = texture(PBRData, texCoord).xyz;
     vec3 normal = texture(NormalData, texCoord).xyz;
     vec3 position = texture(PositionData, texCoord).xyz;
 

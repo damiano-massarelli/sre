@@ -59,13 +59,13 @@ void SSR::update(Shader& postProcessingShader) {
     postProcessingShader.setMat4(mProjectionViewLocation, currentProjectViewMatrix);
 
     glActiveTexture(GL_TEXTURE0 + mPositionTexture);
-    glBindTexture(GL_TEXTURE_2D, Engine::renderSys.deferredRenderingFBO.getPositionBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getPositionBuffer().getId());
 
     glActiveTexture(GL_TEXTURE0 + mNormalTexture);
-    glBindTexture(GL_TEXTURE_2D, Engine::renderSys.deferredRenderingFBO.getNormalBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getNormalBuffer().getId());
 
     glActiveTexture(GL_TEXTURE0 + mSpecularTexture);
-    glBindTexture(GL_TEXTURE_2D, Engine::renderSys.deferredRenderingFBO.getAdditionalBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getMaterialBuffer().getId());
 }
 
 void SSR::setMaxDistance(float maxDistance) {

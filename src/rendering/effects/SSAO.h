@@ -21,6 +21,7 @@ private:
     Texture mNoiseTexture;
 
     RenderTarget mSSAOCreationTarget;
+    Texture mTargetTexture;
 
     Shader mSSAOCreationShader;
 

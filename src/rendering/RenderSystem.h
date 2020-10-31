@@ -47,6 +47,7 @@ private:
 
     /** Simple rect that represents the screen */
     Mesh mScreenMesh;
+
     /** Simple unit sphere used to render point lights in deferred rendering */
     Mesh mPointLightSphere;
 
@@ -134,7 +135,7 @@ public:
     SDL_Window* getWindow() const { return mWindow; }
 
     /** Maximum number of lights */
-    static constexpr std::size_t MAX_LIGHT_NUMBER = 32;
+    static constexpr std::size_t MAX_LIGHT_NUMBER = 256;
 
     /** The index of the common matrices uniform block */
     static constexpr std::uint32_t COMMON_MAT_UNIFORM_BLOCK_INDEX = 0;
@@ -150,10 +151,12 @@ public:
     static constexpr std::uint32_t SHADOWMAP_UNIFORM_BLOCK_INDEX = 4;
 
     /** fbo used for deferred rendering */
-    DeferredRenderingFBO deferredRenderingFBO;
+    GBuffer gBuffer;
 
-    /** fbo used to render effects */
-    RenderTarget effectTarget;
+    /** The texture that contains the outcome of the light pass */
+    Texture lightPassTarget;
+    /** RenderTarget used as target for the render pass */
+    RenderTarget lightPassRenderTarget;
 
     /** settings for shadow mapping */
     ShadowMappingSettings shadowMappingSettings;
@@ -169,12 +172,19 @@ public:
     RenderSystem& operator=(const RenderSystem& rs) = delete;
 
     /**
-     * Adds a light to the scene
+     * Adds a light to the scene.
      * if the GameObject does not have a Light component it is silently
      * discarded.
      * @param light a GameObjectEH. The referenced GameObject should contain a Light component.
      */
     void addLight(const GameObjectEH& light);
+
+    /**
+     * Removes a light from the scene.
+     * @param light a GameObjectEH. The referenced GameObject should have been
+     * previously added to the scene using addLight.
+     */
+    void removeLight(const GameObjectEH& light);
 
     /**
      * @return the width of the current window
@@ -205,7 +215,10 @@ public:
 
     /**
      * Render the current scene.
-     * @param renderTarget the target onto which the scene is rendered. if nullptr the screen is used.
+     * @param renderTarget the target onto which the scene is rendered. if
+     * nullptr the screen is used. If the depth buffer of the rendered scene is not needed, it is advisable
+     * to construct the RenderTarget using the already existing gBuffer's depthBuffer. This can improve performances
+     * and can be achieved using RenderTarget{<colorBuffer>, Engine::renderSys.gBuffer.getDepthBuffer()}.
      * @param phase specifies which render phase to use
      */
     void renderScene(const RenderTarget* target = nullptr, RenderPhase phase = RenderPhase::NONE);
