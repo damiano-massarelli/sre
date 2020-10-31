@@ -444,6 +444,9 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target) {
 
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
+
+    // update the color buffer mipmap if the color buffer needs it
+   target->getColorBuffer()->updateMipmap();
 }
 
 void RenderSystem::directionalLightPass(DeferredLightShader& shaderWrapper) {
@@ -737,7 +740,7 @@ void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, Shader& sh
     glViewport(0, 0, getScreenWidth(), getScreenHeight());
 
     // New content written on texture, regenerate mip maps
-    dst.getColorBuffer()->regenerateMipmap();
+    dst.getColorBuffer()->updateMipmap();
 }
 
 void RenderSystem::cleanUp() {
