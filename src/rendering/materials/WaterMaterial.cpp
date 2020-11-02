@@ -79,7 +79,9 @@ void WaterMaterial::onEvent(SDL_Event e) {
     // renderSys.gBuffer = oldDeferredFbo;
 }
 
-std::size_t WaterMaterial::hash() const { return Material::hash() + mDuDvMap.getId() + mNormalMap.getId(); }
+std::size_t WaterMaterial::hash() const {
+    return Material::hash() + mDuDvMap.getId() + mNormalMap.getId();
+}
 
 bool WaterMaterial::equalsTo(const Material* rhs) const {
     if (shader.getId() != rhs->shader.getId())

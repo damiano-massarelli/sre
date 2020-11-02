@@ -89,7 +89,9 @@ void SSAO::createNoiseTexture(std::uniform_real_distribution<float>& dist, std::
     mNoiseTexture = Texture::load(noiseData.data(), res, res, loadOptions);
 }
 
-void SSAO::onSetup(Shader& postProcessingShader) { postProcessingShader.setInt("_ssao_texture", mSSAOTextureIndex); }
+void SSAO::onSetup(Shader& postProcessingShader) {
+    postProcessingShader.setInt("_ssao_texture", mSSAOTextureIndex);
+}
 
 void SSAO::update(Shader& postProcessingShader) {
     if (mNeedsUpdate) {
@@ -131,7 +133,9 @@ void SSAO::setKernelSize(int size) {
     mSSAOCreationShader.setInt("kernelSize", size);
 }
 
-int SSAO::getKernelSize() const { return mKernelSize; }
+int SSAO::getKernelSize() const {
+    return mKernelSize;
+}
 
 void SSAO::setRadius(float radius) {
     mRadius = radius;
@@ -142,21 +146,27 @@ void SSAO::setRadius(float radius) {
     }
 }
 
-float SSAO::getRadius() const { return mRadius; }
+float SSAO::getRadius() const {
+    return mRadius;
+}
 
 void SSAO::setDarkenFactor(float factor) {
     mDarkenFactor = factor;
     mNeedsUpdate = true;
 }
 
-float SSAO::getDarkenFactor() const { return mDarkenFactor; }
+float SSAO::getDarkenFactor() const {
+    return mDarkenFactor;
+}
 
 void SSAO::setBlurSize(int size) {
     mBlurSize = size;
     mNeedsUpdate = true;
 }
 
-int SSAO::getBlurSize() const { return mBlurSize; }
+int SSAO::getBlurSize() const {
+    return mBlurSize;
+}
 
 SSAO::~SSAO() {
     Engine::renderSys.effectManager.releaseTexture(mSSAOTextureIndex);

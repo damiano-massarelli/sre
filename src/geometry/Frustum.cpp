@@ -13,4 +13,6 @@ std::array<Plane, 6> Frustum::getPlanes() const {
     return { mTopPlane, mRightPlane, mBottomPlane, mLeftPlane, mFarPlane, mNearPlane };
 }
 
-const std::array<glm::vec3, 8>& Frustum::getVertices() const { return mVertices; }
+const std::array<glm::vec3, 8>& Frustum::getVertices() const {
+    return mVertices;
+}

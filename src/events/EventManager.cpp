@@ -78,11 +78,17 @@ void EventManager::dispatchToListeners(SDL_EventType eventType, SDL_Event& event
     }
 }
 
-void EventManager::pushEnterFrameEvent(float* deltaMillis) { pushEvent(ENTER_FRAME_EVENT, deltaMillis); }
+void EventManager::pushEnterFrameEvent(float* deltaMillis) {
+    pushEvent(ENTER_FRAME_EVENT, deltaMillis);
+}
 
-void EventManager::pushExitFrameEvent(float* deltaMillis) { pushEvent(EXIT_FRAME_EVENT, deltaMillis); }
+void EventManager::pushExitFrameEvent(float* deltaMillis) {
+    pushEvent(EXIT_FRAME_EVENT, deltaMillis);
+}
 
-void EventManager::pushPreRenderEvent(float* deltaMillis) { pushEvent(PRE_RENDER_EVENT, deltaMillis); }
+void EventManager::pushPreRenderEvent(float* deltaMillis) {
+    pushEvent(PRE_RENDER_EVENT, deltaMillis);
+}
 
 void EventManager::pushEvent(SDL_EventType type, void* data1 /*= nullptr*/, void* data2 /*= nullptr*/) {
     SDL_Event event;

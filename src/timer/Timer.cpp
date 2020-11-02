@@ -9,7 +9,9 @@ void Timer::start() {
     }
 }
 
-bool Timer::isStarted() const { return mStarted; }
+bool Timer::isStarted() const {
+    return mStarted;
+}
 
 void Timer::pause() {
     if (mStarted && !mPaused) {
@@ -18,7 +20,9 @@ void Timer::pause() {
     }
 }
 
-bool Timer::isPaused() const { return mPaused; }
+bool Timer::isPaused() const {
+    return mPaused;
+}
 
 void Timer::resume() {
     if (mPaused) {
@@ -43,9 +47,13 @@ void Timer::setTimeSpeedMultiplier(const float multiplier) {
     mTimeSpeedMultiplier = multiplier;
 }
 
-float Timer::getTimeSpeedMultiplier() const { return mTimeSpeedMultiplier; }
+float Timer::getTimeSpeedMultiplier() const {
+    return mTimeSpeedMultiplier;
+}
 
-float Timer::getSeconds() const { return getMillis() / 1000.0f; }
+float Timer::getSeconds() const {
+    return getMillis() / 1000.0f;
+}
 
 void Timer::setSeconds(float seconds) {
     if (mStarted) {

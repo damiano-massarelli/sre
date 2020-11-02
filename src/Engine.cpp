@@ -13,7 +13,9 @@ GameObjectRenderer Engine::gameObjectRenderer;
 ParticleRenderer Engine::particleRenderer;
 UIRenderer Engine::uiRenderer;
 
-Engine::Engine() { eventManager.addListenerFor(SDL_QUIT, this, false); }
+Engine::Engine() {
+    eventManager.addListenerFor(SDL_QUIT, this, false);
+}
 
 void Engine::onEvent(SDL_Event e) {
     if (e.type == SDL_QUIT)

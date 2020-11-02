@@ -40,4 +40,6 @@ void FogSettings::init() {
     updateUbo();
 }
 
-FogSettings::~FogSettings() { glDeleteBuffers(1, &mFogUbo); }
+FogSettings::~FogSettings() {
+    glDeleteBuffers(1, &mFogUbo);
+}

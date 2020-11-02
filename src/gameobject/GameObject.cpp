@@ -9,9 +9,13 @@ void GameObject::addMesh(const Mesh& mesh, const MaterialPtr& material) {
     transform.updateMeshBoundingBox();
 }
 
-const std::vector<Mesh>& GameObject::getMeshes() const { return mMeshes; }
+const std::vector<Mesh>& GameObject::getMeshes() const {
+    return mMeshes;
+}
 
-const std::vector<MaterialPtr>& GameObject::getMaterials() const { return mMaterials; }
+const std::vector<MaterialPtr>& GameObject::getMaterials() const {
+    return mMaterials;
+}
 
 void GameObject::removeAllMeshes() {
     mMeshes.clear();
@@ -19,7 +23,9 @@ void GameObject::removeAllMeshes() {
     transform.updateMeshBoundingBox();
 }
 
-void GameObject::addComponent(std::shared_ptr<Component> component) { mComponents.push_back(component); }
+void GameObject::addComponent(std::shared_ptr<Component> component) {
+    mComponents.push_back(component);
+}
 
 GameObject::~GameObject() {
     // dtor

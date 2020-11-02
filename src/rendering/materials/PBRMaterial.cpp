@@ -40,29 +40,53 @@ PBRMaterial::PBRMaterial(bool hasSkeletalAnimation)
     shader.setInt("material.aoMap", 4);
 }
 
-void PBRMaterial::setAlbedoMap(const Texture& albedo) { mAlbedoMap = albedo; }
+void PBRMaterial::setAlbedoMap(const Texture& albedo) {
+    mAlbedoMap = albedo;
+}
 
-void PBRMaterial::setAlbedo(glm::vec3 albedo) { mAlbedo = albedo; }
+void PBRMaterial::setAlbedo(glm::vec3 albedo) {
+    mAlbedo = albedo;
+}
 
-void PBRMaterial::setNormalMap(const Texture& normal) { mNormalMap = normal; }
+void PBRMaterial::setNormalMap(const Texture& normal) {
+    mNormalMap = normal;
+}
 
-void PBRMaterial::useNormalMap(bool useNormalMap) { mUseNormalMap = useNormalMap; }
+void PBRMaterial::useNormalMap(bool useNormalMap) {
+    mUseNormalMap = useNormalMap;
+}
 
-void PBRMaterial::setMetalnessMap(const Texture& metalness) { mMetalnessMap = metalness; }
+void PBRMaterial::setMetalnessMap(const Texture& metalness) {
+    mMetalnessMap = metalness;
+}
 
-void PBRMaterial::setUseMetalnessMap(bool useIt) { mUseMetalnessMap = useIt; }
+void PBRMaterial::setUseMetalnessMap(bool useIt) {
+    mUseMetalnessMap = useIt;
+}
 
-void PBRMaterial::setMetalness(float metalness) { mMetalness = metalness; }
+void PBRMaterial::setMetalness(float metalness) {
+    mMetalness = metalness;
+}
 
-void PBRMaterial::setRoughnessMap(const Texture& roughness) { mRoughnessMap = roughness; }
+void PBRMaterial::setRoughnessMap(const Texture& roughness) {
+    mRoughnessMap = roughness;
+}
 
-void PBRMaterial::setUseRoughnessMap(bool useIt) { mUseRoughnessMap = useIt; }
+void PBRMaterial::setUseRoughnessMap(bool useIt) {
+    mUseRoughnessMap = useIt;
+}
 
-void PBRMaterial::setRoughness(float roughness) { mRoughness = roughness; }
+void PBRMaterial::setRoughness(float roughness) {
+    mRoughness = roughness;
+}
 
-void PBRMaterial::setAmbientOcclusionMap(const Texture& ao) { mAOMap = ao; }
+void PBRMaterial::setAmbientOcclusionMap(const Texture& ao) {
+    mAOMap = ao;
+}
 
-void PBRMaterial::setAmbientOcclusion(float ao) { mAO = ao; }
+void PBRMaterial::setAmbientOcclusion(float ao) {
+    mAO = ao;
+}
 
 void PBRMaterial::setSkeletalAnimationController(
     std::shared_ptr<class SkeletalAnimationControllerComponent> controller) {

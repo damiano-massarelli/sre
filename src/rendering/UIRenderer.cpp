@@ -22,11 +22,17 @@ void UIRenderer::init() {
     Engine::eventManager.addListenerFor(EventManager::ALL_EVENTS, this, false);
 }
 
-void UIRenderer::addUIDrawer(std::function<void()> drawer) { mUIDrawers.push_back(drawer); }
+void UIRenderer::addUIDrawer(std::function<void()> drawer) {
+    mUIDrawers.push_back(drawer);
+}
 
-void UIRenderer::setDebugUIDrawer(std::function<void()> drawer) { mDebugUIDrawer = drawer; }
+void UIRenderer::setDebugUIDrawer(std::function<void()> drawer) {
+    mDebugUIDrawer = drawer;
+}
 
-void UIRenderer::onEvent(SDL_Event e) { ImGui_ImplSDL2_ProcessEvent(&e); }
+void UIRenderer::onEvent(SDL_Event e) {
+    ImGui_ImplSDL2_ProcessEvent(&e);
+}
 
 void UIRenderer::render(bool showDebugUI) {
     // Start the Dear ImGui frame
@@ -47,7 +53,9 @@ void UIRenderer::render(bool showDebugUI) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void UIRenderer::cleanUp() { mUIDrawers.clear(); }
+void UIRenderer::cleanUp() {
+    mUIDrawers.clear();
+}
 
 void UIRenderer::shutdown() {
     cleanUp();

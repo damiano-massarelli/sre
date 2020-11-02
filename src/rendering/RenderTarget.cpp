@@ -41,7 +41,9 @@ RenderTarget::RenderTarget(const Texture* colorBuffer, const Texture* depthBuffe
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-RenderTarget::RenderTarget(RenderTarget&& rhs) noexcept { *this = std::move(rhs); }
+RenderTarget::RenderTarget(RenderTarget&& rhs) noexcept {
+    *this = std::move(rhs);
+}
 
 RenderTarget& RenderTarget::operator=(RenderTarget&& rhs) noexcept {
     cleanUp();
@@ -63,11 +65,17 @@ RenderTarget& RenderTarget::operator=(RenderTarget&& rhs) noexcept {
     return *this;
 }
 
-std::uint32_t RenderTarget::getFbo() const { return mFbo; }
+std::uint32_t RenderTarget::getFbo() const {
+    return mFbo;
+}
 
-std::uint32_t RenderTarget::getWidth() const { return mWidth; }
+std::uint32_t RenderTarget::getWidth() const {
+    return mWidth;
+}
 
-std::uint32_t RenderTarget::getHeight() const { return mHeight; }
+std::uint32_t RenderTarget::getHeight() const {
+    return mHeight;
+}
 
 bool RenderTarget::isValid() const {
     return mFbo != 0
@@ -82,4 +90,6 @@ void RenderTarget::cleanUp() {
     }
 }
 
-RenderTarget::~RenderTarget() { cleanUp(); }
+RenderTarget::~RenderTarget() {
+    cleanUp();
+}

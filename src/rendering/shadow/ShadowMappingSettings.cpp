@@ -38,12 +38,22 @@ void ShadowMappingSettings::setShadowStrength(float stregth) {
     updateUbo();
 }
 
-void ShadowMappingSettings::disableShadowRendering() { mEnabled = false; }
+void ShadowMappingSettings::disableShadowRendering() {
+    mEnabled = false;
+}
 
-void ShadowMappingSettings::enableShadowRendering() { mEnabled = true; }
+void ShadowMappingSettings::enableShadowRendering() {
+    mEnabled = true;
+}
 
-bool ShadowMappingSettings::isShadowRenderingEnabled() const { return mEnabled && mShadowStrength > 0.0f; }
+bool ShadowMappingSettings::isShadowRenderingEnabled() const {
+    return mEnabled && mShadowStrength > 0.0f;
+}
 
-float ShadowMappingSettings::getShadowStrength() const { return mShadowStrength; }
+float ShadowMappingSettings::getShadowStrength() const {
+    return mShadowStrength;
+}
 
-ShadowMappingSettings::~ShadowMappingSettings() { glDeleteBuffers(1, &mShadowUbo); }
+ShadowMappingSettings::~ShadowMappingSettings() {
+    glDeleteBuffers(1, &mShadowUbo);
+}

@@ -305,7 +305,9 @@ glm::mat4 RenderSystem::getViewMatrix(const Transform& transform) const {
     return mInvertView * view;
 }
 
-const glm::mat4 RenderSystem::getProjectionMatrix() const { return mProjection; }
+const glm::mat4 RenderSystem::getProjectionMatrix() const {
+    return mProjection;
+}
 
 void RenderSystem::prepareRendering(const RenderTarget* target) {
     if (shadowMappingSettings.isShadowRenderingEnabled())
@@ -690,7 +692,9 @@ void RenderSystem::setCamera(const GameObjectEH& camera) {
         cameraComponent->getFarPlaneDistance());
 }
 
-GameObjectEH RenderSystem::getCamera() const { return mCamera; }
+GameObjectEH RenderSystem::getCamera() const {
+    return mCamera;
+}
 
 std::int32_t RenderSystem::getScreenHeight() const {
     std::int32_t h;
@@ -698,11 +702,17 @@ std::int32_t RenderSystem::getScreenHeight() const {
     return h;
 }
 
-int RenderSystem::getRenderPhase() const { return mRenderPhase; }
+int RenderSystem::getRenderPhase() const {
+    return mRenderPhase;
+}
 
-void RenderSystem::enableClipPlane() const { glEnable(GL_CLIP_DISTANCE0); }
+void RenderSystem::enableClipPlane() const {
+    glEnable(GL_CLIP_DISTANCE0);
+}
 
-void RenderSystem::disableClipPlane() const { glDisable(GL_CLIP_DISTANCE0); }
+void RenderSystem::disableClipPlane() const {
+    glDisable(GL_CLIP_DISTANCE0);
+}
 
 void RenderSystem::setClipPlane(const glm::vec4& clipPlane) const {
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCommonMat);

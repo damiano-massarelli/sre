@@ -9,9 +9,13 @@ PointShadowMaterial::PointShadowMaterial()
     mLightPositionLocation = shader.getLocationOf("lightPos");
 }
 
-void PointShadowMaterial::use() { shader.use(); }
+void PointShadowMaterial::use() {
+    shader.use();
+}
 
-void PointShadowMaterial::after() { shader.stop(); }
+void PointShadowMaterial::after() {
+    shader.stop();
+}
 
 void PointShadowMaterial::setTransformations(
     const std::vector<glm::mat4>& transforms, float farPlane, const glm::vec3& lightPosition) {

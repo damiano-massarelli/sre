@@ -21,7 +21,9 @@ Bloom::Bloom(float scaleFactor)
     mBlurredTexture = Engine::renderSys.effectManager.getTexture();
 }
 
-void Bloom::onSetup(Shader& postProcessingShader) { postProcessingShader.setInt("bloomTexture", mBlurredTexture); }
+void Bloom::onSetup(Shader& postProcessingShader) {
+    postProcessingShader.setInt("bloomTexture", mBlurredTexture);
+}
 
 void Bloom::update(Shader& postProcessingShader) {
     if (mNeedsUpdate) {
@@ -44,7 +46,9 @@ void Bloom::setBloomFactor(float bloomFactor) {
     mBloomFactor = bloomFactor;
 }
 
-float Bloom::getBloomFactor() const { return mBloomFactor; }
+float Bloom::getBloomFactor() const {
+    return mBloomFactor;
+}
 
 Bloom::~Bloom() {
     mBloomExtractor = Shader{};

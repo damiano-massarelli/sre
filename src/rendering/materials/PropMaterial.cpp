@@ -31,7 +31,9 @@ void PropMaterial::after() {
     shader.stop();
 }
 
-std::size_t PropMaterial::hash() const { return std::hash<glm::vec3>{}(color) + static_cast<std::int32_t>(mWireframe); }
+std::size_t PropMaterial::hash() const {
+    return std::hash<glm::vec3>{}(color) + static_cast<std::int32_t>(mWireframe);
+}
 
 bool PropMaterial::equalsTo(const Material* rhs) const {
     if (shader.getId() != rhs->shader.getId())

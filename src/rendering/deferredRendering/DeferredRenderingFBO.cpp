@@ -31,23 +31,41 @@ GBuffer::GBuffer(std::uint32_t width, std::uint32_t height) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-std::uint32_t GBuffer::getFBO() const { return mFbo; }
+std::uint32_t GBuffer::getFBO() const {
+    return mFbo;
+}
 
-const Texture& GBuffer::getDiffuseBuffer() const { return mDiffuseBuffer; }
+const Texture& GBuffer::getDiffuseBuffer() const {
+    return mDiffuseBuffer;
+}
 
-const Texture& GBuffer::getMaterialBuffer() const { return mMaterialBuffer; }
+const Texture& GBuffer::getMaterialBuffer() const {
+    return mMaterialBuffer;
+}
 
-const Texture& GBuffer::getPositionBuffer() const { return mPositionBuffer; }
+const Texture& GBuffer::getPositionBuffer() const {
+    return mPositionBuffer;
+}
 
-const Texture& GBuffer::getNormalBuffer() const { return mNormalBuffer; }
+const Texture& GBuffer::getNormalBuffer() const {
+    return mNormalBuffer;
+}
 
-const Texture& GBuffer::getDepthBuffer() const { return mDepthBuffer; }
+const Texture& GBuffer::getDepthBuffer() const {
+    return mDepthBuffer;
+}
 
-std::uint32_t GBuffer::getWidth() const { return mWidth; }
+std::uint32_t GBuffer::getWidth() const {
+    return mWidth;
+}
 
-std::uint32_t GBuffer::getHeight() const { return mHeight; }
+std::uint32_t GBuffer::getHeight() const {
+    return mHeight;
+}
 
-GBuffer::GBuffer(GBuffer&& rhs) noexcept { *this = std::move(rhs); }
+GBuffer::GBuffer(GBuffer&& rhs) noexcept {
+    *this = std::move(rhs);
+}
 
 GBuffer& GBuffer::operator=(GBuffer&& rhs) noexcept {
     cleanUp();
@@ -81,4 +99,6 @@ void GBuffer::cleanUp() {
     }
 }
 
-GBuffer::~GBuffer() { cleanUp(); }
+GBuffer::~GBuffer() {
+    cleanUp();
+}

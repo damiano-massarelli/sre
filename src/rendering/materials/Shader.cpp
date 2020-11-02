@@ -27,7 +27,9 @@ ShaderScopedUsage::ShaderScopedUsage(Shader& shader)
     mShader.use();
 }
 
-ShaderScopedUsage::~ShaderScopedUsage() { mShader.stop(); }
+ShaderScopedUsage::~ShaderScopedUsage() {
+    mShader.stop();
+}
 
 Shader Shader::loadFromFile(const std::vector<std::string>& vertexPaths,
     const std::vector<std::string>& geometryPaths,
@@ -247,7 +249,9 @@ void Shader::setFloat(const std::string& name, float value) const {
         glUniform1f(location, value);
 }
 
-void Shader::setFloat(std::int32_t location, float value) const { glUniform1f(location, value); }
+void Shader::setFloat(std::int32_t location, float value) const {
+    glUniform1f(location, value);
+}
 
 void Shader::bindUniformBlock(const std::string& name, std::uint32_t bindingPoint) {
     std::uint32_t index = glGetUniformBlockIndex(mProgramId, name.c_str());
@@ -263,7 +267,9 @@ void Shader::setInt(const std::string& name, int value) const {
         glUniform1i(location, value);
 }
 
-void Shader::setInt(std::int32_t location, int value) const { glUniform1i(location, value); }
+void Shader::setInt(std::int32_t location, int value) const {
+    glUniform1i(location, value);
+}
 
 void Shader::setMat3(const std::string& name, const glm::mat3& value) const {
     std::int32_t location = getLocationOf(name);
@@ -335,14 +341,26 @@ void Shader::stop() const {
     glUseProgram(0);
 }
 
-bool Shader::isInUse() const { return Shader::mInUse == mProgramId; }
+bool Shader::isInUse() const {
+    return Shader::mInUse == mProgramId;
+}
 
-bool Shader::isValid() const { return mProgramId != 0; }
+bool Shader::isValid() const {
+    return mProgramId != 0;
+}
 
-GLuint Shader::getId() const { return mProgramId; }
+GLuint Shader::getId() const {
+    return mProgramId;
+}
 
-Shader::operator bool() const { return isValid(); }
+Shader::operator bool() const {
+    return isValid();
+}
 
-bool Shader::operator==(const Shader& other) { return mProgramId == other.mProgramId; }
+bool Shader::operator==(const Shader& other) {
+    return mProgramId == other.mProgramId;
+}
 
-Shader::~Shader() { cleanUpIfNeeded(); }
+Shader::~Shader() {
+    cleanUpIfNeeded();
+}

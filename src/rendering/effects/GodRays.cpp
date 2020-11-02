@@ -26,21 +26,27 @@ void GodRays::setDensity(float density) {
     mNeedUpdate = true;
 }
 
-float GodRays::getDensity() const { return mDensity; }
+float GodRays::getDensity() const {
+    return mDensity;
+}
 
 void GodRays::setDecayRatio(float ratio) {
     mDecayRatio = ratio;
     mNeedUpdate = true;
 }
 
-float GodRays::getDecayRatio() const { return mDecayRatio; }
+float GodRays::getDecayRatio() const {
+    return mDecayRatio;
+}
 
 void GodRays::setWeight(float weight) {
     mWeight = weight;
     mNeedUpdate = true;
 }
 
-float GodRays::getWeight() const { return mWeight; }
+float GodRays::getWeight() const {
+    return mWeight;
+}
 
 void GodRays::onSetup(Shader& postProcessingShader) {
     postProcessingShader.setInt("_gr_raysTexture", mBlurredTexture);
@@ -89,4 +95,6 @@ void GodRays::update(Shader& postProcessingShader) {
     }
 }
 
-GodRays::~GodRays() { Engine::renderSys.effectManager.releaseTexture(mBlurredTexture); }
+GodRays::~GodRays() {
+    Engine::renderSys.effectManager.releaseTexture(mBlurredTexture);
+}

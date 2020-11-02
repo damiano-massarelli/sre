@@ -24,11 +24,17 @@ void RefCount::decrease() {
     }
 }
 
-RefCount::RefCount() { mRefs = new int{ 1 }; }
+RefCount::RefCount() {
+    mRefs = new int{ 1 };
+}
 
-RefCount::RefCount(const RefCount& rc) { copy(rc); }
+RefCount::RefCount(const RefCount& rc) {
+    copy(rc);
+}
 
-bool RefCount::shouldCleanUp() const { return *mRefs == 1; }
+bool RefCount::shouldCleanUp() const {
+    return *mRefs == 1;
+}
 
 void RefCount::setWeak() {
     decrease();
@@ -41,4 +47,6 @@ RefCount& RefCount::operator=(const RefCount& rc) {
     return *this;
 }
 
-RefCount::~RefCount() { decrease(); }
+RefCount::~RefCount() {
+    decrease();
+}

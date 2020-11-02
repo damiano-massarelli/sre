@@ -6,9 +6,13 @@ Light::Light(const GameObjectEH& go, Light::Type lightType)
     : Component{ go }
     , mType{ lightType } { }
 
-Light::Type Light::getType() const { return mType; }
+Light::Type Light::getType() const {
+    return mType;
+}
 
-Light::ShadowCasterMode Light::getShadowCasterMode() const { return mShadowMode; }
+Light::ShadowCasterMode Light::getShadowCasterMode() const {
+    return mShadowMode;
+}
 
 void Light::setCastShadowMode(ShadowCasterMode mode) {
     if (mode == ShadowCasterMode::STATIC)
@@ -23,7 +27,9 @@ void Light::setCastShadowMode(ShadowCasterMode mode) {
     mShadowMode = mode;
 }
 
-void Light::updateShadow() { mNeedsShadowUpdate = true; }
+void Light::updateShadow() {
+    mNeedsShadowUpdate = true;
+}
 
 bool Light::needsShadowUpdate() {
     if (mNeedsShadowUpdate) {

@@ -74,8 +74,14 @@ void ParticleEmitter::onEvent(SDL_Event e) {
     }
 }
 
-const std::vector<Particle>& ParticleEmitter::getParticles() const { return mParticles; }
+const std::vector<Particle>& ParticleEmitter::getParticles() const {
+    return mParticles;
+}
 
-std::vector<Particle>& ParticleEmitter::getParticles() { return mParticles; }
+std::vector<Particle>& ParticleEmitter::getParticles() {
+    return mParticles;
+}
 
-ParticleEmitter::~ParticleEmitter() { Engine::particleRenderer.removeEmitter(this); }
+ParticleEmitter::~ParticleEmitter() {
+    Engine::particleRenderer.removeEmitter(this);
+}
