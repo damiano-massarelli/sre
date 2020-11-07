@@ -13,9 +13,11 @@
  */
 class GaussianBlur {
 private:
-    Texture mBlurred;
+    Texture mHorizontalBlurred;
+    RenderTarget mHorizontalTarget;
 
-    RenderTarget mTarget;
+    Texture mCombinedBlurred;
+    RenderTarget mCombinedTarget;
 
     Shader hBlur;
     Shader vBlur;
@@ -31,7 +33,7 @@ public:
      * @param scaleFactor the scale factor used to scale the original Texture
      * before blurring.
      */
-    GaussianBlur(float scaleFactor = 0.5);
+    GaussianBlur(float scaleFactor = 0.5F);
 
     /**
      * Blurs a Texture.
