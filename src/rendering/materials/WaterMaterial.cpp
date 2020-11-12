@@ -11,42 +11,46 @@ WaterMaterial::WaterMaterial(float waterY, const Texture& dudv, const Texture& n
     , mWaterY{ waterY }
     , mDuDvMap{ dudv }
     , mNormalMap{ normalMap } {
-    // mEmptyReflectionTarget.create(320, 180, false, false);
-    // mReflectionFbo.init(320, 180);
 
-    // mEmptyRefractionTarget.create(1280, 720, false, false);
-    // mRefractionFbo.init(1280, 720);
+    mReflectionGBuffer = GBuffer{ 320, 240 };
+    mReflectionTexture = Texture::load(nullptr, 320, 240, Engine::renderSys.lightPassTarget.getSettings());
+    mReflectionTarget = RenderTarget{ &mReflectionTexture, &mReflectionGBuffer.getDepthBuffer() };
 
-    ///**
-    // * This is a target whose initial color is the diffuse color added by the
-    // * deferred and pbr rendering. On top of that, the result of forward
-    // * rendering and particle rendering is added in another render pass (see
-    // * renderRefraction)
-    // */
-    // mReflectionRarget.createWith(mReflectionFbo.getDiffuseBuffer(), mReflectionFbo.getDepthBuffer());
 
-    // mReflectionCamera = Engine::gameObjectManager.createGameObject();
+    mRefractionGBuffer = GBuffer{ 1280, 720 };
+    mRefractionTexture = Texture::load(nullptr, 1280, 720, Engine::renderSys.lightPassTarget.getSettings());
+    mRefractionTarget = RenderTarget{ &mReflectionTexture, &mReflectionGBuffer.getDepthBuffer() };
 
-    //// don't render when rendering for water or shadows
-    // unSupportedRenderPhases |= RenderPhase::ALL & ~RenderPhase::DEFERRED_RENDERING;
+    /**
+     * This is a target whose initial color is the diffuse color added by the
+     * deferred and pbr rendering. On top of that, the result of forward
+     * rendering and particle rendering is added in another render pass (see
+     * renderRefraction)
+     */
+     //mReflectionRarget.createWith(mReflectionFbo.getDiffuseBuffer(), mReflectionFbo.getDepthBuffer());
 
-    // mEventCrumb = Engine::eventManager.addListenerFor(EventManager::PRE_RENDER_EVENT, this, true);
+     mReflectionCamera = Engine::gameObjectManager.createGameObject();
 
-    // ShaderScopedUsage useShader{ shader };
+    // don't render when rendering for water or shadows
+     unSupportedRenderPhases |= RenderDomain::ALL & ~RenderDomain::PBR;
 
-    // shader.setInt("reflection", 0);
-    // shader.setInt("refraction", 1);
-    // shader.setInt("dudvMap", 2);
-    // shader.setInt("normalMap", 3);
-    // shader.setInt("depthMap", 4);
+     mEventCrumb = Engine::eventManager.addListenerFor(EventManager::PRE_RENDER_EVENT, this, true);
 
-    // shader.setFloat("near", Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getNearPlaneDistance());
-    // shader.setFloat("far", Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getFarPlaneDistance());
+     ShaderScopedUsage useShader{ shader };
 
-    // shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
-    // shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
+     shader.setInt("reflection", 0);
+     shader.setInt("refraction", 1);
+     shader.setInt("dudvMap", 2);
+     shader.setInt("normalMap", 3);
+     shader.setInt("depthMap", 4);
 
-    // mMoveDuDvLocation = shader.getLocationOf("moveDuDv");
+     shader.setFloat("near", Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getNearPlaneDistance());
+     shader.setFloat("far", Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getFarPlaneDistance());
+
+     shader.bindUniformBlock("CommonMat", RenderSystem::COMMON_MAT_UNIFORM_BLOCK_INDEX);
+     shader.bindUniformBlock("Camera", RenderSystem::CAMERA_UNIFORM_BLOCK_INDEX);
+
+     mMoveDuDvLocation = shader.getLocationOf("moveDuDv");
 }
 
 void WaterMaterial::onEvent(SDL_Event e) {
@@ -61,9 +65,10 @@ void WaterMaterial::onEvent(SDL_Event e) {
      * it should be good enough! What's more, shadows would not make sense since
      * the scene is split due to clipping planes.
      */
-    bool enabled = renderSys.shadowMappingSettings.isShadowRenderingEnabled();
-    if (enabled)
+    const bool shadowsEnabled = renderSys.shadowMappingSettings.isShadowMappingEnabled();
+    if (shadowsEnabled) {
         renderSys.shadowMappingSettings.disableShadowRendering();
+    }
 
     // auto oldDeferredFbo = renderSys.gBuffer;
     renderSys.enableClipPlane();
@@ -72,8 +77,9 @@ void WaterMaterial::onEvent(SDL_Event e) {
 
     renderReflection();
 
-    if (enabled)
+    if (shadowsEnabled) {
         renderSys.shadowMappingSettings.enableShadowRendering();
+    }
 
     renderSys.disableClipPlane();
     // renderSys.gBuffer = oldDeferredFbo;
@@ -95,8 +101,8 @@ bool WaterMaterial::equalsTo(const Material* rhs) const {
 }
 
 void WaterMaterial::renderReflection() {
-    GameObjectEH oldCamera = Engine::renderSys.getCamera();
-    mReflectionCamera->transform = oldCamera->transform;
+    GameObjectEH currentCamera = Engine::renderSys.getCamera();
+    mReflectionCamera->transform = currentCamera->transform;
 
     // temp camera for this stage
     Engine::renderSys.setCamera(mReflectionCamera);
@@ -118,10 +124,10 @@ void WaterMaterial::renderReflection() {
     // render to reflection target
     // Engine::renderSys.gBuffer = mReflectionFbo;
     Engine::renderSys.setClipPlane(glm::vec4{ 0, 1, 0, -mWaterY });
-    Engine::renderSys.renderScene(&mEmptyReflectionTarget, RenderPhase::WATER);
+    //Engine::renderSys.renderScene(&mEmptyReflectionTarget, RenderDomain::WATER);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, mReflectionRarget.getFbo());
-    Engine::renderSys.render(RenderPhase::FORWARD_RENDERING | RenderPhase::WATER);
+    //glBindFramebuffer(GL_FRAMEBUFFER, mReflectionRarget.getFbo());
+    //Engine::renderSys.render(RenderDomain::FORWARD_RENDERING | RenderDomain::WATER);
 
     Engine::particleRenderer.render();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -129,21 +135,21 @@ void WaterMaterial::renderReflection() {
     // render particles
     Engine::particleRenderer.render();
 
-    Engine::renderSys.setCamera(oldCamera);
+    Engine::renderSys.setCamera(currentCamera);
 }
 
 void WaterMaterial::renderRefraction() {
-    // Engine::renderSys.gBuffer = mRefractionFbo;
     Engine::renderSys.setClipPlane(glm::vec4{ 0, -1, 0, mWaterY + 1 });
-    Engine::renderSys.renderScene(&mEmptyRefractionTarget, RenderPhase::WATER);
+    //Engine::renderSys.renderScene(&mEmptyRefractionTarget, RenderDomain::WATER);
 }
 
 void WaterMaterial::use() {
+    return;
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mReflectionRarget.getColorBuffer()->getId());
+    //glBindTexture(GL_TEXTURE_2D, mReflectionRarget.getColorBuffer()->getId());
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getDiffuseBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, mRefractionGBuffer.getDiffuseBuffer().getId());
 
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, mDuDvMap.getId());
@@ -152,14 +158,14 @@ void WaterMaterial::use() {
     glBindTexture(GL_TEXTURE_2D, mNormalMap.getId());
 
     glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, mRefractionFbo.getDepthBuffer().getId());
+    glBindTexture(GL_TEXTURE_2D, mRefractionGBuffer.getDepthBuffer().getId());
 
     shader.use();
     shader.setFloat(mMoveDuDvLocation, mMoveDuDv);
 }
 
 void WaterMaterial::after() {
-    for (int i = 0; i <= 7; i++) {
+    for (int i = 0; i <= 4; i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, 0);
     }

@@ -1,5 +1,6 @@
 #include "rendering/materials/Material.h"
 #include <functional>
+#include <type_traits>
 
 Material::Material(const std::string& vertexShader, const std::string& fragmentShader)
     : Material{ std::vector<std::string>{ vertexShader }, {}, { fragmentShader } } { }
@@ -26,7 +27,7 @@ std::int32_t Material::getNormalModelLocation() const {
 }
 
 std::size_t Material::hash() const {
-    return shader.getId() + static_cast<int>(isTwoSided) + unSupportedRenderPhases;
+    return shader.getId() + static_cast<int>(isTwoSided) + static_cast<std::underlying_type_t<RenderDomain>>(unSupportedRenderPhases);
 }
 
 bool Material::equalsTo(const Material* rhs) const {

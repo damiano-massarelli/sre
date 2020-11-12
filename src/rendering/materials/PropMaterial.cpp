@@ -7,7 +7,7 @@ PropMaterial::PropMaterial(bool wireframe, bool showNormals)
         (showNormals ? std::vector<std::string>{ "shaders/propGS.glsl" } : std::vector<std::string>{}),
         { "shaders/propFS.glsl" } }
     , mWireframe{ wireframe } {
-    unSupportedRenderPhases = RenderPhase::ALL & ~RenderPhase::FORWARD_RENDERING;
+    unSupportedRenderPhases = RenderDomain::ALL & ~RenderDomain::FORWARD_RENDERING;
 
     mColorLocation = shader.getLocationOf("color");
 

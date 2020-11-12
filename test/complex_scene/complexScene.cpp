@@ -88,7 +88,7 @@ void ComplexTestScene::start() {
     sponza->transform.setScale(glm::vec3{ 0.1f });
 
     for (const auto& eh : sponza->transform.findAll("vase"))
-        eh->getMaterials()[0]->unSupportedRenderPhases |= RenderPhase::SHADOW_MAPPING;
+        eh->getMaterials()[0]->unSupportedRenderPhases |= RenderDomain::SHADOW_MAPPING;
 
     for (const auto& eh : sponza->transform.findAll("firePos"))
         addParticles(eh);

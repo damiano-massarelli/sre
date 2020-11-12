@@ -29,20 +29,26 @@ float HeightMapTerrainHeightProvider::get(float x, float z) const {
     if (z > 1)
         z = 1;
 
-    int zi = static_cast<int>(z * (mHeight - 1));
-    int xi = static_cast<int>(x * (mWidth - 1));
+    const int zi = static_cast<int>(z * (mHeight - 1));
+    const int xi = static_cast<int>(x * (mWidth - 1));
+    const int index = zi * mWidth + xi;
 
-    float f = (mHeightData[(zi * mWidth + xi)] / 255.0f);
+    float f = (mHeightData[index] / 255.0f);
     return mMaxHeight * f + mMinHeight * (1.0f - f);
 }
 
-glm::vec3 HeightMapTerrainHeightProvider::getNormal(float x, float z) const {
-    float heightL = get(x - 1.5f / mWidth, z);
-    float heightR = get(x + 1.5f / mWidth, z);
-    float heightU = get(x, z + 1.5f / mHeight);
-    float heightD = get(x, z - 1.5f / mHeight);
+glm::vec3 HeightMapTerrainHeightProvider::getNormal(float x, float z, float terrainWidth, float terrainHeight) const {
+    // get the position of nearby pixels
+    const float heightL = get(x - 1.0F / mWidth, z);
+    const float heightR = get(x + 1.0F / mWidth, z);
+    const float heightU = get(x, z + 1.0F / mHeight);
+    const float heightD = get(x, z - 1.0F / mHeight);
 
-    return glm::normalize(glm::vec3{ heightL - heightR, 2.0f, heightD - heightU });
+    const float widthDelta = (1.F / mWidth) * terrainWidth;
+    const float heightDelta = (1.F / mHeight) * terrainHeight;
+
+    const auto normal = glm::vec3{ (heightR - heightL) / widthDelta, 2.F, (heightD - heightU) / heightDelta };
+    return glm::normalize(normal);
 }
 
 HeightMapTerrainHeightProvider::~HeightMapTerrainHeightProvider() {

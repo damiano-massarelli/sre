@@ -23,10 +23,10 @@ private:
     std::uint32_t mVVertex;
 
     /// width of the map
-    std::uint32_t mWidth;
+    float mWidth;
 
     /// depth of the map
-    std::uint32_t mDepth;
+    float mDepth;
 
     /// how many times the terrain texture is repeated horizontally
     float mHTerrainTexutreTiles = 40;
@@ -45,7 +45,7 @@ public:
      * @param depth the depth of the terrain
      */
     TerrainGenerator(
-        std::uint32_t hVertex = 50, std::uint32_t vVertex = 50, std::uint32_t width = 50, std::uint32_t depth = 50);
+        std::uint32_t hVertex = 50, std::uint32_t vVertex = 50, float width = 50, float = 50);
 
     /**
      * Sets the number of times the texture of the ground is repeated.

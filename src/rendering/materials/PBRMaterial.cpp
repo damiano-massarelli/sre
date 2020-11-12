@@ -16,7 +16,7 @@ PBRMaterial::PBRMaterial(bool hasSkeletalAnimation)
     : Material{ { (hasSkeletalAnimation ? "shaders/animatedPhongVS.glsl" : "shaders/bumpedPhongVS.glsl") },
         { "shaders/pbrFS.glsl" } }
     , mHasSkeletalAnimation{ hasSkeletalAnimation } {
-    unSupportedRenderPhases = (RenderPhase::FORWARD_RENDERING | RenderPhase::DEFERRED_RENDERING);
+    unSupportedRenderPhases = RenderDomain::FORWARD_RENDERING;
 
     ShaderScopedUsage useShader{ shader };
 

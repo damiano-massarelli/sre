@@ -6,6 +6,8 @@
 #include "rendering/deferredRendering/DeferredRenderingFBO.h"
 #include "rendering/materials/Material.h"
 #include "rendering/materials/Texture.h"
+#include "cameras/CameraComponent.h"
+#include <memory>
 
 /**
  * Material for water rendering.
@@ -21,19 +23,15 @@
  */
 class WaterMaterial : public Material, public EventListener {
 private:
-    // invalid render target so that lights lights calculations are not carried
-    // out (see RenderSystem::renderScene)
-    RenderTarget mEmptyReflectionTarget;
-    GBuffer mReflectionFbo;
+    Texture mReflectionTexture;
+    RenderTarget mReflectionTarget;
+    GBuffer mReflectionGBuffer;
 
-    // invalid render target so that lights lights calculations are not carried
-    // out
-    RenderTarget mEmptyRefractionTarget;
-    GBuffer mRefractionFbo;
+    Texture mRefractionTexture;
+    RenderTarget mRefractionTarget;
+    GBuffer mRefractionGBuffer;
 
-    // render target for forward and particles
-    RenderTarget mReflectionRarget;
-
+    std::shared_ptr<CameraComponent> mReflectionCameraComponent;
     GameObjectEH mReflectionCamera;
 
     CrumbPtr mEventCrumb;

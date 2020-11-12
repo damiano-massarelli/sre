@@ -73,7 +73,7 @@ void GameObjectRenderer::render() {
 
             // do not render this mesh if its material does not support the
             // current render phase
-            if ((meshMaterial->unSupportedRenderPhases & Engine::renderSys.getRenderPhase()))
+            if ((meshMaterial->unSupportedRenderPhases & Engine::renderSys.getRenderPhase()) != RenderDomain::NONE)
                 continue;
 
             // use a default material if required

@@ -309,12 +309,8 @@ const glm::mat4 RenderSystem::getProjectionMatrix() const {
     return mProjection;
 }
 
-void RenderSystem::prepareRendering(const RenderTarget* target) {
-    if (shadowMappingSettings.isShadowRenderingEnabled())
-        renderShadows();
-
-    // view port might be changed during shadow rendering
-    glViewport(0, 0, target->getWidth(), target->getHeight());
+void RenderSystem::prepareRendering(const RenderTarget& target) {
+    glViewport(0, 0, target.getWidth(), target.getHeight());
     glEnable(GL_DEPTH_TEST);
 
     // clear all the buffers
@@ -325,8 +321,9 @@ void RenderSystem::prepareRendering(const RenderTarget* target) {
 
     /* Camera calculations */
     glm::mat4 view = glm::mat4{ 1.0f };
-    if (mCamera)
+    if (mCamera) {
         view = getViewMatrix(mCamera->transform);
+    }
 
     /* Sets the camera matrix to a UBO so that it is shared */
     updateMatrices(&mProjection, &view);
@@ -335,9 +332,9 @@ void RenderSystem::prepareRendering(const RenderTarget* target) {
     updateCamera();
 }
 
-void RenderSystem::prepareDeferredRendering() {
+void RenderSystem::prepareDeferredRendering(const GBuffer& targetGBuffer) {
     // bind the deferred rendering frame buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer.getFBO());
+    glBindFramebuffer(GL_FRAMEBUFFER, targetGBuffer.getFBO());
 
     // set up the stencil test so that only the parts affected by deferred rendering
     // are actually lit in the deferred rendering directional light pass pass
@@ -353,32 +350,48 @@ void RenderSystem::prepareDeferredRendering() {
     glDisable(GL_BLEND);
 }
 
-void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase) {
-    auto targetToUse = target;
-    if (target == nullptr)  // target null means render to screen
-        targetToUse = &lightPassRenderTarget;
+void RenderSystem::renderScene(const RenderTarget* target, const GBuffer* targetGBuffer, RenderPhase enabledRenderPhases) {
+    // render to screen only if no target specified
+    const bool renderToScreen = target == nullptr;
 
-    prepareRendering(targetToUse);
+    target = target == nullptr ? &lightPassRenderTarget : target;
+    targetGBuffer = targetGBuffer == nullptr ? &gBuffer : targetGBuffer;
 
-    prepareDeferredRendering();
+#ifdef SRE_DEBUG
+    assert(target->isValid());
+#endif // SRE_DEBUG
 
-    render(RenderPhase::PBR | phase);
+    const bool shadowMappingEnabled = (enabledRenderPhases & RenderPhase::SHADOW_MAPPING) != RenderPhase::NONE;
+    const bool pbrResolveLights = (enabledRenderPhases & RenderPhase::PBR_RESOLVE_LIGHTS) != RenderPhase::NONE;
+    const bool pbrEnabled = (enabledRenderPhases & RenderPhase::PBR) != RenderPhase::NONE;
+    const bool forwardRenderingEnabled = (enabledRenderPhases & RenderPhase::FORWARD_RENDERING) != RenderPhase::NONE;
+    const bool particlesEnabled = (enabledRenderPhases & RenderPhase::PARTICLES) != RenderPhase::NONE;
+    
+    if (shadowMappingSettings.isShadowMappingEnabled() &&  shadowMappingEnabled) {
+        renderShadows();
+    }
 
-    // no need to render lights and stuff if render target is not valid
-    if (!targetToUse->isValid())
-        return;
+    prepareRendering(*target);
 
-    finalizeDeferredRendering(targetToUse);
+    if (pbrEnabled) {
+        prepareDeferredRendering(*targetGBuffer);
+        render(RenderDomain::PBR);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    render(RenderPhase::FORWARD_RENDERING | phase);
+        finalizeDeferredRendering(*target, *targetGBuffer, pbrResolveLights);
+    }
+
+    if (forwardRenderingEnabled) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        render(RenderDomain::FORWARD_RENDERING);
+    }
 
     // render particles
-    Engine::particleRenderer.render();
+    if (particlesEnabled) {
+        Engine::particleRenderer.render();
+    }
 
-    // render to screen only if no target specified
-    if (target == nullptr) {
+    if (renderToScreen) {
         finalizeRendering();
 
         Engine::uiRenderer.render();
@@ -387,65 +400,67 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase) {
     }
 }
 
-void RenderSystem::render(int phase) {
+void RenderSystem::render(RenderDomain phase) {
     mRenderPhase = phase;
     Engine::gameObjectRenderer.render();
 }
 
-void RenderSystem::finalizeDeferredRendering(const RenderTarget* target) {
+void RenderSystem::finalizeDeferredRendering(const RenderTarget& target, const GBuffer& targetGBuffer, bool resolveLights) {
 #ifdef SRE_DEBUG
-    assert(target != nullptr && target->getDepthBuffer() != nullptr && target->getDepthBuffer()->isValid());
+    assert(target.getDepthBuffer() != nullptr && target.getDepthBuffer()->isValid());
 #endif
-    glBindFramebuffer(GL_FRAMEBUFFER, target->getFbo());
+    glBindFramebuffer(GL_FRAMEBUFFER, target.getFbo());
     // if the target depth buffer is not the same as the one held by the gBuffer
     // then we need to copy the gBuffer data as depth and stencil information is needed in the forward rendering pass.
-    if (target->getDepthBuffer()->getId() != gBuffer.getDepthBuffer().getId()) {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer.getFBO());
+    if (target.getDepthBuffer()->getId() != targetGBuffer.getDepthBuffer().getId()) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, targetGBuffer.getFBO());
         glBlitFramebuffer(0,
             0,
-            gBuffer.getWidth(),
-            gBuffer.getHeight(),
+            targetGBuffer.getWidth(),
+            targetGBuffer.getHeight(),
             0,
             0,
-            gBuffer.getWidth(),
-            gBuffer.getHeight(),
+            targetGBuffer.getWidth(),
+            targetGBuffer.getHeight(),
             GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
             GL_NEAREST);
     }
+    
+    if (resolveLights) {
+        // clear the color buffer of the currently bound fbo (can be either effects fbo or default (0) fbo)
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
-    // clear the color buffer of the currently bound fbo (can be either effects fbo or default (0) fbo)
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+        // we are rendering to a texture now (or screen)
+        // there is no need of using a depth buffer
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
 
-    // we are rendering to a texture now (or screen)
-    // there is no need of using a depth buffer
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
+        // bind texture used by directional and point light passes
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, targetGBuffer.getDiffuseBuffer().getId());
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, targetGBuffer.getMaterialBuffer().getId());
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, targetGBuffer.getPositionBuffer().getId());
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, targetGBuffer.getNormalBuffer().getId());
 
-    // bind texture used by directional and point light passes
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gBuffer.getDiffuseBuffer().getId());
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, gBuffer.getMaterialBuffer().getId());
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, gBuffer.getPositionBuffer().getId());
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, gBuffer.getNormalBuffer().getId());
+        // perform directional light pass (include shadows)
+        directionalLightPass(mDirectionalLightDeferredPBR);
 
-    // perform directional light pass (include shadows)
-    directionalLightPass(mDirectionalLightDeferredPBR);
+        // perform point light pass (include shadows)
+        pointLightPass(mPointLightDeferredPBR);
 
-    // perform point light pass (include shadows)
-    pointLightPass(mPointLightDeferredPBR);
+        // unbind textures
+        for (int i = 3; i >= 0; --i) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
 
-    // unbind textures
-    for (int i = 3; i >= 0; --i) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glDepthMask(GL_TRUE);
+        glEnable(GL_DEPTH_TEST);
     }
-
-    glDepthMask(GL_TRUE);
-    glEnable(GL_DEPTH_TEST);
 }
 
 void RenderSystem::directionalLightPass(DeferredLightShader& shaderWrapper) {
@@ -620,7 +635,7 @@ void RenderSystem::renderDirectionalLightShadows(const DirectionalLight* light, 
 
     if (shadowMappingSettings.useFastShader)
         Engine::gameObjectRenderer.forceMaterial(mShadowMapMaterial);
-    render(RenderPhase::SHADOW_MAPPING);
+    render(RenderDomain::SHADOW_MAPPING);
     if (shadowMappingSettings.useFastShader)
         Engine::gameObjectRenderer.forceMaterial(nullptr);
 
@@ -651,7 +666,7 @@ void RenderSystem::renderPointLightShadows(const PointLight* light, const Transf
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    render(RenderPhase::SHADOW_MAPPING);
+    render(RenderDomain::SHADOW_MAPPING);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     Engine::gameObjectRenderer.forceMaterial(nullptr);
@@ -702,7 +717,7 @@ std::int32_t RenderSystem::getScreenHeight() const {
     return h;
 }
 
-int RenderSystem::getRenderPhase() const {
+RenderDomain RenderSystem::getRenderPhase() const {
     return mRenderPhase;
 }
 

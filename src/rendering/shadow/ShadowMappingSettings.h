@@ -85,7 +85,7 @@ public:
 
     void enableShadowRendering();
 
-    bool isShadowRenderingEnabled() const;
+    bool isShadowMappingEnabled() const;
 
     float getShadowStrength() const;
 

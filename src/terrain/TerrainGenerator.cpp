@@ -5,7 +5,7 @@
 #include <vector>
 
 TerrainGenerator::TerrainGenerator(
-    std::uint32_t hVertex, std::uint32_t vVertex, std::uint32_t width, std::uint32_t depth)
+    std::uint32_t hVertex, std::uint32_t vVertex, float width, float depth)
     : mHVertex{ hVertex }
     , mVVertex{ vVertex }
     , mWidth{ width }
@@ -25,32 +25,32 @@ Mesh TerrainGenerator::createTerrain(const TerrainHeightProvider& heightProvider
 
     std::vector<std::uint32_t> indices;
 
-    for (std::uint32_t v = 0; v <= mVVertex; ++v) {
-        float vPercent = (float)v / mVVertex;
+    for (std::uint32_t v = 0; v < mVVertex; ++v) {
+        float vPercent = (float)v / (mVVertex - 1);
         float vPos = -(mDepth / 2.0f) + mDepth * vPercent;
-        for (std::uint32_t h = 0; h <= mHVertex; ++h) {
-            float hPercent = (float)h / mHVertex;
+        for (std::uint32_t h = 0; h < mHVertex; ++h) {
+            float hPercent = (float)h / (mHVertex - 1);
             float hPos = -(mWidth / 2.0f) + mWidth * hPercent;
 
             positions.insert(positions.end(), { hPos, heightProvider.get(hPercent, vPercent), vPos });
             tangents.insert(tangents.end(), { 1.0f, 0.0f, 0.0f });
 
-            glm::vec3 normal = heightProvider.getNormal(hPercent, vPercent);
+            glm::vec3 normal = heightProvider.getNormal(hPercent, vPercent, mWidth, mDepth);
             normals.insert(normals.end(), { normal.x, normal.y, normal.z });
             uvs.insert(uvs.end(), { hPercent * mHTerrainTexutreTiles, 1 - vPercent * mVTerrainTextureTiles });
 
-            if (v != mVVertex && h != mHVertex) {
+            if (v != mVVertex - 1 && h != mHVertex - 1) {
                 indices.insert(indices.end(),
                     {
                         // first tri
-                        h + (mHVertex + 1) * v,
-                        h + (mHVertex + 1) * (v + 1),
-                        h + 1 + (mHVertex + 1) * v,
+                        h + mHVertex * v,
+                        h + mHVertex * (v + 1),
+                        h + 1 + mHVertex * v,
 
                         // second tri
-                        h + 1 + (mHVertex + 1) * v,
-                        h + (mHVertex + 1) * (v + 1),
-                        h + 1 + (mHVertex + 1) * (v + 1),
+                        h + 1 + mHVertex * v,
+                        h + mHVertex * (v + 1),
+                        h + 1 + mHVertex * (v + 1),
                     });
             }
         }

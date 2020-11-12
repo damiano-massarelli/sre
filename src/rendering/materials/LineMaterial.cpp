@@ -2,7 +2,7 @@
 
 LineMaterial::LineMaterial()
     : Material{ "shaders/lineVS.glsl", "shaders/lineFS.glsl" } {
-    unSupportedRenderPhases = RenderPhase::ALL & ~RenderPhase::FORWARD_RENDERING;
+    unSupportedRenderPhases = RenderDomain::ALL & ~RenderDomain::FORWARD_RENDERING;
 }
 
 void LineMaterial::use() {

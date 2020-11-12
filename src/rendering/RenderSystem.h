@@ -26,7 +26,8 @@
 /** The master renderer.
  * The master renderer manages all rendering settings
  * global for all renderers */
-class RenderSystem {
+class RenderSystem
+{
     friend class Engine;
 
 private:
@@ -80,7 +81,7 @@ private:
     std::vector<GameObjectEH> mLights;
 
     /** Current rendering phase */
-    int mRenderPhase;
+    RenderDomain mRenderPhase;
 
     void initGL(std::uint32_t width, std::uint32_t height);
 
@@ -96,13 +97,13 @@ private:
     void updateMatrices(const glm::mat4* projection, const glm::mat4* view);
 
     /** Performs all the operations needed by all the rendering pipelines (deferred, pbr, ecc...) */
-    void prepareRendering(const RenderTarget* target);
+    void prepareRendering(const RenderTarget& target);
 
     /** Performs all operations needed by deferred rendering */
-    void prepareDeferredRendering();
+    void prepareDeferredRendering(const GBuffer& targetGBuffer);
 
     /** Performs all operations needed to finalize deferred rendering: combine g-buffer data */
-    void finalizeDeferredRendering(const RenderTarget* target);
+    void finalizeDeferredRendering(const RenderTarget& target, const GBuffer& targetGBuffer, bool resolveLights);
 
     void finalizeRendering();
 
@@ -209,25 +210,27 @@ public:
 
     /**
      * @return the current rendering phase
-     * @see RenderPhase
+     * @see RenderDomain
      */
-    int getRenderPhase() const;
+    RenderDomain getRenderPhase() const;
 
     /**
      * Render the current scene.
-     * @param renderTarget the target onto which the scene is rendered. if
-     * nullptr the screen is used. If the depth buffer of the rendered scene is not needed, it is advisable
+     * @param target the target onto which the scene is rendered. If
+     * nullptr, the screen is used. If the depth buffer of the rendered scene is not needed, it is advisable
      * to construct the RenderTarget using the already existing gBuffer's depthBuffer. This can improve performances
      * and can be achieved using RenderTarget{<colorBuffer>, Engine::renderSys.gBuffer.getDepthBuffer()}.
-     * @param phase specifies which render phase to use
+     * @param targetGBuffer the gBuffer used to carry out deferred rendering. If nullptr, the default GBuffer is used.
+     * @param render settings for this render pass
      */
-    void renderScene(const RenderTarget* target = nullptr, RenderPhase phase = RenderPhase::NONE);
+    void renderScene(const RenderTarget* target = nullptr, const GBuffer* targetGBuffer = nullptr,
+        RenderPhase enabledRenderPhases = RenderPhase::ALL);
 
     /**
      * Renders all the GameObject%s to the currently bound RenderTarget.
      * renderScene() should always be preferred except for particular cases
      * @param phase the rendering phase */
-    void render(int phase);
+    void render(RenderDomain phase);
 
     /**
      * Returns the view matrix for a certain transform.
@@ -267,8 +270,6 @@ public:
      * @param clear clear the dst texture before copying. Set it to false if src and destination texture are the same
      */
     void copyTexture(const Texture& src, RenderTarget& dst, Shader& shader, bool clear = true);
-
-    virtual ~RenderSystem() = default;
 };
 
 #endif  // RENDERSYSTEM_H

@@ -8,7 +8,7 @@ SkyboxMaterial::SkyboxMaterial(const Texture& cubemap)
         { "shaders/FogCalculation.glsl", "shaders/skyboxFS.glsl" } }
     , mCubemap{ cubemap } {
     // do not render during shadow mapping
-    unSupportedRenderPhases = RenderPhase::DEFERRED_RENDERING | RenderPhase::SHADOW_MAPPING | RenderPhase::PBR;
+    unSupportedRenderPhases = RenderDomain::SHADOW_MAPPING | RenderDomain::PBR;
 
     ShaderScopedUsage useShader{ shader };
     shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);

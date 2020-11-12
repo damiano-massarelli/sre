@@ -46,7 +46,7 @@ void ShadowMappingSettings::enableShadowRendering() {
     mEnabled = true;
 }
 
-bool ShadowMappingSettings::isShadowRenderingEnabled() const {
+bool ShadowMappingSettings::isShadowMappingEnabled() const {
     return mEnabled && mShadowStrength > 0.0f;
 }
 

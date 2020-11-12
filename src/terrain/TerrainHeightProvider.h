@@ -8,7 +8,7 @@ public:
 
     virtual float get(float x, float z) const = 0;
 
-    virtual glm::vec3 getNormal(float x, float z) const = 0;
+    virtual glm::vec3 getNormal(float x, float z, float terrainWidth, float terrainHeight) const = 0;
 
     virtual ~TerrainHeightProvider();
 };
