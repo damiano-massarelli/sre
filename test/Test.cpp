@@ -52,6 +52,7 @@ void TestSceneManager::startTests() {
             }
         }
 
+        ImGui::Text("%.1f FPS - %.3f ms", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
         ImGui::End();
     });
 }
