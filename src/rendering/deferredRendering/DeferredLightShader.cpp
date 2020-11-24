@@ -18,8 +18,14 @@ void DeferredLightShader::init(const std::vector<std::string>& vertexShaders,
         shader.bindUniformBlock(name, bindingPoint);
 }
 
-void DeferredLightShader::setLightIndex(int index) const { shader.setInt(mLightIndexLocation, index); }
+void DeferredLightShader::setLightIndex(int index) const {
+    shader.setInt(mLightIndexLocation, index);
+}
 
-void DeferredLightShader::setLightRadius(float radius) const { shader.setFloat(mLightRadiusLocation, radius); }
+void DeferredLightShader::setLightRadius(float radius) const {
+    shader.setFloat(mLightRadiusLocation, radius);
+}
 
-void DeferredLightShader::cleanUp() { shader = Shader(); }
+void DeferredLightShader::cleanUp() {
+    shader = Shader();
+}

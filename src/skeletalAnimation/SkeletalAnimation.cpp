@@ -6,9 +6,13 @@
 SkeletalAnimation::SkeletalAnimation(float duration)
     : mDuration{ duration } { }
 
-float SkeletalAnimation::getDuration() const { return mDuration; }
+float SkeletalAnimation::getDuration() const {
+    return mDuration;
+}
 
-bool SkeletalAnimation::isEmpty() const { return mDuration < 0.00001f; }
+bool SkeletalAnimation::isEmpty() const {
+    return mDuration < 0.00001f;
+}
 
 std::vector<glm::mat4> SkeletalAnimation::getAt(float ticks, const std::vector<Bone>& skeleton) const {
     std::vector<glm::mat4> transforms;

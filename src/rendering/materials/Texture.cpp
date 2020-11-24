@@ -232,19 +232,33 @@ void Texture::updateMipmap() const {
     }
 }
 
-uint32_t Texture::getId() const { return mTextureId; }
+uint32_t Texture::getId() const {
+    return mTextureId;
+}
 
-int Texture::getWidth() const { return mWidth; }
+int Texture::getWidth() const {
+    return mWidth;
+}
 
-int Texture::getHeight() const { return mHeight; }
+int Texture::getHeight() const {
+    return mHeight;
+}
 
-const Texture::Settings& Texture::getSettings() const { return mSettings; }
+const Texture::Settings& Texture::getSettings() const {
+    return mSettings;
+}
 
-bool Texture::isCubeMap() const { return mIsCubeMap; }
+bool Texture::isCubeMap() const {
+    return mIsCubeMap;
+}
 
-bool Texture::isValid() const { return mTextureId != 0; }
+bool Texture::isValid() const {
+    return mTextureId != 0;
+}
 
-Texture::operator bool() const { return isValid(); }
+Texture::operator bool() const {
+    return isValid();
+}
 
 Texture& Texture::operator=(const Texture& rhs) {
     if (mTextureId == rhs.mTextureId)
@@ -263,4 +277,6 @@ Texture& Texture::operator=(const Texture& rhs) {
     return *this;
 }
 
-Texture::~Texture() { cleanUpIfNeeded(); }
+Texture::~Texture() {
+    cleanUpIfNeeded();
+}

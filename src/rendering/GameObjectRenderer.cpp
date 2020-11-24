@@ -98,4 +98,6 @@ void GameObjectRenderer::render() {
     drawMeshes(material2mesh);
 }
 
-void GameObjectRenderer::forceMaterial(const MaterialPtr& material) { mForcedMaterial = material; }
+void GameObjectRenderer::forceMaterial(const MaterialPtr& material) {
+    mForcedMaterial = material;
+}

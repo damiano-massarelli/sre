@@ -17,11 +17,17 @@ Material::Material(const std::vector<std::string>& vertexShaders,
     mNormalModelLocation = shader.getLocationOf("normalModel", false);
 }
 
-std::int32_t Material::getModelLocation() const { return mModelLocation; }
+std::int32_t Material::getModelLocation() const {
+    return mModelLocation;
+}
 
-std::int32_t Material::getNormalModelLocation() const { return mNormalModelLocation; }
+std::int32_t Material::getNormalModelLocation() const {
+    return mNormalModelLocation;
+}
 
-std::size_t Material::hash() const { return shader.getId() + static_cast<int>(isTwoSided) + unSupportedRenderPhases; }
+std::size_t Material::hash() const {
+    return shader.getId() + static_cast<int>(isTwoSided) + unSupportedRenderPhases;
+}
 
 bool Material::equalsTo(const Material* rhs) const {
     return shader.getId() == rhs->shader.getId() && isTwoSided == rhs->isTwoSided

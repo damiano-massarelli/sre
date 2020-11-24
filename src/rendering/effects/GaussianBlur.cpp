@@ -8,8 +8,13 @@ GaussianBlur::GaussianBlur(float scaleFactor) {
 
     auto width = Engine::renderSys.getScreenWidth() * scaleFactor;
     auto height = Engine::renderSys.getScreenHeight() * scaleFactor;
-    mBlurred = Texture::load(nullptr, static_cast<std::int32_t>(width), static_cast<std::int32_t>(height), loadOptions);
-    mTarget = RenderTarget{ &mBlurred, nullptr };
+    mHorizontalBlurred
+        = Texture::load(nullptr, static_cast<std::int32_t>(width), static_cast<std::int32_t>(height), loadOptions);
+    mHorizontalTarget = RenderTarget{ &mHorizontalBlurred, nullptr };
+
+    mCombinedBlurred
+        = Texture::load(nullptr, static_cast<std::int32_t>(width), static_cast<std::int32_t>(height), loadOptions);
+    mCombinedTarget = RenderTarget{ &mCombinedBlurred, nullptr };
 
     hBlur = Shader::loadFromFile(
         std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
@@ -34,15 +39,15 @@ const Texture& GaussianBlur::getBlurred(const Texture& src, int iterations) {
     Texture origin = src;
     for (int i = 0; i < iterations * 2; i++) {
         if (i % 2 == 0) {
-            Engine::renderSys.copyTexture(origin, mTarget, hBlur, false);
+            Engine::renderSys.copyTexture(origin, mHorizontalTarget, hBlur, false);
         } else {
-            Engine::renderSys.copyTexture(origin, mTarget, vBlur, false);
+            Engine::renderSys.copyTexture(mHorizontalBlurred, mCombinedTarget, vBlur, false);
         }
 
-        origin = mBlurred;
+        origin = mCombinedBlurred;
     }
 
-    return mBlurred;
+    return mCombinedBlurred;
 }
 
 GaussianBlur::~GaussianBlur() { }

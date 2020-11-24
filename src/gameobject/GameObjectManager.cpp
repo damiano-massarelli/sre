@@ -44,11 +44,15 @@ void GameObjectManager::remove(const GameObjectEH& go) {
     }
 }
 
-const std::vector<GameObject>& GameObjectManager::getGameObjects() const { return mGameObjects; }
+const std::vector<GameObject>& GameObjectManager::getGameObjects() const {
+    return mGameObjects;
+}
 
 void GameObjectManager::cleanUp() {
     mGameObjectsHL.removeAll();
     mGameObjects.clear();
 }
 
-void GameObjectManager::shutdown() { mGameObjects.clear(); }
+void GameObjectManager::shutdown() {
+    mGameObjects.clear();
+}

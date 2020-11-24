@@ -44,7 +44,9 @@ EffectManager::EffectManager()
     : mInUseTextures{ 0, 1 }  // these textures are always in use for the effects
 { }
 
-void EffectManager::init() { createShader({}); }
+void EffectManager::init() {
+    createShader({});
+}
 
 void EffectManager::addEffect(const std::shared_ptr<Effect>& effect) {
     mEffects.push_back(effect);
@@ -79,7 +81,9 @@ int EffectManager::getTexture() {
     return texture;
 }
 
-void EffectManager::releaseTexture(int texture) { mInUseTextures.erase(texture); }
+void EffectManager::releaseTexture(int texture) {
+    mInUseTextures.erase(texture);
+}
 
 void EffectManager::update() {
     if (!mEnabled)

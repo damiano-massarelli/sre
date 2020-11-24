@@ -4,9 +4,13 @@
 Mesh::Mesh(std::uint32_t vao)
     : mVao{ vao } { }
 
-const std::vector<Vertex>& Mesh::getVertexData() const { return mVertexData; }
+const std::vector<Vertex>& Mesh::getVertexData() const {
+    return mVertexData;
+}
 
-bool Mesh::hasVertexData() const { return mHasVertexData; }
+bool Mesh::hasVertexData() const {
+    return mHasVertexData;
+}
 
 Mesh& Mesh::operator=(const Mesh& rhs) {
     if (mVao == rhs.mVao)
@@ -45,8 +49,14 @@ void Mesh::cleanUpIfNeeded() {
     }
 }
 
-std::uint32_t Mesh::getVao() const { return mVao; }
+std::uint32_t Mesh::getVao() const {
+    return mVao;
+}
 
-std::uint32_t Mesh::getEbo() const { return mEbo; }
+std::uint32_t Mesh::getEbo() const {
+    return mEbo;
+}
 
-Mesh::~Mesh() { cleanUpIfNeeded(); }
+Mesh::~Mesh() {
+    cleanUpIfNeeded();
+}

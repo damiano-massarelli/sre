@@ -58,11 +58,17 @@ void CameraComponent::setFOV(float fov) {
     }
 }
 
-float CameraComponent::getFOV() const { return mFov; }
+float CameraComponent::getFOV() const {
+    return mFov;
+}
 
-float CameraComponent::getNearPlaneDistance() const { return mNearPlaneDistance; }
+float CameraComponent::getNearPlaneDistance() const {
+    return mNearPlaneDistance;
+}
 
-float CameraComponent::getFarPlaneDistance() const { return mFarPlaneDistance; }
+float CameraComponent::getFarPlaneDistance() const {
+    return mFarPlaneDistance;
+}
 
 Frustum CameraComponent::getViewFrutsum() const {
     std::array<glm::vec3, 8> worldSpaceVertices;

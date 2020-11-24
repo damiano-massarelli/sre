@@ -8,6 +8,8 @@ uniform sampler2D src;
 uniform vec2 direction;
 
 void main() {
+	FragColor.rgba = vec4(0.0, 0.0, 0.0, 1.0);
+
 	vec2 pixSize = 1.0 / textureSize(src, 0);
 
 	for (int i = -5; i <= 5; i++) {
@@ -15,6 +17,4 @@ void main() {
 		blurTexCoord = clamp(blurTexCoord, vec2(0.001), vec2(0.999));
 		FragColor.rgb += texture(src, blurTexCoord).rgb * GAUSSIAN_WEIGHTS[i + 5];
 	}
-	
-    FragColor.a = 1.0;
 }

@@ -13,6 +13,10 @@ Plane::Plane(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3) {
     mDistanceFromOrigin = glm::dot(v1, mNormal);
 }
 
-const glm::vec3& Plane::getNormal() const { return mNormal; }
+const glm::vec3& Plane::getNormal() const {
+    return mNormal;
+}
 
-float Plane::getDistanceFromOrigin() const { return mDistanceFromOrigin; }
+float Plane::getDistanceFromOrigin() const {
+    return mDistanceFromOrigin;
+}

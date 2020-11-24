@@ -44,9 +44,13 @@ void Transform::setPosition(const glm::vec3& position) {
         child->transform.moveBy(diff);
 }
 
-void Transform::moveBy(const glm::vec3& amount) { setPosition(getPosition() + amount); }
+void Transform::moveBy(const glm::vec3& amount) {
+    setPosition(getPosition() + amount);
+}
 
-void Transform::setRotation(const glm::quat& rotation) { setRotation(rotation, mPosition); }
+void Transform::setRotation(const glm::quat& rotation) {
+    setRotation(rotation, mPosition);
+}
 
 void Transform::setRotation(const glm::quat& rotation, const glm::vec3& pivot) {
     askParentToUpdateBoundingBox();
@@ -65,11 +69,17 @@ void Transform::setRotation(const glm::quat& rotation, const glm::vec3& pivot) {
         child->transform.rotateBy(diff, pivot);
 }
 
-void Transform::rotateBy(const glm::quat& amount) { setRotation(amount * mRotation); }
+void Transform::rotateBy(const glm::quat& amount) {
+    setRotation(amount * mRotation);
+}
 
-void Transform::rotateBy(const glm::quat& amount, const glm::vec3& pivot) { setRotation(amount * mRotation, pivot); }
+void Transform::rotateBy(const glm::quat& amount, const glm::vec3& pivot) {
+    setRotation(amount * mRotation, pivot);
+}
 
-void Transform::setScale(const glm::vec3& scale) { setScale(scale, mPosition); }
+void Transform::setScale(const glm::vec3& scale) {
+    setScale(scale, mPosition);
+}
 
 void Transform::setScale(const glm::vec3& scale, const glm::vec3& pivot) {
     askParentToUpdateBoundingBox();
@@ -88,9 +98,13 @@ void Transform::setScale(const glm::vec3& scale, const glm::vec3& pivot) {
         child->transform.scaleBy(diff, pivot);
 }
 
-void Transform::scaleBy(const glm::vec3& amount) { setScale(mScale * amount, mPosition); }
+void Transform::scaleBy(const glm::vec3& amount) {
+    setScale(mScale * amount, mPosition);
+}
 
-void Transform::scaleBy(const glm::vec3& amount, const glm::vec3& pivot) { setScale(mScale * amount, pivot); }
+void Transform::scaleBy(const glm::vec3& amount, const glm::vec3& pivot) {
+    setScale(mScale * amount, pivot);
+}
 
 BoundingBox Transform::getBoundingBox() {
     if (!mShouldUpdateMeshBoundingBox && !mShouldUpdateChildrenBoundingBox && !mShouldUpdateTransformedBoundingBox) {
@@ -145,11 +159,17 @@ void Transform::lookAt(const glm::vec3& position) {
     setRotation(glm::normalize(rot));
 }
 
-const glm::vec3& Transform::getPosition() const { return mPosition; }
+const glm::vec3& Transform::getPosition() const {
+    return mPosition;
+}
 
-const glm::quat& Transform::getRotation() const { return mRotation; }
+const glm::quat& Transform::getRotation() const {
+    return mRotation;
+}
 
-const glm::vec3& Transform::getScale() const { return mScale; }
+const glm::vec3& Transform::getScale() const {
+    return mScale;
+}
 
 void Transform::setLocalPosition(const glm::vec3& localPosition) {
     glm::vec3 parentPos{ 0.0f };
@@ -216,13 +236,21 @@ glm::mat3 Transform::modelToWorldForNormals() {
     return mCacheModelToWorldNormal;
 }
 
-glm::mat3 Transform::modelToUpright() const { return glm::toMat3(mRotation); }
+glm::mat3 Transform::modelToUpright() const {
+    return glm::toMat3(mRotation);
+}
 
-glm::vec3 Transform::up() const { return modelToUpright() * glm::vec3{ 0.0f, 1.0f, 0.0f }; }
+glm::vec3 Transform::up() const {
+    return modelToUpright() * glm::vec3{ 0.0f, 1.0f, 0.0f };
+}
 
-glm::vec3 Transform::right() const { return modelToUpright() * glm::vec3{ 1.0f, 0.0f, 0.0f }; }
+glm::vec3 Transform::right() const {
+    return modelToUpright() * glm::vec3{ 1.0f, 0.0f, 0.0f };
+}
 
-glm::vec3 Transform::forward() const { return modelToUpright() * glm::vec3{ 0.0f, 0.0f, 1.0f }; }
+glm::vec3 Transform::forward() const {
+    return modelToUpright() * glm::vec3{ 0.0f, 0.0f, 1.0f };
+}
 
 void Transform::setParent(const GameObjectEH& parent) {
     if (mParent)  // in case parent is not valid at least we remove its child
@@ -260,7 +288,9 @@ void Transform::removeParent() {
         mParent->transform.removeChild(gameObject);
 }
 
-const std::vector<GameObjectEH>& Transform::getChildren() const { return mChildren; }
+const std::vector<GameObjectEH>& Transform::getChildren() const {
+    return mChildren;
+}
 
 std::vector<GameObjectEH> Transform::findAll(const std::string& name) const {
     std::vector<GameObjectEH> found;
@@ -282,7 +312,9 @@ std::vector<GameObjectEH> Transform::findAll(const std::string& name) const {
     return found;
 }
 
-GameObjectEH Transform::find(const std::filesystem::path& path) const { return find(path.begin(), path.end()); }
+GameObjectEH Transform::find(const std::filesystem::path& path) const {
+    return find(path.begin(), path.end());
+}
 
 GameObjectEH Transform::find(std::filesystem::path::iterator it, std::filesystem::path::iterator end) const {
     if (it == end)

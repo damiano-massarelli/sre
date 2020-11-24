@@ -5,7 +5,9 @@
 DirectionalLight::DirectionalLight(const GameObjectEH& go)
     : Light{ go, Light::Type::DIRECTIONAL } { }
 
-const RenderTarget& DirectionalLight::getShadowMapTarget() const { return mShadowMapTarget; }
+const RenderTarget& DirectionalLight::getShadowMapTarget() const {
+    return mShadowMapTarget;
+}
 
 void DirectionalLight::setCastShadowMode(Light::ShadowCasterMode mode) {
     Light::setCastShadowMode(mode);

@@ -43,4 +43,6 @@ void PointLight::setCastShadowMode(ShadowCasterMode mode) {
     mPointShadowTarget = RenderTarget{ nullptr, &mPointShadowCubeTexture };
 }
 
-const RenderTarget& PointLight::getPointShadowTarget() const { return mPointShadowTarget; }
+const RenderTarget& PointLight::getPointShadowTarget() const {
+    return mPointShadowTarget;
+}

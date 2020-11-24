@@ -7,7 +7,7 @@ AlignConsecutiveMacros: true
 AlignConsecutiveAssignments: false
 AlignEscapedNewlines: Right
 AlignTrailingComments: true
-AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: Inline
 AllowShortBlocksOnASingleLine: Never
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false

@@ -19,4 +19,6 @@ bool GameObjectEH::operator==(const GameObjectEH& rhs) const {
     return isValid() && rhs.isValid() && mHandleIndex == rhs.mHandleIndex && mGeneration == rhs.mGeneration;
 }
 
-bool GameObjectEH::operator!=(const GameObjectEH& rhs) const { return (isValid() || rhs.isValid()) && !(*this == rhs); }
+bool GameObjectEH::operator!=(const GameObjectEH& rhs) const {
+    return (isValid() || rhs.isValid()) && !(*this == rhs);
+}

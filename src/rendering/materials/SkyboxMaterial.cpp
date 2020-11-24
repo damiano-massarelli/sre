@@ -44,7 +44,9 @@ float SkyboxMaterial::renderOrder(const glm::vec3& position) {
     return -std::numeric_limits<float>::infinity();
 }
 
-std::size_t SkyboxMaterial::hash() const { return Material::hash() + mCubemap.getId(); }
+std::size_t SkyboxMaterial::hash() const {
+    return Material::hash() + mCubemap.getId();
+}
 
 bool SkyboxMaterial::equalsTo(const Material* rhs) const {
     if (shader.getId() != rhs->shader.getId())

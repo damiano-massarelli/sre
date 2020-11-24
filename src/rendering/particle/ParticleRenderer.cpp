@@ -119,7 +119,9 @@ void ParticleRenderer::storeOffsetsAndBlendFactor(
     data.push_back(blend);
 }
 
-void ParticleRenderer::addEmitter(ParticleEmitter* emitter) { mEmitters.push_back(emitter); }
+void ParticleRenderer::addEmitter(ParticleEmitter* emitter) {
+    mEmitters.push_back(emitter);
+}
 
 void ParticleRenderer::removeEmitter(const ParticleEmitter* emitter) {
     mEmitters.erase(std::remove(mEmitters.begin(), mEmitters.end(), emitter), mEmitters.end());
@@ -185,7 +187,9 @@ void ParticleRenderer::setUpTextureAtlas(const ParticleEmitter* emitter) {
     mParticleShader.setVec2(mFrameSizeLocation, glm::vec2{ emitter->mColSize, emitter->mRowSize });
 }
 
-void ParticleRenderer::cleanUp() { mEmitters.clear(); }
+void ParticleRenderer::cleanUp() {
+    mEmitters.clear();
+}
 
 void ParticleRenderer::shutdown() {
     cleanUp();

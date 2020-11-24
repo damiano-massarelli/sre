@@ -14,8 +14,14 @@ void EventListenerCrumb::unregister() {
         Engine::eventManager.removeListenerFor(eventType, m_listener);
 }
 
-void EventListenerCrumb::addEvent(SDL_EventType eventType) { m_eventTypes.push_back(eventType); }
+void EventListenerCrumb::addEvent(SDL_EventType eventType) {
+    m_eventTypes.push_back(eventType);
+}
 
-EventListener* EventListenerCrumb::getListener() { return m_listener; }
+EventListener* EventListenerCrumb::getListener() {
+    return m_listener;
+}
 
-EventListenerCrumb::~EventListenerCrumb() { unregister(); }
+EventListenerCrumb::~EventListenerCrumb() {
+    unregister();
+}

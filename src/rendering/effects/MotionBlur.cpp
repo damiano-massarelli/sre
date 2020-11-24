@@ -38,4 +38,6 @@ void MotionBlur::update(Shader& postProcessingShader) {
     mPrevProjViewMatrix = currProjViewMat;
 }
 
-MotionBlur::~MotionBlur() { Engine::renderSys.effectManager.releaseTexture(mPositionTexture); }
+MotionBlur::~MotionBlur() {
+    Engine::renderSys.effectManager.releaseTexture(mPositionTexture);
+}
