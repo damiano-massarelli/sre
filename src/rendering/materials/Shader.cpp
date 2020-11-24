@@ -325,6 +325,18 @@ void Shader::setVec3Array(const std::string& name, const std::vector<glm::vec3>&
         glUniform3fv(location, static_cast<GLsizei>(array.size()), glm::value_ptr(*array.data()));
 }
 
+void Shader::setVec4Array(std::int32_t location, const std::vector<glm::vec4>& array) const
+{
+    glUniform4fv(location, static_cast<GLsizei>(array.size()), glm::value_ptr(*array.data()));
+}
+
+void Shader::setVec4Array(const std::string& name, const std::vector<glm::vec4>& array) const
+{
+    std::int32_t location = getLocationOf(name);
+    if (location != -1)
+        glUniform4fv(location, static_cast<GLsizei>(array.size()), glm::value_ptr(*array.data()));
+}
+
 void Shader::use() {
     Shader::mInUse = mProgramId;
     glUseProgram(mProgramId);

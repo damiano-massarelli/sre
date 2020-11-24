@@ -47,29 +47,24 @@ void SSRTestScene::start() {
     auto sun = Engine::gameObjectManager.createGameObject();
     sun->name = "sun";
 
-    // Lights are implemented as Components
+    // Lights
     sun->addComponent(std::make_shared<DirectionalLight>(sun));
     sun->transform.setPosition(glm::vec3{ 0.0f, 5.0f, 0.0f });
     Engine::renderSys.addLight(sun);
     sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
-    sun->getComponent<Light>()->diffuseColor = glm::vec3{ .9f, .9f, .9f } * 1.0f;
+    sun->getComponent<Light>()->diffuseColor = glm::vec3{ 10.0f, 10.0f, 10.0f };
     sun->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), sun->transform.right()));
-
-    auto gizmo = MeshCreator::axisGizmo();
-    gizmo->transform.setParent(sun);
-    gizmo->transform.setLocalPosition(glm::vec3{ 0.0f });
-    gizmo->transform.setLocalRotation(glm::quat{ 0.f, 0.f, 0.f, 1.f });
 
     // Ground
     std::shared_ptr<PBRMaterial> planeMaterial = std::make_shared<PBRMaterial>();
-    //planeMaterial->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/metal/albedo.jpg"));
+    planeMaterial->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/checker.png"));
     planeMaterial->setAlbedo(glm::vec3(1.f));
     //planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughness.jpg"));
-    planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/checker.png"));
-    planeMaterial->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg"));
+    //planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/checker.png"));
+    //planeMaterial->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg"));
     //planeMaterial->setMetalness(0.f);
     //planeMaterial->setNormalMap(Texture::loadFromFile("test_data/ssr/textures/metal/normal.jpg"));
-    planeMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/ssr/textures/metal/ao.jpg"));
+    //planeMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/ssr/textures/metal/ao.jpg"));
 
     GameObjectEH plane = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), planeMaterial);
     plane->transform.setRotation(glm::angleAxis(glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f)));
@@ -97,7 +92,7 @@ void SSRTestScene::start() {
         float roughness = redMaterial->getRoughness();
 
         ImGui::Begin("Settings");
-        ImGui::SliderFloat("Max Distance", &maxDistance, 0.f, 50.f);
+        ImGui::SliderFloat("Max Distance", &maxDistance, 0.f, 500.f);
         ImGui::SliderFloat("Resolution", &resolution, 0.f, 1.f);
         ImGui::SliderInt("Steps", &steps, 0, 30);
         ImGui::SliderFloat("Hit Threshold", &hitThreshold, 0.01f, 2.f);
