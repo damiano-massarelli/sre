@@ -43,6 +43,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height) {
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     if (DEBUG)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
@@ -379,6 +380,9 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase) {
     // render particles
     Engine::particleRenderer.render();
 
+    // update the color buffer mipmap if the color buffer needs it
+    targetToUse->getColorBuffer()->updateMipmap();
+
     // render to screen only if no target specified
     if (target == nullptr) {
         finalizeRendering();
@@ -448,9 +452,6 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target) {
 
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
-
-    // update the color buffer mipmap if the color buffer needs it
-   target->getColorBuffer()->updateMipmap();
 }
 
 void RenderSystem::directionalLightPass(DeferredLightShader& shaderWrapper) {
