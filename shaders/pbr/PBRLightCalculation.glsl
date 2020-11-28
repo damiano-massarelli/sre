@@ -2,7 +2,7 @@
 
 const float PI = 3.14159265359;
 
-// return how much the microfacet normals are aligned the the half-way vector
+// return how much the microfacet normals are aligned to the half-way vector
 // H based on the roughness of the material.
 float normalDistribution(vec3 N, vec3 H, float roughness)
 {
@@ -47,6 +47,8 @@ vec3 fresnel(float cosTheta, vec3 F0)
 
 vec3 pbrComputeColor(Light light, vec3 L, float forceAttenuation, float inShadow, vec3 albedo, float roughness, float metalness, float ao, vec3 fragPosition, vec3 N, vec3 cameraPosition) 
 {
+    roughness = max(roughness, 0.05);
+
     N = normalize(N);
     vec3 V            = normalize(cameraPosition - fragPosition);
 
@@ -67,7 +69,7 @@ vec3 pbrComputeColor(Light light, vec3 L, float forceAttenuation, float inShadow
     // cook-torrance brdf
     float NDF = normalDistribution(N, H, roughness);        
     float G   = geometrySmith(NdotV, NdotL, roughness);      
-    vec3 F    = fresnel(max(dot(H, V), 0.0), F0);       
+    vec3 F    = fresnel(clamp(dot(H, V), 0.0, 1.0), F0);       
     
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
