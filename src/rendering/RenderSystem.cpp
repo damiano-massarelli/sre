@@ -81,7 +81,9 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height) {
 
     initDeferredRendering();
 
-    lightPassTarget = Texture::load(nullptr, width, height, GBuffer::DIFFUSE_BUFFER_SETTINGS);
+    auto settings = GBuffer::DIFFUSE_BUFFER_SETTINGS;
+    settings.appearanceOptions.hasMipmap = true;
+    lightPassTarget = Texture::load(nullptr, width, height, settings);
     lightPassRenderTarget = RenderTarget{ &lightPassTarget, &(gBuffer.getDepthBuffer()) };
     effectManager.init();
     fogSettings.init();
@@ -750,7 +752,9 @@ void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, Shader& sh
     glViewport(0, 0, getScreenWidth(), getScreenHeight());
 
     // New content written on texture, regenerate mip maps
-    dst.getColorBuffer()->updateMipmap();
+    if (dst.getColorBufferMipMapLevel() == 0) {
+        dst.getColorBuffer()->updateMipmap();
+    }
 }
 
 void RenderSystem::cleanUp() {

@@ -12,11 +12,21 @@ SSR::SSR()
     mPositionTexture = Engine::renderSys.effectManager.getTexture();
     mNormalTexture = Engine::renderSys.effectManager.getTexture();
     mMaterialTexture = Engine::renderSys.effectManager.getTexture();
-    mBlurredSceneTexture = Engine::renderSys.effectManager.getTexture();
     assert(mPositionTexture != -1);
     assert(mNormalTexture != -1);
     assert(mMaterialTexture != -1);
-    assert(mBlurredSceneTexture != -1);
+
+    //if (!Engine::renderSys.lightPassTarget.getSettings().appearanceOptions.hasMipmap) {
+    //    Engine::renderSys.lightPassTarget.setRequireMipmap(true);
+    //}
+
+    for (int i = 0; i < 5; ++i) {
+        mBlurRenderTargets.emplace_back(&Engine::renderSys.lightPassTarget, nullptr, i + 1, 0);
+    }
+
+    for (int i = 0; i < 5; ++i) {
+        mGaussianBlurEffects.emplace_back(&(mBlurRenderTargets[i]));
+    }
 }
 
 void SSR::onSetup(Shader& postProcessingShader) {
@@ -26,7 +36,6 @@ void SSR::onSetup(Shader& postProcessingShader) {
     mPostProcessingShader.setInt("_ssr_position", mPositionTexture);
     mPostProcessingShader.setInt("_ssr_normals", mNormalTexture);
     mPostProcessingShader.setInt("_ssr_materialBuffer", mMaterialTexture);
-    mPostProcessingShader.setInt("_ssr_blurredScene", mBlurredSceneTexture);
 
     // Parameter defaults
     mPostProcessingShader.setFloat("_ssr_rayMaxDistance", mMaxDistance);
@@ -45,11 +54,11 @@ void SSR::update(Shader& postProcessingShader) {
     RenderSystem& renderSystem = Engine::renderSys;
     Texture blurred = mGaussianBlur.getBlurred(renderSystem.lightPassTarget, 4);
 
-    ShaderScopedUsage useShader{ postProcessingShader };
-
-    if (!renderSystem.lightPassTarget.getSettings().appearanceOptions.hasMipmap) {
-        renderSystem.lightPassTarget.setRequireMipmap(true);
+    for (auto& gaussianBlur : mGaussianBlurEffects) {
+        gaussianBlur.getBlurred(renderSystem.lightPassTarget, 2);
     }
+
+    ShaderScopedUsage useShader{ postProcessingShader };
 
     const glm::mat4 currentProjectViewMatrix
         = renderSystem.getProjectionMatrix() * renderSystem.getViewMatrix(renderSystem.getCamera()->transform);
@@ -87,9 +96,6 @@ void SSR::update(Shader& postProcessingShader) {
 
     glActiveTexture(GL_TEXTURE0 + mMaterialTexture);
     glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getMaterialBuffer().getId());
-
-    glActiveTexture(GL_TEXTURE0 + mBlurredSceneTexture);
-    glBindTexture(GL_TEXTURE_2D, blurred.getId());
 }
 
 void SSR::setMaxDistance(float maxDistance) {

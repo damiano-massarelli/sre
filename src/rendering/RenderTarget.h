@@ -23,6 +23,9 @@ private:
     std::uint32_t mWidth = 0;
     std::uint32_t mHeight = 0;
 
+    std::int32_t mColorLevel = 0;
+    std::int32_t mDepthLevel = 0;
+
     void cleanUp();
 
 public:
@@ -33,12 +36,27 @@ public:
 
     /**
      * Creates a new RenderTarget.
-     * It is possible to provide a colorBuffer and/or a depthBuffer or both.
+     * It is possible to provide a colorBuffer and/or a depthBuffer.
      * However, it is an error to create a RenderTarget without any buffer.
      * The given texture are not retained. Make sure that this RenderTarget does not
      * outlive the textures it was created with.
+     * @param colorBuffer the color buffer. Can be nullptr (or invalid) if a valid depthBuffer is provided.
+     * @param depthBuffer the depth buffer. Can be nullptr (or invalid) if a valid colorBuffer is provided.
      */
     explicit RenderTarget(const Texture* colorBuffer, const Texture* depthBuffer);
+
+    /**
+     * Creates a new RenderTarget.
+     * It is possible to provide a colorBuffer and/or a depthBuffer and the mip-map level for the colorBuffer.
+     * However, it is an error to create a RenderTarget without any buffer.
+     * The given texture are not retained. Make sure that this RenderTarget does not
+     * outlive the textures it was created with.
+     * @param colorBuffer the color buffer. Can be nullptr (or invalid) if a valid depthBuffer is provided.
+     * @param depthBuffer the depth buffer. Can be nullptr (or invalid) if a valid colorBuffer is provided.
+     * @param colorLevel the mipmap level of the colorBuffer where data will be written.
+     * @param depthLevel the mipmap level of the depthBuffer where data will be written.
+     */
+    explicit RenderTarget(const Texture* colorBuffer, const Texture* depthBuffer, std::int32_t colorLevel, std::int32_t depthLevel);
 
     RenderTarget(RenderTarget&& rhs) noexcept;
 
@@ -74,6 +92,16 @@ public:
      * @return the height of the color and depth buffers
      */
     std::uint32_t getHeight() const;
+
+    /**
+     * @return the mipmap level referenced by this RenderTarget for the color buffer. 
+     */
+    std::int32_t getColorBufferMipMapLevel() const;
+
+    /**
+     * @return the mipmap level referenced by this RenderTarget for the depth buffer.
+     */
+    std::int32_t getDepthBufferMipMapLevel() const;
 
     /**
      * @return true if one of the color or depth buffer is valid

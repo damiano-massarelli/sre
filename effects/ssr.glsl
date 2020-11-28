@@ -6,7 +6,6 @@ uniform vec4 _ssr_frustumPlanes[6]; // list of planes of the camera frustm
 uniform sampler2D _ssr_position; // position data coming from deferred rendering
 uniform sampler2D _ssr_normals;  // normals coming from deferred rendering
 uniform sampler2D _ssr_materialBuffer;
-uniform sampler2D _ssr_blurredScene;
 
 uniform float _ssr_rayMaxDistance;
 uniform float _ssr_rayResolution; // 1 to procede every pixel, within 0 and 1 to sample further
@@ -15,6 +14,9 @@ uniform float _ssr_rayHitThreshold;
 
 uniform float _ssr_nearPlane;
 uniform float _ssr_farPlane;
+
+const int _SSR_MAX_LOD = 6;
+const float _SSR_MAX_ROUGHNESS = 0.975;
 
 vec3 _ssr_rayFrustumIntersection(vec3 rayStart, vec3 rayDirection, float rayLength) {
 	for (int i = 0; i < 6; ++i) {
@@ -40,6 +42,12 @@ float _ssr_viewSpaceDepthAt(vec2 coord) {
 }
 
 vec4 ssr(vec4 color) {
+	// Pre-fetch and check roughness
+	float roughness = texture(_ssr_materialBuffer, texCoord).x;
+	if (roughness > _SSR_MAX_ROUGHNESS) {
+		return color;
+	}
+
 	const vec2 screenSize = textureSize(_ssr_position, 0);
 
 	const vec3 fragmentWorldPosition = texture(_ssr_position, texCoord).xyz;
@@ -165,13 +173,9 @@ vec4 ssr(vec4 color) {
 
 	float attenuation = reflectionCloseToViewDirection * furtherFromHit * furtherFromFirstRefl;
 
-	float roughness = texture(_ssr_materialBuffer, texCoord).x;
-	const int MAX_LOD = 5;
-	vec4 reflectedColor = texture(screenTexture, uv);
-	vec4 blurredReflectedColor = texture(_ssr_blurredScene, uv);
-	reflectedColor = mix(reflectedColor, blurredReflectedColor, roughness);
+	vec4 reflectedColor = textureLod(screenTexture, uv, roughness * _SSR_MAX_LOD);
 
-	reflectedColor = mix(vec4(0.0), reflectedColor, selfHit * attenuation * hit * uvOutOfBounds.x * uvOutOfBounds.y * zOutOfBounds);
+	reflectedColor = mix(vec4(0.0), reflectedColor, (1.0 - roughness) * selfHit * attenuation * hit * uvOutOfBounds.x * uvOutOfBounds.y * zOutOfBounds);
 	
 	return color + reflectedColor;
 }

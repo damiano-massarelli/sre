@@ -3,13 +3,13 @@
 #include "rendering/materials/Shader.h"
 #include "rendering/effects/GaussianBlur.h"
 #include <cstdint>
+#include <vector>
 
 class SSR : public Effect {
 private:
     int mPositionTexture = -1;
     int mNormalTexture = -1;
     int mMaterialTexture = -1;
-    int mBlurredSceneTexture = -1;
     std::int32_t mCameraPositionLocation = -1;
     std::int32_t mCameraDirectionLocation = -1;
     std::int32_t mProjectionViewLocation = -1;
@@ -25,6 +25,11 @@ private:
     Shader mPostProcessingShader;
 
     GaussianBlur mGaussianBlur;
+
+    // vector of render targets referring to different mipmaps levels of
+    // the light pass target texture.
+    std::vector<RenderTarget> mBlurRenderTargets;
+    std::vector<GaussianBlur> mGaussianBlurEffects;
 
 public:
     SSR();
