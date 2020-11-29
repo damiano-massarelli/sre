@@ -9,7 +9,7 @@ void FogSettings::setFogColor(const glm::vec3& fogColor) {
 }
 
 void FogSettings::setInverseDistance(float invDistance) {
-    mInvereDistance = invDistance;
+    mInverseDistance = invDistance;
     updateUbo();
 }
 
@@ -22,7 +22,7 @@ void FogSettings::updateUbo() {
     glBindBuffer(GL_UNIFORM_BUFFER, mFogUbo);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec3), glm::value_ptr(mFogColor));
 
-    glm::vec2 fogParams{ mInvereDistance, mRapidity };
+    glm::vec2 fogParams{ mInverseDistance, mRapidity };
     glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec2), glm::value_ptr(fogParams));
 
     glBindBuffer(GL_UNIFORM_BUFFER, 0);

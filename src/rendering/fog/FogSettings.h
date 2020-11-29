@@ -13,10 +13,9 @@ private:
     glm::vec3 mFogColor = glm::vec3{ 130.0f, 150.0f, 170.0f } / 255.0f;
 
     /** a value of 0 means the fog is infinitely distant */
-    float mInvereDistance = 0.0035f;
+    float mInverseDistance = 0.0035f;
 
-    /** When this value is high transition from not in fog to fog happens
-     * suddently */
+    /** High value means strong transition from not-in-fog to fog */
     float mRapidity = 3.5f;
 
     void updateUbo();
