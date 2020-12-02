@@ -7,7 +7,6 @@
 #include "rendering/deferredRendering/DeferredLightShader.h"
 #include "rendering/deferredRendering/DeferredRenderingFBO.h"
 #include "rendering/effects/EffectManager.h"
-#include "rendering/fog/FogSettings.h"
 #include "rendering/light/DirectionalLight.h"
 #include "rendering/light/Light.h"
 #include "rendering/light/PointLight.h"
