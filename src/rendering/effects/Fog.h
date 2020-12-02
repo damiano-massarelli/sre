@@ -13,9 +13,17 @@ class Fog : public Effect {
 private:
     Shader mPostProcessingShader;
 
-    glm::vec3 mColor;
-    float mStartDistance = 0.f;
-    float mRapidity = 1.f;
+    glm::vec3 mColor = {0.1f, 0.1f, 0.1f};
+
+    // Reasonable values are between 0.0001 and 0.1
+    float mDensity = 0.0035f;
+
+    // Exponent of the fog, reasonable values are between 1.0 and 15.0
+    float mRapidity = 3.f;
+
+    // Camera near and far planes
+    float mNearPlane;
+    float mFarPlane;
 
 public:
     Fog();
@@ -28,11 +36,11 @@ public:
 
     // Setters
     void setColor(const glm::vec3& color);
-    void setStartDistance(float distance);
+    void setDensity(float distance);
     void setRapidity(float rapidity);
 
     // Getter
     glm::vec3 getColor() const { return mColor; }
-    float getStartDistance() const { return mStartDistance; }
+    float getDensity() const { return mDensity; }
     float getRapidity() const { return mRapidity; }
 };
