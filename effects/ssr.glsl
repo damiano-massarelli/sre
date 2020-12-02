@@ -9,6 +9,7 @@ uniform sampler2D _ssr_materialBuffer;
 
 uniform float _ssr_rayMaxDistance;
 uniform float _ssr_rayResolution; // 1 to procede every pixel, within 0 and 1 to sample further
+uniform int _ssr_numSamples = 20;
 uniform int _ssr_raySteps;
 uniform float _ssr_rayHitThreshold;
 
@@ -16,7 +17,8 @@ uniform float _ssr_nearPlane;
 uniform float _ssr_farPlane;
 
 const int _SSR_MAX_LOD = 6;
-const float _SSR_MAX_ROUGHNESS = 0.975;
+const float _SSR_MAX_ROUGHNESS = 0.9;
+const float _SSR_SELF_HIT_INCREMENT = 0.25;
 
 vec3 _ssr_rayFrustumIntersection(vec3 rayStart, vec3 rayDirection, float rayLength) {
 	for (int i = 0; i < 6; ++i) {
@@ -47,8 +49,7 @@ vec4 ssr(vec4 color) {
 	if (roughness > _SSR_MAX_ROUGHNESS) {
 		return color;
 	}
-
-	const vec2 screenSize = textureSize(_ssr_position, 0);
+	roughness /= _SSR_MAX_ROUGHNESS;
 
 	const vec3 fragmentWorldPosition = texture(_ssr_position, texCoord).xyz;
 	vec3 worldNormal = texture(_ssr_normals, texCoord).xyz;
@@ -68,6 +69,12 @@ vec4 ssr(vec4 color) {
 
 	vec3 rayStart = fragmentWorldPosition.xyz;
 	vec3 rayEnd = _ssr_rayFrustumIntersection(rayStart, rayDirection, _ssr_rayMaxDistance);
+
+	// Prevent self hit if view direction is perpendicular to world normal
+	const float VdotN = dot(-viewDirection, worldNormal);
+	float selfHitIncrementFactor = mix(_SSR_SELF_HIT_INCREMENT, 0, VdotN);
+	selfHitIncrementFactor = min(selfHitIncrementFactor, distance(rayStart, rayEnd));
+	rayStart += rayDirection * max(selfHitIncrementFactor, 0);
 	
 	float rayStartViewSpaceDepth = dot(rayStart - _ssr_cameraPosition, _ssr_cameraDirection);
 	float rayEndViewSpaceDepth = dot(rayEnd - _ssr_cameraPosition, _ssr_cameraDirection);
@@ -83,16 +90,14 @@ vec4 ssr(vec4 color) {
 	rayEndScreenSpace.xyz = rayEndScreenSpace.xyz * 0.5 + 0.5;
 
 	// Convert the UV coordinates to fragment/pixel coordinates
-	vec2 startFrag = rayStartScreenSpace.xy * screenSize;
-	vec2 endFrag   = rayEndScreenSpace.xy * screenSize;
+	vec2 startFrag = rayStartScreenSpace.xy;
+	vec2 endFrag   = rayEndScreenSpace.xy;
 
 	float deltaX = endFrag.x - startFrag.x;
   	float deltaY = endFrag.y - startFrag.y;
 
-	// Make sure that we move along rayDirection on the longest side between 
-	// deltaX and deltaY by a pixel at a time (if resolution is 1)
-	float delta = max(abs(deltaX), abs(deltaY)) * clamp(_ssr_rayResolution, 0, 1);
-  	vec2 increment = vec2(deltaX, deltaY) / max(delta, 0.01);
+	// Ray marching step
+  	vec2 increment = vec2(deltaX, deltaY) / _ssr_numSamples;
 
 	// Percentage of the sample previous the hit
 	float search0 = 0;
@@ -107,19 +112,15 @@ vec4 ssr(vec4 color) {
 	float depthDelta = 0.0; // difference between ray depth and scene depth
 
 	vec2 uv = vec2(0.0);
-
-	vec2 frag = startFrag;
 	
 	// Step 1: search for hits of the reflected ray
-	for (float i = 0; i < int(delta); ++i) {
-		frag += increment;
-		uv = frag / screenSize;
-		search1 = i / delta;
+	for (float i = 1; i < _ssr_numSamples; ++i) { // start with i = 1 to avoid self hit
+		uv = startFrag + increment * i;
+		search1 = i / _ssr_numSamples;
 
 		depth = _ssr_viewSpaceDepthAt(uv);
 		rayDistanceViewSpace = (rayStartViewSpaceDepth * rayEndViewSpaceDepth) / mix(rayEndViewSpaceDepth, rayStartViewSpaceDepth, search1);
 		depthDelta = rayDistanceViewSpace - depth;
-
 		if (depthDelta > 0 && depthDelta < biasedThreshold) {
 			hit = 1;
 			break;
@@ -137,8 +138,7 @@ vec4 ssr(vec4 color) {
 	search1 = search0 + ((search1 - search0) / 2.0);
 
 	for (int i = 0; i < _ssr_raySteps; ++i) {
-    	frag = mix(startFrag, endFrag, search1);
-    	uv = frag / screenSize;
+    	uv = mix(startFrag, endFrag, search1);
     			
 		rayDistanceViewSpace = (rayStartViewSpaceDepth * rayEndViewSpaceDepth) / mix(rayEndViewSpaceDepth, rayStartViewSpaceDepth, search1);
 		depth = _ssr_viewSpaceDepthAt(uv);
@@ -153,14 +153,11 @@ vec4 ssr(vec4 color) {
 		}
   	}
 
-	uv = mix(startFrag, endFrag, search1).xy / screenSize;
+	uv = mix(startFrag, endFrag, search1).xy;
 
 	vec2 uvOutOfBounds = vec2(1.0) - smoothstep(vec2(0.85), vec2(1.0), uv);
 	uvOutOfBounds     *= 1.0 - smoothstep(vec2(0.85), vec2(1.0), 1.0 - uv);
 	float zOutOfBounds = smoothstep(0.0, 0.02, (rayEndViewSpaceDepth - _ssr_nearPlane) / _ssr_farPlane);
-
-	// How much the reflection vector point to the same direction of the view
-	float reflectionCloseToViewDirection = (1 - max(dot(viewDirection, -rayDirection), 0));
 
 	// How far is reflection point compared to the respective step
 	float furtherFromHit = (1.0 - clamp(depthDelta / biasedThreshold, 0.0, 1.0));
@@ -169,13 +166,15 @@ vec4 ssr(vec4 color) {
 	float furtherFromFirstRefl = 1.0 - distance(rayStart, rayStart + rayDirection * _ssr_rayMaxDistance * search1) / _ssr_rayMaxDistance;
 
 	// Whether the hit point is too close to the start point or not
-	float selfHit = smoothstep(0., 0.01, distance(rayStart, rayStart + rayDirection * _ssr_rayMaxDistance * search1) / _ssr_rayMaxDistance);
+	float selfHit = smoothstep(0., 0.05, distance(rayStart, rayStart + rayDirection * _ssr_rayMaxDistance * search1) / _ssr_rayMaxDistance);
 
-	float attenuation = reflectionCloseToViewDirection * furtherFromHit * furtherFromFirstRefl;
+	float viewPerpendicular = smoothstep(0., 0.5, VdotN);
+
+	float attenuation = furtherFromHit * furtherFromFirstRefl * selfHit * viewPerpendicular;
 
 	vec4 reflectedColor = textureLod(screenTexture, uv, roughness * _SSR_MAX_LOD);
 
-	reflectedColor = mix(vec4(0.0), reflectedColor, (1.0 - roughness) * selfHit * attenuation * hit * uvOutOfBounds.x * uvOutOfBounds.y * zOutOfBounds);
+	reflectedColor = mix(vec4(0.0), reflectedColor, (1.0 - roughness) * attenuation * hit * uvOutOfBounds.x * uvOutOfBounds.y * zOutOfBounds);
 	
 	return color + reflectedColor;
 }

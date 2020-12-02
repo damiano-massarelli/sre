@@ -1,7 +1,7 @@
 #pragma once
 #include "Effect.h"
-#include "rendering/materials/Shader.h"
 #include "rendering/effects/GaussianBlur.h"
+#include "rendering/materials/Shader.h"
 #include <cstdint>
 #include <vector>
 
@@ -16,7 +16,7 @@ private:
     std::int32_t mFrustumPlanesLocation = -1;
 
     float mMaxDistance = 15.f;
-    float mResolution = 0.5f;  // 1 to procede every pixel, within 0 and 1 to sample further
+    std::int32_t mNumSamples = 100;
     std::int32_t mSteps = 5;
     float mHitThreshold = 0.5f;
     float mNearPlane = 0.f;
@@ -39,12 +39,12 @@ public:
     virtual void update(Shader& postProcessingShader) override;
 
     void setMaxDistance(float maxDistance);
-    void setResolution(float resolution);
+    void setNumSamples(std::int32_t numSamples);
     void setSteps(std::int32_t steps);
     void setHitThreshold(float hitThreshold);
 
     float getMaxDistance() const { return mMaxDistance; }
-    float getResolution() const { return mResolution; }
+    std::int32_t getNumSamples() const { return mNumSamples; }
     std::int32_t getSteps() const { return mSteps; }
     float geHitThreshold() const { return mHitThreshold; }
 

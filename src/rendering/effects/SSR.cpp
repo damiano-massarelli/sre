@@ -16,7 +16,7 @@ SSR::SSR()
     assert(mNormalTexture != -1);
     assert(mMaterialTexture != -1);
 
-    //if (!Engine::renderSys.lightPassTarget.getSettings().appearanceOptions.hasMipmap) {
+    // if (!Engine::renderSys.lightPassTarget.getSettings().appearanceOptions.hasMipmap) {
     //    Engine::renderSys.lightPassTarget.setRequireMipmap(true);
     //}
 
@@ -39,7 +39,7 @@ void SSR::onSetup(Shader& postProcessingShader) {
 
     // Parameter defaults
     mPostProcessingShader.setFloat("_ssr_rayMaxDistance", mMaxDistance);
-    mPostProcessingShader.setFloat("_ssr_rayResolution", mResolution);
+    mPostProcessingShader.setInt("_ssr_numSamples", mNumSamples);
     mPostProcessingShader.setInt("_ssr_raySteps", mSteps);
     mPostProcessingShader.setFloat("_ssr_rayHitThreshold", mHitThreshold);
 
@@ -52,10 +52,9 @@ void SSR::onSetup(Shader& postProcessingShader) {
 
 void SSR::update(Shader& postProcessingShader) {
     RenderSystem& renderSystem = Engine::renderSys;
-    Texture blurred = mGaussianBlur.getBlurred(renderSystem.lightPassTarget, 4);
 
-    for (auto& gaussianBlur : mGaussianBlurEffects) {
-        gaussianBlur.getBlurred(renderSystem.lightPassTarget, 2);
+    for (int i = 0; i < mGaussianBlurEffects.size(); ++i) {
+        mGaussianBlurEffects[i].getBlurred(renderSystem.lightPassTarget, i + 1);
     }
 
     ShaderScopedUsage useShader{ postProcessingShader };
@@ -80,7 +79,7 @@ void SSR::update(Shader& postProcessingShader) {
     postProcessingShader.setMat4(mProjectionViewLocation, currentProjectViewMatrix);
 
     // Set camera frustum planes
-    std::vector<glm::vec4> frustumPlanes{6};
+    std::vector<glm::vec4> frustumPlanes{ 6 };
     std::array<Plane, 6> planes
         = Engine::renderSys.getCamera()->getComponent<CameraComponent>()->getViewFrutsum().getPlanes();
     std::transform(planes.begin(), planes.end(), frustumPlanes.begin(), [](const auto& plane) {
@@ -107,12 +106,12 @@ void SSR::setMaxDistance(float maxDistance) {
     }
 }
 
-void SSR::setResolution(float resolution) {
-    if (mResolution != resolution) {
-        mResolution = resolution;
+void SSR::setNumSamples(std::int32_t numSamples) {
+    if (mNumSamples != numSamples) {
+        mNumSamples = numSamples;
 
         ShaderScopedUsage useShader{ mPostProcessingShader };
-        mPostProcessingShader.setFloat("_ssr_rayResolution", mResolution);
+        mPostProcessingShader.setInt("_ssr_numSamples", numSamples);
     }
 }
 
