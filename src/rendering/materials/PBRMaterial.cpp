@@ -33,6 +33,8 @@ PBRMaterial::PBRMaterial(bool hasSkeletalAnimation)
     mUseRoughnessMapLocation = shader.getLocationOf("material.useRoughnessMap");
     mUseAOMapLocation = shader.getLocationOf("material.useAOMap");
 
+    mUVScaleLocation = shader.getLocationOf("material.uvScale");
+
     shader.setInt("material.albedoMap", 0);
     shader.setInt("material.normalMap", 1);
     shader.setInt("material.roughnessMap", 2);
@@ -88,6 +90,10 @@ void PBRMaterial::setAmbientOcclusion(float ao) {
     mAO = ao;
 }
 
+void PBRMaterial::setUVScale(const glm::vec2& uvScale) {
+    mUVScale = uvScale;
+}
+
 void PBRMaterial::setSkeletalAnimationController(
     std::shared_ptr<class SkeletalAnimationControllerComponent> controller) {
     mSkeletalAnimationController = controller;
@@ -95,6 +101,8 @@ void PBRMaterial::setSkeletalAnimationController(
 
 void PBRMaterial::use() {
     shader.use();
+
+    shader.setVec2(mUVScaleLocation, mUVScale);
 
     // update animation
     if (auto sac = mSkeletalAnimationController.lock()) {

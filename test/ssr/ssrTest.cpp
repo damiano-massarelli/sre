@@ -53,12 +53,17 @@ void SSRTestScene::start() {
     Engine::renderSys.addLight(sun);
     sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::STATIC);
     sun->getComponent<Light>()->diffuseColor = glm::vec3{ 10.0f, 10.0f, 10.0f };
+    sun->getComponent<Light>()->ambientColor = glm::vec3{ 0.1F };
     sun->transform.rotateBy(glm::angleAxis(glm::radians(55.0f), sun->transform.right()));
 
     // Ground
+    Texture::AppearanceSettings settings;
+    settings.wrapS = GL_REPEAT;
+    settings.wrapT = GL_REPEAT;
     std::shared_ptr<PBRMaterial> planeMaterial = std::make_shared<PBRMaterial>();
-    planeMaterial->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/checker.png"));
+    planeMaterial->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/checker.png", settings));
     planeMaterial->setAlbedo(glm::vec3(1.f));
+    planeMaterial->setUVScale(glm::vec2{ 8.F });
     //planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughness.jpg"));
     //planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/checker.png"));
     //planeMaterial->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg"));
@@ -68,7 +73,7 @@ void SSRTestScene::start() {
 
     GameObjectEH plane = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), planeMaterial);
     plane->transform.setRotation(glm::angleAxis(glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f)));
-    plane->transform.scaleBy(glm::vec3(30.f));
+    plane->transform.scaleBy(glm::vec3(180.f));
 
     // Sphere
     std::shared_ptr<PBRMaterial> redMaterial = std::make_shared<PBRMaterial>();
@@ -79,31 +84,39 @@ void SSRTestScene::start() {
     sphere->transform.scaleBy(glm::vec3(5.f));
 
     // Cube
-    GameObjectEH cube = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), redMaterial);
-    cube->transform.setPosition(glm::vec3(10.f, 0.f, 0.f));
-    cube->transform.scaleBy(glm::vec3(5.f));
+    const auto cube = MeshCreator::cube();
+    const auto cubeEH = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), redMaterial);
+    cubeEH->transform.scaleBy(glm::vec3{ 5.F });
+    cubeEH->transform.moveBy(glm::vec3{ 10.F, 2.5F, 0.F });
+
+    const auto leftWall = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), redMaterial);
+    leftWall->transform.scaleBy(glm::vec3{ 3.F, 20.F, 180.F });
+    leftWall->transform.moveBy(glm::vec3{ -90.F, 10.F, 0.F });
 
     Engine::uiRenderer.addUIDrawer([ssrEffect, cam, redMaterial]() {
         float maxDistance = ssrEffect->getMaxDistance();
-        float resolution = ssrEffect->getResolution();
+        std::int32_t numSamples = ssrEffect->getNumSamples();
         int steps = ssrEffect->getSteps();
         float hitThreshold = ssrEffect->geHitThreshold();
 
         float roughness = redMaterial->getRoughness();
 
         ImGui::Begin("Settings");
-        ImGui::SliderFloat("Max Distance", &maxDistance, 0.f, 500.f);
-        ImGui::SliderFloat("Resolution", &resolution, 0.f, 1.f);
-        ImGui::SliderInt("Steps", &steps, 0, 30);
-        ImGui::SliderFloat("Hit Threshold", &hitThreshold, 0.01f, 2.f);
-
-        ImGui::SliderFloat("Roughness", &roughness, 0.f, 1.f);
-
-        ssrEffect->setMaxDistance(maxDistance);
-        ssrEffect->setResolution(resolution);
-        ssrEffect->setSteps(steps);
-        ssrEffect->setHitThreshold(hitThreshold);
-        redMaterial->setRoughness(roughness);
+        if (ImGui::SliderFloat("Max Distance", &maxDistance, 0.f, 500.f)) {
+            ssrEffect->setMaxDistance(maxDistance);
+        }
+        if (ImGui::SliderInt("Samples", &numSamples, 10, 200)) {
+            ssrEffect->setNumSamples(numSamples);
+        }
+        if (ImGui::SliderInt("Steps", &steps, 0, 30)) {
+            ssrEffect->setSteps(steps);
+        }
+        if (ImGui::SliderFloat("Hit Threshold", &hitThreshold, 0.01f, 10.f)) {
+            ssrEffect->setHitThreshold(hitThreshold);
+        }
+        if (ImGui::SliderFloat("Roughness", &roughness, 0.f, 1.f)) {
+            redMaterial->setRoughness(roughness);
+        }
 
         ImGui::End();
     });

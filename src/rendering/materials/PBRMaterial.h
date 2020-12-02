@@ -16,6 +16,8 @@ private:
     float mRoughness{ 1.f };
     float mAO{ 1.f };
 
+    glm::vec2 mUVScale{ 1.0f };
+
     bool mUseAlbedoMap = true;
     bool mUseNormalMap = true;
     bool mUseMetalnessMap = true;
@@ -26,6 +28,7 @@ private:
     std::int32_t mMetalnessLocation;
     std::int32_t mRoughnessLocation;
     std::int32_t mAOLocation;
+    std::int32_t mUVScaleLocation;
 
     std::int32_t mUseAlbedoMapLocation;
     std::int32_t mUseNormalMapLocation;
@@ -59,6 +62,8 @@ public:
     void setAmbientOcclusionMap(const Texture& ao);
     void setAmbientOcclusion(float ao);
 
+    void setUVScale(const glm::vec2& uvScale);
+
     // Getters
     bool getUseAlbedoMap() const { return mUseAlbedoMap; }
     bool getUseNormalMap() const { return mUseNormalMap; }
@@ -66,10 +71,12 @@ public:
     bool getUseRoughnessMap() const { return mUseRoughnessMap; }
     bool getUseAOMap() const { return mUseAOMap; }
 
-    glm::vec3 getAlbedo() const { return mAlbedo; }
+    const glm::vec3& getAlbedo() const { return mAlbedo; }
     float getMetalness() const { return mMetalness; }
     float getRoughness() const { return mRoughness; }
     float getAO() const { return mAO; }
+
+    const glm::vec2& getUVScale() { return mUVScale; }
 
     void setSkeletalAnimationController(std::shared_ptr<class SkeletalAnimationControllerComponent> controller);
 

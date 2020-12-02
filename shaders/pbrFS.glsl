@@ -20,6 +20,8 @@ struct PBRMaterial {
     bool useMetalnessMap;
     bool useRoughnessMap;
     bool useAOMap;
+
+    vec2 uvScale;
 };
 
 in vec2 texCoord;
@@ -31,34 +33,35 @@ in mat3 tangentToWorldSpace;
 uniform PBRMaterial material;
 
 void main() {
+    vec2 scaledTexCoord = texCoord * material.uvScale;
     Position = position;
 
     // The normal is in the third column
     vec3 normal = tangentToWorldSpace[2];
     if (material.useNormalMap) {
-        normal = texture(material.normalMap, texCoord).rgb * 2.0 - 1.0;
+        normal = texture(material.normalMap, scaledTexCoord).rgb * 2.0 - 1.0;
         normal = normalize(tangentToWorldSpace * normal);
     }    
 	Normal = normal;
 
     Diffuse = material.albedo;
     if (material.useAlbedoMap) {
-        Diffuse *= texture(material.albedoMap, texCoord).rgb;
+        Diffuse *= texture(material.albedoMap, scaledTexCoord).rgb;
     }
     Diffuse.rgb = pow(Diffuse.rgb, vec3(2.2));
     
     PBRData.x = material.roughness;
     if (material.useRoughnessMap) {
-        PBRData.x *= texture(material.roughnessMap, texCoord).r;
+        PBRData.x *= texture(material.roughnessMap, scaledTexCoord).r;
     }
     
     PBRData.y = material.metalness;
     if (material.useMetalnessMap) {
-        PBRData.y *= texture(material.metalnessMap, texCoord).r;
+        PBRData.y *= texture(material.metalnessMap, scaledTexCoord).r;
     }
 
 	PBRData.z = material.ao;
     if (material.useAOMap) {
-        PBRData.z *= texture(material.aoMap, texCoord).r;
+        PBRData.z *= texture(material.aoMap, scaledTexCoord).r;
     }
 }
