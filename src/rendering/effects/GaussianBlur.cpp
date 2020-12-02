@@ -7,13 +7,13 @@ void GaussianBlur::initRenderTargets(RenderTarget* resultBuffer) {
 #endif
 
     mResultBuffer = resultBuffer;
-     
+
     const auto width = resultBuffer->getWidth();
     const auto height = resultBuffer->getHeight();
     auto settings = resultBuffer->getColorBuffer()->getSettings();
-    settings.appearanceOptions.hasMipmap = false; // there is no need to use mipmaps here
-    mHorizontalBlurred
-        = std::make_unique<Texture>(Texture::load(nullptr, static_cast<std::int32_t>(width), static_cast<std::int32_t>(height), settings));
+    settings.appearanceOptions.hasMipmap = false;  // there is no need to use mipmaps here
+    mHorizontalBlurred = std::make_unique<Texture>(
+        Texture::load(nullptr, static_cast<std::int32_t>(width), static_cast<std::int32_t>(height), settings));
     mHorizontalTarget = RenderTarget{ mHorizontalBlurred.get(), nullptr };
 
     hBlur = Shader::loadFromFile(
@@ -33,15 +33,16 @@ void GaussianBlur::initRenderTargets(RenderTarget* resultBuffer) {
 }
 
 GaussianBlur::GaussianBlur(float scaleFactor, Texture::Settings outputSettings) {
-    outputSettings.appearanceOptions.hasMipmap = false; // there is no need to use mipmaps here
-    outputSettings.appearanceOptions.minFilter = GL_LINEAR; // force linear filtering so that it looks good when scaleFactor < 1
+    outputSettings.appearanceOptions.hasMipmap = false;  // there is no need to use mipmaps here
+    outputSettings.appearanceOptions.minFilter
+        = GL_LINEAR;  // force linear filtering so that it looks good when scaleFactor < 1
     outputSettings.appearanceOptions.magFilter = GL_LINEAR;
 
     const auto width = Engine::renderSys.getScreenWidth() * scaleFactor;
     const auto height = Engine::renderSys.getScreenHeight() * scaleFactor;
-    
-    mCombinedBlurred
-        = std::make_unique<Texture>(Texture::load(nullptr, static_cast<std::int32_t>(width), static_cast<std::int32_t>(height), outputSettings));
+
+    mCombinedBlurred = std::make_unique<Texture>(
+        Texture::load(nullptr, static_cast<std::int32_t>(width), static_cast<std::int32_t>(height), outputSettings));
     mCombinedTarget = RenderTarget{ mCombinedBlurred.get(), nullptr };
 
     initRenderTargets(&mCombinedTarget);

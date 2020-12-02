@@ -64,12 +64,12 @@ void SSRTestScene::start() {
     planeMaterial->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/checker.png", settings));
     planeMaterial->setAlbedo(glm::vec3(1.f));
     planeMaterial->setUVScale(glm::vec2{ 8.F });
-    //planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughness.jpg"));
-    //planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/checker.png"));
-    //planeMaterial->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg"));
-    //planeMaterial->setMetalness(0.f);
-    //planeMaterial->setNormalMap(Texture::loadFromFile("test_data/ssr/textures/metal/normal.jpg"));
-    //planeMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/ssr/textures/metal/ao.jpg"));
+    // planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughness.jpg"));
+    // planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/checker.png"));
+    // planeMaterial->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg"));
+    // planeMaterial->setMetalness(0.f);
+    // planeMaterial->setNormalMap(Texture::loadFromFile("test_data/ssr/textures/metal/normal.jpg"));
+    // planeMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/ssr/textures/metal/ao.jpg"));
 
     GameObjectEH plane = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), planeMaterial);
     plane->transform.setRotation(glm::angleAxis(glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f)));

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "rendering/RenderTarget.h"
+#include "rendering/deferredRendering/DeferredRenderingFBO.h"
 #include "rendering/materials/Shader.h"
 #include "rendering/materials/Texture.h"
-#include "rendering/deferredRendering/DeferredRenderingFBO.h"
 #include <memory>
 
 /**

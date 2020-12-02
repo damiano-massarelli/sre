@@ -3,7 +3,8 @@
 #include <glad/glad.h>
 #include <utility>
 
-RenderTarget::RenderTarget(const Texture* colorBuffer, const Texture* depthBuffer, std::int32_t colorLevel, std::int32_t depthLevel)
+RenderTarget::RenderTarget(
+    const Texture* colorBuffer, const Texture* depthBuffer, std::int32_t colorLevel, std::int32_t depthLevel)
     : mColorBuffer{ colorBuffer }
     , mDepthBuffer{ depthBuffer }
     , mColorLevel{ colorLevel }
@@ -38,7 +39,8 @@ RenderTarget::RenderTarget(const Texture* colorBuffer, const Texture* depthBuffe
     glBindFramebuffer(GL_FRAMEBUFFER, mFbo);
 
     if (colorBuffer != nullptr && colorBuffer->isValid()) {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer->getId(), static_cast<GLint>(colorLevel));
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer->getId(), static_cast<GLint>(colorLevel));
     } else {
         glDrawBuffer(GL_NONE);
     }
@@ -47,7 +49,8 @@ RenderTarget::RenderTarget(const Texture* colorBuffer, const Texture* depthBuffe
         if (depthBuffer->isCubeMap()) {
             glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, depthBuffer->getId(), depthLevel);
         } else {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthBuffer->getId(), depthLevel);
+            glFramebufferTexture2D(
+                GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthBuffer->getId(), depthLevel);
         }
     }
 
@@ -58,12 +61,12 @@ RenderTarget::RenderTarget(const Texture* colorBuffer, const Texture* depthBuffe
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-RenderTarget::RenderTarget(const Texture* colorBuffer, const Texture* depthBuffer) 
-    : RenderTarget{colorBuffer, depthBuffer, 0, 0}
-{
-}
+RenderTarget::RenderTarget(const Texture* colorBuffer, const Texture* depthBuffer)
+    : RenderTarget{ colorBuffer, depthBuffer, 0, 0 } { }
 
-RenderTarget::RenderTarget(RenderTarget&& rhs) noexcept { *this = std::move(rhs); }
+RenderTarget::RenderTarget(RenderTarget&& rhs) noexcept {
+    *this = std::move(rhs);
+}
 
 RenderTarget& RenderTarget::operator=(RenderTarget&& rhs) noexcept {
     cleanUp();
@@ -101,13 +104,11 @@ std::uint32_t RenderTarget::getHeight() const {
     return mHeight;
 }
 
-std::int32_t RenderTarget::getColorBufferMipMapLevel() const
-{
+std::int32_t RenderTarget::getColorBufferMipMapLevel() const {
     return mColorLevel;
 }
 
-std::int32_t RenderTarget::getDepthBufferMipMapLevel() const
-{
+std::int32_t RenderTarget::getDepthBufferMipMapLevel() const {
     return mDepthLevel;
 }
 

@@ -56,7 +56,8 @@ public:
      * @param colorLevel the mipmap level of the colorBuffer where data will be written.
      * @param depthLevel the mipmap level of the depthBuffer where data will be written.
      */
-    explicit RenderTarget(const Texture* colorBuffer, const Texture* depthBuffer, std::int32_t colorLevel, std::int32_t depthLevel);
+    explicit RenderTarget(
+        const Texture* colorBuffer, const Texture* depthBuffer, std::int32_t colorLevel, std::int32_t depthLevel);
 
     RenderTarget(RenderTarget&& rhs) noexcept;
 
@@ -94,7 +95,7 @@ public:
     std::uint32_t getHeight() const;
 
     /**
-     * @return the mipmap level referenced by this RenderTarget for the color buffer. 
+     * @return the mipmap level referenced by this RenderTarget for the color buffer.
      */
     std::int32_t getColorBufferMipMapLevel() const;
 

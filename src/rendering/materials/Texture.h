@@ -139,7 +139,7 @@ public:
 
     /**
      * Set the mipmap option to the given value.
-     * This is 
+     * @param isRequred whether mip-maps are required or not
      * @see RenderTarget.
      */
     void setRequireMipmap(bool isRequired);

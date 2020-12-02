@@ -198,18 +198,17 @@ void Texture::cleanUpIfNeeded() {
 
 void Texture::setupMipmap() {
     glBindTexture(GL_TEXTURE_2D, mTextureId);
-    
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     if (GLAD_GL_ARB_texture_filter_anisotropic) {
         float maxAniso = 0;
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, std::min(maxAniso, 4.0f));
-    }
-    else {
+    } else {
         std::cout << "anisotropic filtering not available\n";
     }
-    
+
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -222,7 +221,6 @@ void Texture::setRequireMipmap(bool isRequired) {
         }
     }
 }
-
 
 void Texture::updateMipmap() const {
     if (mSettings.appearanceOptions.hasMipmap && isValid()) {
