@@ -161,9 +161,6 @@ public:
     /** settings for shadow mapping */
     ShadowMappingSettings shadowMappingSettings;
 
-    /** settings for fog */
-    FogSettings fogSettings;
-
     /** The effect manager handles post processing effects */
     EffectManager effectManager;
 

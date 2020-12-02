@@ -5,13 +5,12 @@
 SkyboxMaterial::SkyboxMaterial(const Texture& cubemap)
     : Material{ std::vector<std::string>{ "shaders/skyboxVS.glsl" },
         {},
-        { "shaders/FogCalculation.glsl", "shaders/skyboxFS.glsl" } }
+        { "shaders/skyboxFS.glsl" } }
     , mCubemap{ cubemap } {
     // do not render during shadow mapping
     unSupportedRenderPhases = RenderPhase::DEFERRED_RENDERING | RenderPhase::SHADOW_MAPPING | RenderPhase::PBR;
 
     ShaderScopedUsage useShader{ shader };
-    shader.bindUniformBlock("Fog", RenderSystem::FOG_UNIFORM_BLOCK_INDEX);
     shader.setInt("cubemap", 0);
 }
 

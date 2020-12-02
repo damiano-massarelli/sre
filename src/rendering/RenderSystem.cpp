@@ -84,7 +84,6 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height) {
     lightPassTarget = Texture::load(nullptr, width, height, GBuffer::DIFFUSE_BUFFER_SETTINGS);
     lightPassRenderTarget = RenderTarget{ &lightPassTarget, &(gBuffer.getDepthBuffer()) };
     effectManager.init();
-    fogSettings.init();
     shadowMappingSettings.init();
 
     Engine::particleRenderer.init();

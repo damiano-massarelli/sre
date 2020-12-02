@@ -7,6 +7,9 @@ in vec3 position;
 uniform float lowerFogLimit = 0.0;
 uniform float upperFogLimit = 0.1;
 
+const vec3 _fogColor = vec3(0.51, 0.59, 0.67);
+
+
 void main() {
     vec3 color = texture(cubemap, position).rgb;
 
