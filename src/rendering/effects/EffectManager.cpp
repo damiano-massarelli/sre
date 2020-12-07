@@ -1,5 +1,4 @@
 #include "rendering/effects/EffectManager.h"
-#include <algorithm>
 #include <sstream>
 
 void EffectManager::createShader(std::vector<std::shared_ptr<Effect>> effects) {
@@ -50,8 +49,21 @@ void EffectManager::init() {
 
 void EffectManager::addEffect(const std::shared_ptr<Effect>& effect) {
     mEffects.push_back(effect);
-    if (mEnabled)
+    if (mEnabled) {
         createShader(mEffects);
+    }
+}
+
+void EffectManager::removeEffect(std::shared_ptr<Effect> effect)
+{
+    mEffects.erase(std::remove(mEffects.begin(), mEffects.end(), effect), mEffects.end());
+    if (mEnabled) {
+        createShader(mEffects);
+    }
+}
+
+bool EffectManager::hasEffect(std::shared_ptr<Effect> effect) const {
+    return std::find(mEffects.begin(), mEffects.end(), effect) != mEffects.end();
 }
 
 void EffectManager::enableEffects() {
