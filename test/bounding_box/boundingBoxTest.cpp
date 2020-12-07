@@ -13,8 +13,6 @@
 #include "rendering/mesh/MeshCreator.h"
 #include "rendering/mesh/MeshLoader.h"
 
-#include <iostream>
-
 struct MoveComponent : public Component, public EventListener {
 
     CrumbPtr mEnterFrameCrumb;
@@ -43,11 +41,11 @@ DECLARE_TEST_SCENE("Buonding Box Scene", BoundingBoxTestScene)
 void BoundingBoxTestScene::start() {
     // add effects
     Engine::renderSys.effectManager.enableEffects();
-    Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
     auto gammaPost = std::make_shared<GammaCorrection>();
     gammaPost->setGamma(2.2f);
     gammaPost->setExposure(1.0f);
     Engine::renderSys.effectManager.addEffect(gammaPost);
+    Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 
     // create a camera
     auto camera = Engine::gameObjectManager.createGameObject();
