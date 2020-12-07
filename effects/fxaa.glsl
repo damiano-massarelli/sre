@@ -1,3 +1,6 @@
+// FXAA filter based on McNopper implementation
+// https://github.com/McNopper/OpenGL/blob/master/Example42/shader/fxaa.frag.glsl
+
 const vec3 FXAA_TO_LUMA = vec3(0.299, 0.587, 0.114);
 
 uniform float uFXAAReduceMultiplier;
