@@ -36,7 +36,8 @@ public:
      * This ensures that a certain amount of reduction (it the provided parameter is greater than 1)
      * or emphasis (if the provided parameter is less the 1) is always performed.
      * getReduceMultiplier can still return values that are smaller than the provided parameter.
-     * This is because the reduceMultiplier also takes into account the brighness of the pixels the effect is processing.
+     * This is because the reduceMultiplier also takes into account the brighness of the pixels the effect is
+     * processing.
      * @param minReduce the minimum value for the reduce multiplier.
      */
     void setMinReduceMultiplier(float minReduce);
@@ -58,14 +59,14 @@ public:
      * @return the reduce multiplier.
      */
     float getReduceMultiplier() const { return mReduceMultiplier; }
-     
+
     /**
-     * @return the min value for the return multiplier. 
+     * @return the min value for the return multiplier.
      */
     float getMinReduceMultiplier() const { return mMinReduce; }
 
     /**
-     * @return the max span used when blurring edges. 
+     * @return the max span used when blurring edges.
      */
     float getMaxSpan() const { return mMaxSpan; }
 

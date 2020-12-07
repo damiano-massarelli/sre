@@ -28,7 +28,6 @@ void FXAATestScene::start() {
     Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
 
     const auto fxaaEffect = std::make_shared<FXAA>();
-    //Engine::renderSys.effectManager.addEffect(fxaaEffect);
 
     // Setup Camera
     auto camera = Engine::gameObjectManager.createGameObject();

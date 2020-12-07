@@ -54,8 +54,7 @@ void EffectManager::addEffect(const std::shared_ptr<Effect>& effect) {
     }
 }
 
-void EffectManager::removeEffect(std::shared_ptr<Effect> effect)
-{
+void EffectManager::removeEffect(std::shared_ptr<Effect> effect) {
     mEffects.erase(std::remove(mEffects.begin(), mEffects.end(), effect), mEffects.end());
     if (mEnabled) {
         createShader(mEffects);
