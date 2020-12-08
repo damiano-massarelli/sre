@@ -21,8 +21,8 @@ END_DECLARE_TEST_SCENE("Skeletal Animation", SkeletalAnimationTestScene)
 void SkeletalAnimationTestScene::start() {
     Engine::renderSys.shadowMappingSettings.useFastShader = false;
     Engine::renderSys.effectManager.enableEffects();
-    Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
     Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
+    Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
 
     Engine::renderSys.shadowMappingSettings.width = 5.f;
     Engine::renderSys.shadowMappingSettings.height = 5.f;

@@ -1,72 +1,85 @@
-const vec3 LUMA = vec3(0.299, 0.587, 0.114);
-const vec2 FXAA_SPAN = vec2(8.0f, 8.0f);
-const float FXAA_REDUCE_MUL = 1 / 8.0;
-const float FXAA_REDUCE_MIN = 1 / 128.0;
+// FXAA filter based on McNopper implementation
+// https://github.com/McNopper/OpenGL/blob/master/Example42/shader/fxaa.frag.glsl
 
-/** if 1 textures are preserved and not blurred by fxaa but anti-aliasing might not be as
-  * effective as it should. If -> 0, anti-aliasing is super effective but textures might be
-  * too blurred */
-const float FXAA_PRESERVE_TEXTURES = 1.0 / 10.5;
+const vec3 FXAA_TO_LUMA = vec3(0.299, 0.587, 0.114);
 
-uniform vec2 pixelSize;
-uniform float near;
-uniform float far;
-
-float fxaaDepthAt(vec2 coord) {
-    float z = texture(depthTexture, coord).r;
-    float d = (2.0 * near * far) / (far + near - z * (far - near));
-
-    return d / far;
-}
-
-float fxaaDepthDiff(vec2 coord, vec2 coord2) {
-    float diff = abs(fxaaDepthAt(coord) - fxaaDepthAt(coord2));
-    return pow(diff, FXAA_PRESERVE_TEXTURES);
-}
+uniform float uFXAAReduceMultiplier;
+uniform float uFXAAReduceMin;
+uniform float uFXAAMaxSpan;
+uniform float uFXAALumaThreshold;
 
 vec4 fxaa(vec4 color) {
-    float lumaTL = dot( texture(screenTexture, texCoord + vec2(-1.0, 1.0) * pixelSize ).rgb, LUMA );
-    float lumaTR = dot( texture(screenTexture, texCoord + vec2(1.0, 1.0) * pixelSize ).rgb, LUMA );
-    float lumaBL = dot( texture(screenTexture, texCoord + vec2(-1.0, -1.0) * pixelSize ).rgb, LUMA );
-    float lumaBR = dot( texture(screenTexture, texCoord + vec2(1.0, -1.0) * pixelSize ).rgb, LUMA );
+    vec2 texelSize = 1.0 / textureSize(screenTexture, 0);
 
-    vec2 dir;
-    dir.x = -((lumaTL + lumaTR) - (lumaBL + lumaBR));
-    dir.y = ((lumaTL + lumaBL) - (lumaTR + lumaBR));
+    vec3 rgbNW = textureOffset(screenTexture, texCoord, ivec2(-1, 1)).rgb;
+    rgbNW = _gc_toGammaCorrectedLDR(rgbNW);
+    vec3 rgbNE = textureOffset(screenTexture, texCoord, ivec2(1, 1)).rgb;
+    rgbNE = _gc_toGammaCorrectedLDR(rgbNE);
+    vec3 rgbSW = textureOffset(screenTexture, texCoord, ivec2(-1, -1)).rgb;
+    rgbSW = _gc_toGammaCorrectedLDR(rgbSW);
+    vec3 rgbSE = textureOffset(screenTexture, texCoord, ivec2(1, -1)).rgb;
+    rgbSE = _gc_toGammaCorrectedLDR(rgbSE);
+	
+	// Convert from RGB to luma.
+	float lumaNW = dot(rgbNW, FXAA_TO_LUMA);
+	float lumaNE = dot(rgbNE, FXAA_TO_LUMA);
+	float lumaSW = dot(rgbSW, FXAA_TO_LUMA);
+	float lumaSE = dot(rgbSE, FXAA_TO_LUMA);
+	float lumaM = dot(color.rgb, FXAA_TO_LUMA);
 
-    float dirReduce = max(FXAA_REDUCE_MUL * (lumaTL + lumaTR + lumaBL + lumaBR) / 4.0, FXAA_REDUCE_MIN);
-    dir /= (min(abs(dir.x), abs(dir.y)) + dirReduce);
+	// Gather minimum and maximum luma.
+	float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));
+	float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));
+	
+	// If contrast is lower than a maximum threshold ...
+	if (lumaMax - lumaMin <= lumaMax * uFXAALumaThreshold)
+	{		
+		return color;
+	}
 
-    dir = clamp(dir, -FXAA_SPAN, FXAA_SPAN);
+    // Sampling is done along the gradient.
+	vec2 samplingDirection;	
+	samplingDirection.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));
+    samplingDirection.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));
+    
+    // Sampling step distance depends on the luma: The brighter the sampled texels, the smaller the final sampling step direction.
+    // This results, that brighter areas are less blurred/more sharper than dark areas.  
+    float samplingDirectionReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * 0.25 * uFXAAReduceMultiplier, uFXAAReduceMin);
 
-    vec2 texelSizeDir = dir * pixelSize;
+    // Factor for norming the sampling direction plus adding the brightness influence. 
+	float minSamplingDirectionFactor = 1.0 / (min(abs(samplingDirection.x), abs(samplingDirection.y)) + samplingDirectionReduce);
+    
+    // Calculate final sampling direction vector by reducing, clamping to a range and finally adapting to the texture size. 
+    samplingDirection = clamp(samplingDirection * minSamplingDirectionFactor, vec2(-uFXAAMaxSpan), vec2(uFXAAMaxSpan)) * texelSize;
+	
+	// Inner samples on the tab.
+	vec3 rgbSampleNeg = texture(screenTexture, texCoord + samplingDirection * (1.0/3.0 - 0.5)).rgb;
+	vec3 rgbSamplePos = texture(screenTexture, texCoord + samplingDirection * (2.0/3.0 - 0.5)).rgb;
 
-    // sample back and forth along the direction
-	vec2 s1TexCoord1 = texCoord + texelSizeDir * vec2(1 / 3.0 - 0.5);
-	vec2 s1TexCoord2 = texCoord + texelSizeDir * vec2(2 / 3.0 - 0.5);
-	s1TexCoord1 = clamp(s1TexCoord1, vec2(0.01), vec2(0.99));
-	s1TexCoord2 = clamp(s1TexCoord2, vec2(0.01), vec2(0.99));
-    vec3 sample1 = 0.5 * (
-        texture(screenTexture, s1TexCoord1).rgb +
-        texture(screenTexture, s1TexCoord2).rgb
-    );
+	vec3 rgbTwoTab = (rgbSamplePos + rgbSampleNeg) * 0.5; 
 
-    // just like before but a little further away
-	vec2 s2TexCoord1 = texCoord + texelSizeDir * vec2(0 - 0.5);
-	vec2 s2TexCoord2 = texCoord + texelSizeDir * vec2(1.0 - 0.5);
-	s2TexCoord1 = clamp(s1TexCoord1, vec2(0.01), vec2(0.99));
-	s2TexCoord2 = clamp(s1TexCoord2, vec2(0.01), vec2(0.99));
-    vec3 sample2 = 0.5 * sample1 + 0.25 * (
-        texture(screenTexture, s2TexCoord1).rgb +
-        texture(screenTexture, s2TexCoord2).rgb
-    );
+	// Outer samples on the tab.
+	vec3 rgbSampleNegOuter = texture(screenTexture, texCoord + samplingDirection * (0.0/3.0 - 0.5)).rgb;
+	vec3 rgbSamplePosOuter = texture(screenTexture, texCoord + samplingDirection * (3.0/3.0 - 0.5)).rgb;
 
-    float diff21 = fxaaDepthDiff(texCoord, texCoord + texelSizeDir * vec2(-0.5));
-    float diff22 = fxaaDepthDiff(texCoord, texCoord + texelSizeDir * vec2(0.5));
-    float diff2 = (diff21 + diff22) / 2;
+	vec3 rgbFourTab = (rgbSamplePosOuter + rgbSampleNegOuter) * 0.25 + rgbTwoTab * 0.5;
+    rgbFourTab = _gc_toGammaCorrectedLDR(rgbFourTab); 
+	rgbTwoTab = _gc_toGammaCorrectedLDR(rgbTwoTab);
 
-
-	color = vec4(mix(color.rgb, sample2, diff2), color.a);
+	// Calculate luma for checking against the minimum and maximum value.
+	float lumaFourTab = dot(rgbFourTab, FXAA_TO_LUMA);
+	
+	// Are outer samples of the tab beyond the edge ... 
+	if (lumaFourTab < lumaMin || lumaFourTab > lumaMax)
+	{
+		// ... yes, so use only two samples.
+		color = vec4(rgbTwoTab, 1.0); 
+	}
+	else
+	{
+		// ... no, so use four samples. 
+		color = vec4(rgbFourTab, 1.0);
+	}
 
     return color;
 }

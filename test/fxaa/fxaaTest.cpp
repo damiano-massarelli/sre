@@ -23,68 +23,85 @@
 DECLARE_TEST_SCENE("FXAA", FXAATestScene)
 
 void FXAATestScene::start() {
+    // Setup Effects
+    Engine::renderSys.effectManager.enableEffects();
+    Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
+
+    const auto fxaaEffect = std::make_shared<FXAA>();
+
+    // Setup Camera
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
     camera->transform.moveBy(glm::vec3{ 0.0f, 0.0f, 30.0f });
-
-    auto cam = std::make_shared<FreeCameraComponent>(camera);
-    camera->addComponent(cam);
+    auto cameraComponent = std::make_shared<FreeCameraComponent>(camera);
+    camera->addComponent(cameraComponent);
     camera->transform.setRotation(glm::quat{ glm::vec3{ 0, glm::radians(180.0f), 0 } });
-
     Engine::renderSys.setCamera(camera);
 
-    auto tb1 = GameObjectLoader().fromFile("test_data/texture_cache/table.obj");
+    // Setup Scene
+    auto uvMaterial = std::make_shared<PBRMaterial>();
+    uvMaterial->setAlbedoMap(Texture::loadFromFile("test_data/textures/uv.jpg"));
 
-    auto tb2 = GameObjectLoader().fromFile("test_data/texture_cache/table.obj");
-    tb2->transform.setPosition(glm::vec3{ 0, 0, -10 });
+    auto greyMaterial = std::make_shared<PBRMaterial>();
+    greyMaterial->setAlbedo(glm::vec3{ .4F, .4F, .4F });
 
-    auto skyTexture = Texture::loadCubemapFromFile({
-        { "front", "test_data/skybox/front.tga" },
-        { "back", "test_data/skybox/back.tga" },
-        { "top", "test_data/skybox/top.tga" },
-        { "bottom", "test_data/skybox/bottom.tga" },
-        { "left", "test_data/skybox/left.tga" },
-        { "right", "test_data/skybox/right.tga" },
-    });
-    auto skyboxMaterial = std::make_shared<SkyboxMaterial>(skyTexture);
-    auto box = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), skyboxMaterial);
+    auto cube = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), greyMaterial);
+    cube->transform.setPosition(glm::vec3{ 0.F, 0.F, 0.F });
+    cube->transform.scaleBy(glm::vec3{ 5.F });
 
-    Engine::renderSys.effectManager.enableEffects();
-    Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
+    auto sphere = Engine::gameObjectManager.createGameObject(MeshCreator::sphere(1.f, 10, 10), greyMaterial);
+    sphere->transform.setPosition(glm::vec3{ -15, 0, 0 });
+    sphere->transform.scaleBy(glm::vec3{ 5.F });
+
+    auto plane = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), uvMaterial);
+    plane->transform.setPosition(glm::vec3{ 10, 0, 0 });
+    plane->transform.scaleBy(glm::vec3{ 5.F });
 
     auto light = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
     light->name = "light";
-    light->addComponent(std::make_shared<PointLight>(light));
-    light->transform.setPosition(glm::vec3{ 0.0f, 3.0f, 0.0f });
+    light->addComponent(std::make_shared<DirectionalLight>(light));
+    light->transform.setPosition(glm::vec3{ 0.0f, 0.0f, 15.0f });
     Engine::renderSys.addLight(light);
-    light->getComponent<Light>()->diffuseColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
-    light->getComponent<Light>()->specularColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
+    light->getComponent<Light>()->ambientColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
     light->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
 
-    auto light2 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
-    light2->name = "light2";
-    light2->addComponent(std::make_shared<PointLight>(light2));
-    Engine::renderSys.addLight(light2);
-    light2->getComponent<Light>()->diffuseColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
-    light2->getComponent<Light>()->specularColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
-
-    light2->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
-
-    auto light3 = Engine::gameObjectManager.createGameObject(MeshCreator::cube(), std::make_shared<PropMaterial>());
-    light3->name = "light3";
-    light3->addComponent(std::make_shared<DirectionalLight>(light3));
-    light3->transform.setPosition(glm::vec3{ 0.0f, 0.0f, 15.0f });
-    Engine::renderSys.addLight(light3);
-    light3->getComponent<Light>()->diffuseColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
-    light3->getComponent<Light>()->specularColor = glm::vec3{ 1.0f, 1.0f, 1.0f };
-    light3->getComponent<Light>()->innerAngle = glm::radians(25.0f);
-    light3->getComponent<Light>()->outerAngle = glm::radians(28.0f);
-    light3->transform.scaleBy(glm::vec3{ 0.2f, 0.2f, 0.2f });
-
     auto gizmo = MeshCreator::axisGizmo();
-    gizmo->transform.setParent(light3);
-    gizmo->transform.setPosition(light3->transform.getPosition());
-    light3->transform.setRotation(glm::quat{ glm::vec3{ glm::radians(90.0f), 0.0f, 0.0f } });
+    gizmo->transform.setParent(light);
+    gizmo->transform.setPosition(light->transform.getPosition());
+    light->transform.setRotation(glm::quat{ glm::vec3{ glm::radians(180.0f), 0.0f, 0.0f } });
+
+    Engine::uiRenderer.addUIDrawer([fxaaEffect]() {
+        EffectManager& effectManager = Engine::renderSys.effectManager;
+        bool fxaaEnabled = effectManager.hasEffect(fxaaEffect);
+
+        ImGui::Begin("FXAA Settings");
+
+        if (ImGui::Checkbox("Enabled", &fxaaEnabled)) {
+            fxaaEnabled ? effectManager.addEffect(fxaaEffect) : effectManager.removeEffect(fxaaEffect);
+        }
+
+        if (fxaaEnabled) {
+            float reduceMultiplier = fxaaEffect->getReduceMultiplier();
+            float minReduce = fxaaEffect->getMinReduceMultiplier();
+            float lumaThreshold = fxaaEffect->getLumaThreshold();
+            float maxSpan = fxaaEffect->getMaxSpan();
+
+            if (ImGui::SliderFloat("Reduce Multiplier", &reduceMultiplier, 0.F, 1.F)) {
+                fxaaEffect->setReduceMultiplier(reduceMultiplier);
+            }
+            if (ImGui::SliderFloat("Min Reduce", &minReduce, 0.F, 1.F)) {
+                fxaaEffect->setMinReduceMultiplier(minReduce);
+            }
+            if (ImGui::SliderFloat("Luma Threshold", &lumaThreshold, 0.F, 1.F)) {
+                fxaaEffect->setLumaThreshold(lumaThreshold);
+            }
+            if (ImGui::SliderFloat("Max Span", &maxSpan, 0.F, 20.F)) {
+                fxaaEffect->setMaxSpan(maxSpan);
+            }
+        }
+
+        ImGui::End();
+    });
 }
 
 void FXAATestScene::end() { }

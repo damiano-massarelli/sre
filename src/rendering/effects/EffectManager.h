@@ -1,6 +1,7 @@
 #pragma once
 #include "rendering/effects/Effect.h"
 #include "rendering/materials/Shader.h"
+#include <algorithm>
 #include <memory.h>
 #include <set>
 #include <string.h>
@@ -31,6 +32,16 @@ public:
     void init();
 
     void addEffect(const std::shared_ptr<Effect>& effect);
+
+    void removeEffect(std::shared_ptr<Effect> effect);
+
+    [[nodiscard]] bool hasEffect(std::shared_ptr<Effect> effect) const;
+
+    template <typename T>[[nodiscard]] bool hasEffect() const {
+        return std::find_if(mEffects.begin(), mEffects.end(), [](auto& effect) {
+            return dynamic_cast<T*>(effect.get()) != nullptr;
+        }) != mEffects.end();
+    }
 
     void enableEffects();
 
