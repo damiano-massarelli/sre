@@ -80,26 +80,6 @@ void FXAATestScene::start() {
             fxaaEnabled ? effectManager.addEffect(fxaaEffect) : effectManager.removeEffect(fxaaEffect);
         }
 
-        if (fxaaEnabled) {
-            float reduceMultiplier = fxaaEffect->getReduceMultiplier();
-            float minReduce = fxaaEffect->getMinReduceMultiplier();
-            float lumaThreshold = fxaaEffect->getLumaThreshold();
-            float maxSpan = fxaaEffect->getMaxSpan();
-
-            if (ImGui::SliderFloat("Reduce Multiplier", &reduceMultiplier, 0.F, 1.F)) {
-                fxaaEffect->setReduceMultiplier(reduceMultiplier);
-            }
-            if (ImGui::SliderFloat("Min Reduce", &minReduce, 0.F, 1.F)) {
-                fxaaEffect->setMinReduceMultiplier(minReduce);
-            }
-            if (ImGui::SliderFloat("Luma Threshold", &lumaThreshold, 0.F, 1.F)) {
-                fxaaEffect->setLumaThreshold(lumaThreshold);
-            }
-            if (ImGui::SliderFloat("Max Span", &maxSpan, 0.F, 20.F)) {
-                fxaaEffect->setMaxSpan(maxSpan);
-            }
-        }
-
         ImGui::End();
     });
 }
