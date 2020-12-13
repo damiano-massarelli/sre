@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="GameObjectEH">
+    <DisplayString Condition="mGeneration != 0 &amp;&amp; mHandleList != nullptr &amp;&amp;
+      mHandleIndex &lt; mHandleList->mHandles.size() &amp;&amp; mHandleList->mHandles[mHandleIndex].generation == mGeneration">{{ name={ mHandleList->mData[mHandleList->mHandles[mHandleIndex].index].name } }}</DisplayString>
+    <DisplayString>Invalid GameObject</DisplayString>
+    <Expand>
+      <Item Name="[gameobject]" Condition="mGeneration != 0 &amp;&amp; mHandleList != nullptr &amp;&amp;
+      mHandleIndex &lt; mHandleList->mHandles.size() &amp;&amp; mHandleList->mHandles[mHandleIndex].generation == mGeneration">mHandleList->mData[mHandleList->mHandles[mHandleIndex].index]</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>
