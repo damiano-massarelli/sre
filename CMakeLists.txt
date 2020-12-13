@@ -100,7 +100,7 @@ set_target_properties(sre PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SO
 target_link_libraries(
     ${TARGET}
     opengl32
-    SDL2Main
+    SDL2main
     SDL2
     glad
     imgui
