@@ -12,9 +12,11 @@ SSR::SSR()
     mPositionTexture = Engine::renderSys.effectManager.getTexture();
     mNormalTexture = Engine::renderSys.effectManager.getTexture();
     mMaterialTexture = Engine::renderSys.effectManager.getTexture();
+    mDiffuseTexture = Engine::renderSys.effectManager.getTexture();
     assert(mPositionTexture != -1);
     assert(mNormalTexture != -1);
     assert(mMaterialTexture != -1);
+    assert(mDiffuseTexture != -1);
 
     // if (!Engine::renderSys.lightPassTarget.getSettings().appearanceOptions.hasMipmap) {
     //    Engine::renderSys.lightPassTarget.setRequireMipmap(true);
@@ -30,22 +32,23 @@ SSR::SSR()
 }
 
 void SSR::onSetup(Shader& postProcessingShader) {
-    // ShaderScopedUsage useShader{ postProcessingShader };
+    ShaderScopedUsage useShader{ postProcessingShader };
     mPostProcessingShader = postProcessingShader;
 
     mPostProcessingShader.setInt("_ssr_position", mPositionTexture);
     mPostProcessingShader.setInt("_ssr_normals", mNormalTexture);
     mPostProcessingShader.setInt("_ssr_materialBuffer", mMaterialTexture);
+    mPostProcessingShader.setInt("_ssr_diffuseColor", mDiffuseTexture);
 
     // Parameter defaults
     mPostProcessingShader.setFloat("_ssr_rayMaxDistance", mMaxDistance);
     mPostProcessingShader.setInt("_ssr_numSamples", mNumSamples);
     mPostProcessingShader.setInt("_ssr_raySteps", mSteps);
     mPostProcessingShader.setFloat("_ssr_rayHitThreshold", mHitThreshold);
+    mPostProcessingShader.setFloat("_ssr_steepAngleHitThresholdMultiplier", mSteepAngleHitThresholdMultiplier);
 
     // Cached shader locations
     mCameraPositionLocation = mPostProcessingShader.getLocationOf("_ssr_cameraPosition");
-    mCameraDirectionLocation = mPostProcessingShader.getLocationOf("_ssr_cameraDirection");
     mProjectionViewLocation = mPostProcessingShader.getLocationOf("_ssr_projectionView");
     mFrustumPlanesLocation = mPostProcessingShader.getLocationOf("_ssr_frustumPlanes");
 }
@@ -75,9 +78,8 @@ void SSR::update(Shader& postProcessingShader) {
     }
 
     postProcessingShader.setVec3(mCameraPositionLocation, renderSystem.getCamera()->transform.getPosition());
-    postProcessingShader.setVec3(mCameraDirectionLocation, renderSystem.getCamera()->transform.forward());
     postProcessingShader.setMat4(mProjectionViewLocation, currentProjectViewMatrix);
-
+        
     // Set camera frustum planes
     std::vector<glm::vec4> frustumPlanes{ 6 };
     std::array<Plane, 6> planes
@@ -95,6 +97,9 @@ void SSR::update(Shader& postProcessingShader) {
 
     glActiveTexture(GL_TEXTURE0 + mMaterialTexture);
     glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getMaterialBuffer().getId());
+
+    glActiveTexture(GL_TEXTURE0 + mDiffuseTexture);
+    glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getDiffuseBuffer().getId());
 }
 
 void SSR::setMaxDistance(float maxDistance) {
@@ -130,6 +135,15 @@ void SSR::setHitThreshold(float hitThreshold) {
 
         ShaderScopedUsage useShader{ mPostProcessingShader };
         mPostProcessingShader.setFloat("_ssr_rayHitThreshold", mHitThreshold);
+    }
+}
+
+void SSR::setSteepAngleHitThresholdMultiplier(float multiplier) {
+    if (mSteepAngleHitThresholdMultiplier != multiplier) {
+        mSteepAngleHitThresholdMultiplier = multiplier;
+
+        ShaderScopedUsage useShader{ mPostProcessingShader };
+        mPostProcessingShader.setFloat("_ssr_steepAngleHitThresholdMultiplier", mSteepAngleHitThresholdMultiplier);
     }
 }
 
