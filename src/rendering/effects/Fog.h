@@ -21,16 +21,10 @@ private:
     // Exponent of the fog, reasonable values are between 1.0 and 15.0
     float mRapidity = 3.f;
 
-    // Camera near and far planes
-    float mNearPlane;
-    float mFarPlane;
-
 public:
     Fog();
 
     virtual void onSetup(Shader& postProcessingShader) override;
-
-    virtual void update(Shader& postProcessingShader) override;
 
     ~Fog();
 

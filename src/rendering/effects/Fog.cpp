@@ -15,24 +15,6 @@ void Fog::onSetup(Shader& postProcessingShader) {
     mPostProcessingShader.setVec2("uFogParams", glm::vec2{mDensity, mRapidity});
 }
 
-void Fog::update(Shader& postProcessingShader) {
-    ShaderScopedUsage useShader{ postProcessingShader };
-
-    const RenderSystem& renderSystem = Engine::renderSys;
-    const auto cameraComponent = renderSystem.getCamera()->getComponent<CameraComponent>();
-    const float near = cameraComponent->getNearPlaneDistance();
-    const float far = cameraComponent->getFarPlaneDistance();
-
-    if (near != mNearPlane) {
-        mNearPlane = near;
-        postProcessingShader.setFloat("_fog_nearPlane", mNearPlane);
-    }
-    if (far != mFarPlane) {
-        mFarPlane = far;
-        postProcessingShader.setFloat("_fog_farPlane", mFarPlane);
-    }
-}
-
 Fog::~Fog() {}
 
 void Fog::setColor(const glm::vec3& color) {
