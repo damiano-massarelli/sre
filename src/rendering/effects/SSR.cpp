@@ -7,8 +7,7 @@
 #include <vector>
 
 SSR::SSR()
-    : Effect{ "ssr", "effects/ssr.glsl" }
-    , mGaussianBlur{ 0.05F } {
+    : Effect{ "ssr", "effects/ssr.glsl" } {
     mPositionTexture = Engine::renderSys.effectManager.getTexture();
     mNormalTexture = Engine::renderSys.effectManager.getTexture();
     mMaterialTexture = Engine::renderSys.effectManager.getTexture();
@@ -32,16 +31,17 @@ SSR::SSR()
 }
 
 void SSR::onSetup(Shader& postProcessingShader) {
-    ShaderScopedUsage useShader{ postProcessingShader };
     mPostProcessingShader = postProcessingShader;
+    setFallbackSkyboxTexture(mFallbackSkybox);
 
+    ShaderScopedUsage useShader{ postProcessingShader };
     mPostProcessingShader.setInt("_ssr_position", mPositionTexture);
     mPostProcessingShader.setInt("_ssr_normals", mNormalTexture);
     mPostProcessingShader.setInt("_ssr_materialBuffer", mMaterialTexture);
     mPostProcessingShader.setInt("_ssr_diffuseColor", mDiffuseTexture);
 
     // Parameter defaults
-    mPostProcessingShader.setFloat("_ssr_rayMaxDistance", mMaxDistance);
+    mPostProcessingShader.setFloat("_ssr_rayMaxDistance", mMaxReflectionDistance);
     mPostProcessingShader.setInt("_ssr_numSamples", mNumSamples);
     mPostProcessingShader.setInt("_ssr_raySteps", mSteps);
     mPostProcessingShader.setFloat("_ssr_rayHitThreshold", mHitThreshold);
@@ -100,14 +100,19 @@ void SSR::update(Shader& postProcessingShader) {
 
     glActiveTexture(GL_TEXTURE0 + mDiffuseTexture);
     glBindTexture(GL_TEXTURE_2D, Engine::renderSys.gBuffer.getDiffuseBuffer().getId());
+
+    if (mFallbackSkybox.isValid()) {
+        glActiveTexture(GL_TEXTURE0 + mFallbackSkyboxTexture);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, mFallbackSkybox.getId());
+    }
 }
 
-void SSR::setMaxDistance(float maxDistance) {
-    if (mMaxDistance != maxDistance) {
-        mMaxDistance = maxDistance;
+void SSR::setMaxReflectionDistance(float maxReflectionDistance) {
+    if (mMaxReflectionDistance != maxReflectionDistance) {
+        mMaxReflectionDistance = maxReflectionDistance;
 
         ShaderScopedUsage useShader{ mPostProcessingShader };
-        mPostProcessingShader.setFloat("_ssr_rayMaxDistance", mMaxDistance);
+        mPostProcessingShader.setFloat("_ssr_rayMaxDistance", mMaxReflectionDistance);
     }
 }
 
@@ -147,10 +152,42 @@ void SSR::setSteepAngleHitThresholdMultiplier(float multiplier) {
     }
 }
 
+void SSR::setFallbackSkyboxTexture(Texture fallbackSkybox) {
+#ifdef SRE_DEBUG
+    assert(!fallbackSkybox.isValid() || fallbackSkybox.isCubeMap());
+#endif // SRE_DEBUG
+    mFallbackSkybox = fallbackSkybox;
+
+    // The following operations cannot be perfomed without a valid
+    // shader, these operations will be deferred until onSetup is called.
+    if (!mPostProcessingShader.isValid()) {
+        return;
+    }
+
+    if (fallbackSkybox.isValid()) {
+        if (mFallbackSkyboxTexture == -1) {
+            mFallbackSkyboxTexture = Engine::renderSys.effectManager.getTexture();
+        }
+
+        ShaderScopedUsage useShader{ mPostProcessingShader };
+        mPostProcessingShader.setInt("_ssr_useFallbackSkybox", 1);
+        mPostProcessingShader.setInt("_ssr_fallbackSkybox", mFallbackSkyboxTexture);
+    }
+    else {
+        if (mFallbackSkyboxTexture == -1) {
+            Engine::renderSys.effectManager.releaseTexture(mFallbackSkyboxTexture);
+            ShaderScopedUsage useShader{ mPostProcessingShader };
+            mPostProcessingShader.setInt("_ssr_useFallbackSkybox", 0);
+        }
+    }
+
+}
+
 SSR::~SSR() {
     Engine::renderSys.lightPassTarget.setRequireMipmap(false);
 
     Engine::renderSys.effectManager.releaseTexture(mPositionTexture);
     Engine::renderSys.effectManager.releaseTexture(mNormalTexture);
     Engine::renderSys.effectManager.releaseTexture(mMaterialTexture);
+    Engine::renderSys.effectManager.releaseTexture(mFallbackSkyboxTexture);
 }

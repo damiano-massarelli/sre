@@ -32,7 +32,9 @@ public:
     /**
      * Texture settings used for the position buffer.
      */
-    static constexpr Texture::Settings POSITION_BUFFER_SETTINGS = GBuffer::DIFFUSE_BUFFER_SETTINGS;
+    static constexpr Texture::Settings POSITION_BUFFER_SETTINGS{
+        GL_RGB16F, GL_RGB, GL_FLOAT, { false, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE }
+    };
 
     /**
      * Texture settings used for the normal buffer.

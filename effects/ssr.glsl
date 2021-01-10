@@ -1,14 +1,15 @@
 // Uniforms
 uniform mat4 _ssr_projectionView; // current projection view matrix
 uniform vec3 _ssr_cameraPosition; // current camera position in world space
-uniform vec3 _ssr_cameraDirection; // current camera direction
 uniform vec4 _ssr_frustumPlanes[6]; // list of planes of the camera frustm
 
 uniform sampler2D _ssr_position; // position data coming from deferred rendering
 uniform sampler2D _ssr_normals;  // normals coming from deferred rendering
 uniform sampler2D _ssr_materialBuffer;
 uniform sampler2D _ssr_diffuseColor;
+uniform samplerCube _ssr_fallbackSkybox;
 
+uniform bool _ssr_useFallbackSkybox;
 uniform float _ssr_rayMaxDistance;
 uniform int _ssr_numSamples;
 uniform int _ssr_raySteps;
@@ -21,7 +22,8 @@ uniform float _ssr_farPlane;
 // Consts
 const int _SSR_MAX_LOD = 6;
 const float _SSR_MAX_ROUGHNESS = 0.9;
-const float _SSR_SELF_HIT_INCREMENT = 0.75;
+const float _SSR_MAX_SELF_HIT_INCREMENT = 0.25;
+const float _SSR_MIN_SELF_HIT_INCREMENT = 0.001;
 
 // Data Structures
 struct RayHitInfo {
@@ -78,7 +80,7 @@ float _ssr_viewSpaceDepthAt(vec2 coord) {
 	return _ssr_toLinearDepth(z);
 }
 
-float _ssr_getAttenuation(RayHitInfo hitInfo, vec3 wsRayStart, vec3 wsHitPoint, float csRayStartDepth, float csRayEndDepth, float hitThreshold) {
+float _ssr_getAttenuation(RayHitInfo hitInfo, vec3 wsRayStart, vec3 wsHitPoint, float csRayEndDepth, float hitThreshold) {
 	vec2 uvOutOfBounds = vec2(1.0) - smoothstep(vec2(0.85), vec2(1.0), hitInfo.uvHitPoint);
 	uvOutOfBounds     *= 1.0 - smoothstep(vec2(0.85), vec2(1.0), 1.0 - hitInfo.uvHitPoint);
 	float zOutOfBounds = smoothstep(0.0, 0.02, (csRayEndDepth - _ssr_nearPlane) / _ssr_farPlane);
@@ -90,10 +92,7 @@ float _ssr_getAttenuation(RayHitInfo hitInfo, vec3 wsRayStart, vec3 wsHitPoint, 
 	float hitDistanceFromStart = distance(wsRayStart, wsHitPoint);
 	float furtherFromFirstRefl = 1.0 - hitDistanceFromStart / _ssr_rayMaxDistance;
 
-	// Whether the hit point is too close to the start point or not
-	float selfHit = step(1. /_ssr_numSamples, hitInfo.distanceTraveledPercentage);
-
-	float attenuation = hitInfo.hit * furtherFromHit * furtherFromFirstRefl * selfHit \
+	float attenuation = hitInfo.hit * furtherFromHit * furtherFromFirstRefl \
 	                    * uvOutOfBounds.x * uvOutOfBounds.y * zOutOfBounds;
 
 	return attenuation;
@@ -130,14 +129,14 @@ RayHitInfo _ssr_castRay(
 	float stepPercentage = 1. / numSamples;
 
 	// Step 1: search for intersection between reflected ray and scene
-	for (float i = 1; i < numSamples; ++i) { // start with i = 1 to avoid self hit
+	for (float i = 1; i < numSamples && hitInfo.hit < 1; ++i) { // start with i = 1 to avoid self hit
 		
 		vec3 raySample = rayStart + stepIncrement * i;
 
 		float sceneDepth = _ssr_viewSpaceDepthAt(raySample.xy);
 		float rayDepth = 1. / raySample.z;
 		float depthDelta = rayDepth - sceneDepth;
-		if (depthDelta >= 0.) {
+		if (depthDelta > 0.) {
 
 			// Binary search
 			float distancePercentage = stepPercentage * i;
@@ -145,7 +144,7 @@ RayHitInfo _ssr_castRay(
 			do {
 				stepIncrement /= 2.;
 
-				if (depthDelta >= 0) {
+				if (depthDelta > 0.) {
 					hitInfo.hit = 1.;
 					hitInfo.uvHitPoint = raySample.xy;
 					hitInfo.hitDepthDelta = depthDelta;
@@ -195,8 +194,6 @@ vec4 ssr(vec4 color) {
 	// Now we can safely normalize
 	wsFragmentNormal = normalize(wsFragmentNormal);
 
-	float biasedThreshold = _ssr_rayHitThreshold;// max(_ssr_rayHitThreshold, 4.0 * _ssr_rayHitThreshold * (1.0 - dot(-_ssr_cameraDirection, wsFragmentNormal)));
-
 	const vec3 wsViewDirection = normalize(wsFragmentPosition - _ssr_cameraPosition);
 	const vec3 wsRayDirection = normalize(reflect(wsViewDirection, wsFragmentNormal));
 
@@ -205,9 +202,13 @@ vec4 ssr(vec4 color) {
 
 	// Prevent self hit if view direction is perpendicular to world normal
 	const float VdotN = dot(-wsViewDirection, wsFragmentNormal);
-	float selfHitIncrementFactor = mix(_SSR_SELF_HIT_INCREMENT, 0, VdotN);
-	selfHitIncrementFactor = min(selfHitIncrementFactor, distance(wsRayStart, wsRayEnd));
-	wsRayStart += wsRayDirection * max(selfHitIncrementFactor, 0);
+	float selfHitIncrementFactor = max(1. - VdotN, 0.);
+	float distanceMultiplier = clamp(distance(wsFragmentPosition, _ssr_cameraPosition) / (_ssr_farPlane / 3.), 0., 1.);
+	selfHitIncrementFactor *= distanceMultiplier;
+	wsRayStart += wsFragmentNormal * mix(_SSR_MIN_SELF_HIT_INCREMENT, _SSR_MAX_SELF_HIT_INCREMENT, selfHitIncrementFactor);
+	//return vec4(mix(_SSR_MIN_SELF_HIT_INCREMENT, _SSR_MAX_SELF_HIT_INCREMENT, selfHitIncrementFactor) / _SSR_MAX_SELF_HIT_INCREMENT);
+
+	float biasedThreshold = _ssr_rayHitThreshold;
 		
 	// Project the start point from world to screen space
     vec4 ssRayStart = _ssr_projectionView * vec4(wsRayStart, 1.0);
@@ -230,21 +231,26 @@ vec4 ssr(vec4 color) {
 		vec3 wsHitNormal = texture(_ssr_normals, result.uvHitPoint).xyz;
 		wsHitNormal = wsHitNormal != vec3(0.) ? normalize(wsHitNormal) : -wsViewDirection;
 
-		float distanceMultiplier = clamp(result.hitRayDepth / (_ssr_farPlane / 3), 0., 1.);
+		distanceMultiplier = clamp(result.hitRayDepth / (_ssr_farPlane / 3), 0., 1.);
 
 		biasedThreshold = max(biasedThreshold, distanceMultiplier * _ssr_steepAngleHitThresholdMultiplier * biasedThreshold * (1. - dot(-wsViewDirection, wsHitNormal)));
 	}
 
 	// Fresnel
 	vec3 F0 = vec3(0.04);
-    F0      = mix(F0, texture(_ssr_diffuseColor, result.uvHitPoint).rgb, metalness);
+    F0      = mix(F0, texture(_ssr_diffuseColor, texCoord).rgb, metalness);
     vec3 fresnel = _ssr_fresnel(max(dot(wsFragmentNormal, -wsViewDirection), 0.0), F0);
 
 	const vec3 wsHitPoint = wsRayStart + wsRayDirection * _ssr_rayMaxDistance * result.distanceTraveledPercentage;
-	const float attenuation = _ssr_getAttenuation(result, wsRayStart, wsHitPoint, csRayStartDepth, csRayEndDepth, biasedThreshold);
-	vec4 reflectedColor = texelFetch(screenTexture, ivec2(textureSize(screenTexture, 0) * result.uvHitPoint), 0) * vec4(fresnel, 1.);
+	const float attenuation = _ssr_getAttenuation(result, wsRayStart, wsHitPoint, csRayEndDepth, biasedThreshold);
+	vec4 reflectedColor = texelFetch(screenTexture, ivec2(textureSize(screenTexture, 0) * result.uvHitPoint), 0);
 
-	reflectedColor = mix(vec4(0.0), reflectedColor, clamp(attenuation, 0, 1));
+	vec4 baseColor = vec4(0.0);
+	if (_ssr_useFallbackSkybox) {
+		baseColor = texture(_ssr_fallbackSkybox, wsRayDirection);
+	}
+
+	reflectedColor = mix(baseColor, reflectedColor, attenuation) * vec4(fresnel, 1.);
 	
 	return color + reflectedColor;
 }
