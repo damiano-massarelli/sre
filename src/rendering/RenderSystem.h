@@ -260,13 +260,24 @@ public:
     void setClipPlane(const glm::vec4& clipPlane) const;
 
     /**
-     * Copies a texture into another applying a shader.
-     * @param src the source texture
-     * @param dst a render target whose color buffer contains the destination texture.
-     * @param shader the shader used to copy the texture
-     * @param clear clear the dst texture before copying. Set it to false if src and destination texture are the same
+     * Copies a Texture into another applying a Shader.
+     * @param src the source texture.
+     * @param dst a RenderTarget whose color buffer contains the destination Texture.
+     * @param shader the shader used to copy the Texture.
+     * @param clear whether the dst texture should be cleared before copying. Set it to false if src and destination texture are the same
      */
     void copyTexture(const Texture& src, RenderTarget& dst, Shader& shader, bool clear = true);
+
+    /**
+     * Copies some Texture%s into another applying a Shader.
+     * The given source Texture%s will be bound to the 0th to the (sources.size - 1)th texture slots.
+     * The source Texture%s can be combined together using the provided Shader.
+     * @param sources the input textures.
+     * @param dst a RenderTarget whose color buffer contains the destination Texture.
+     * @param shader the Shader used to copy the input Texture%s.
+     * @param clear whether the dst texture should be cleared before copying.
+     */
+    void copyTexture(const std::vector<std::reference_wrapper<const Texture>>& sources, RenderTarget& dst, Shader& shader, bool clear = true);
 
     virtual ~RenderSystem() = default;
 };

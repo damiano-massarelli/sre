@@ -737,13 +737,54 @@ void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, Shader& sh
     glViewport(0, 0, dst.getWidth(), dst.getHeight());
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    if (clear)
+    if (clear) {
         glClear(GL_COLOR_BUFFER_BIT);
+    }
     glDisable(GL_DEPTH_TEST);
 
     glBindVertexArray(mScreenMesh.mVao);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, src.getId());
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindVertexArray(0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glEnable(GL_DEPTH_TEST);
+
+    glViewport(0, 0, getScreenWidth(), getScreenHeight());
+
+    // New content written on texture, regenerate mip maps
+    if (dst.getColorBufferMipMapLevel() == 0) {
+        //dst.getColorBuffer()->updateMipmap();
+    }
+}
+
+void RenderSystem::copyTexture(const std::vector<std::reference_wrapper<const Texture>>& sources, RenderTarget& dst, Shader& shader, bool clear) {
+    ShaderScopedUsage useShader{ shader };
+
+    glBindFramebuffer(GL_FRAMEBUFFER, dst.getFbo());
+
+    glViewport(0, 0, dst.getWidth(), dst.getHeight());
+
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    if (clear) {
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    glDisable(GL_DEPTH_TEST);
+
+    glBindVertexArray(mScreenMesh.mVao);
+    for (std::size_t i = 0; i < sources.size(); ++i) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        const Texture& texture = sources[i];
+        if (texture.isCubeMap()) {
+            glBindTexture(GL_TEXTURE_CUBE_MAP, texture.getId());
+        }
+        else {
+            glBindTexture(GL_TEXTURE_2D, texture.getId());
+        }
+    }
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindVertexArray(0);

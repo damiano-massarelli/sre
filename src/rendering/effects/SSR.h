@@ -7,11 +7,7 @@
 
 class SSR : public Effect {
 private:
-    int mPositionTexture = -1;
-    int mNormalTexture = -1;
-    int mMaterialTexture = -1;
-    int mDiffuseTexture = -1;
-    int mFallbackSkyboxTexture = -1;
+    int mReflectionTextureIndex = -1;
     std::int32_t mCameraPositionLocation = -1;
     std::int32_t mProjectionViewLocation = -1;
     std::int32_t mFrustumPlanesLocation = -1;
@@ -24,21 +20,24 @@ private:
     float mNearPlane = 0.F;
     float mFarPlane = 0.F;
 
+    Texture mSSROutput;
     Texture mFallbackSkybox;
 
-    Shader mPostProcessingShader;
+    Shader mSSRExtract;
 
     // vector of render targets referring to different mipmaps levels of
-    // the light pass target texture.
-    std::vector<RenderTarget> mBlurRenderTargets;
+    // ssr texture
+    std::vector<RenderTarget> mSSROutpuRenderTargets;
     std::vector<GaussianBlur> mGaussianBlurEffects;
+
+    void createAndSetupExtractShader();
 
 public:
     SSR();
 
-    virtual void onSetup(Shader& postProcessingShader) override;
+    void onSetup(Shader& postProcessingShader) override;
 
-    virtual void update(Shader& postProcessingShader) override;
+    void update(Shader& postProcessingShader) override;
 
     void setMaxReflectionDistance(float maxReflectionDistance);
     void setNumSamples(std::int32_t numSamples);
