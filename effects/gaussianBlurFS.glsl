@@ -6,15 +6,16 @@ out vec4 FragColor;
 
 uniform sampler2D src;
 uniform vec2 direction;
+uniform float srcLod = 0;
 
 void main() {
 	FragColor.rgba = vec4(0.0, 0.0, 0.0, 1.0);
 
-	vec2 pixSize = 1.0 / textureSize(src, 0);
+	vec2 pixSize = 1.0 / textureSize(src, int(srcLod));
 
 	for (int i = -5; i <= 5; i++) {
 		vec2 blurTexCoord = texCoord + direction * pixSize * i;
 		blurTexCoord = clamp(blurTexCoord, vec2(0.001), vec2(0.999));
-		FragColor.rgb += texture(src, blurTexCoord).rgb * GAUSSIAN_WEIGHTS[i + 5];
+		FragColor.rgb += textureLod(src, blurTexCoord, srcLod).rgb * GAUSSIAN_WEIGHTS[i + 5];
 	}
 }

@@ -16,19 +16,19 @@ void GaussianBlur::initRenderTargets(RenderTarget* resultBuffer) {
         Texture::load(nullptr, static_cast<std::int32_t>(width), static_cast<std::int32_t>(height), settings));
     mHorizontalTarget = RenderTarget{ mHorizontalBlurred.get(), nullptr };
 
-    hBlur = Shader::loadFromFile(
+    mHBlur = Shader::loadFromFile(
         std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
-    vBlur = Shader::loadFromFile(
+    mVBlur = Shader::loadFromFile(
         std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
 
     {
-        ShaderScopedUsage useShader{ hBlur };
-        hBlur.setVec2("direction", glm::vec2{ 0.0f, 1.0f });
+        ShaderScopedUsage useShader{ mHBlur };
+        mHBlur.setVec2("direction", glm::vec2{ 1.0f, 0.0f });
     }
 
     {
-        ShaderScopedUsage useShader{ vBlur };
-        vBlur.setVec2("direction", glm::vec2{ 1.0f, 0.0f });
+        ShaderScopedUsage useShader{ mVBlur };
+        mVBlur.setVec2("direction", glm::vec2{ 0.0f, 1.0f });
     }
 }
 
@@ -59,11 +59,14 @@ const Texture& GaussianBlur::getBlurred(const Texture& src, int iterations) {
     Texture origin = src;
     for (int i = 0; i < iterations * 2; i++) {
         if (i % 2 == 0) {
-            Engine::renderSys.copyTexture(origin, mHorizontalTarget, hBlur, false);
+            if (i != 0 && mResultBuffer->getColorBufferMipMapLevel() != 0) {
+                ShaderScopedUsage useShader{ mHBlur };
+                mHBlur.setFloat("srcLod", mResultBuffer->getColorBufferMipMapLevel()); // TODO optimize me!
+            }
+            Engine::renderSys.copyTexture(origin, mHorizontalTarget, mHBlur);
         } else {
-            Engine::renderSys.copyTexture(*mHorizontalBlurred.get(), *mResultBuffer, vBlur, false);
+            Engine::renderSys.copyTexture(*mHorizontalBlurred.get(), *mResultBuffer, mVBlur);
         }
-
         origin = *mResultBuffer->getColorBuffer();
     }
 

@@ -26,8 +26,8 @@ private:
 
     RenderTarget* mResultBuffer = nullptr;
 
-    Shader hBlur;
-    Shader vBlur;
+    Shader mHBlur;
+    Shader mVBlur;
 
     void initRenderTargets(RenderTarget* resultBuffer);
 
