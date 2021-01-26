@@ -17,7 +17,7 @@ SSR::SSR()
     createAndSetupExtractShader();
 
     auto settings = GBuffer::DIFFUSE_BUFFER_SETTINGS;
-    settings.internalFormat = GL_RGBA;
+    settings.internalFormat = GL_RGBA16F;
     settings.appearanceOptions.hasMipmap = true;
     mSSROutput = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), settings);
 

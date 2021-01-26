@@ -239,7 +239,7 @@ vec4 ssr() {
 	// Fresnel
 	vec3 F0 = vec3(0.04);
     F0      = mix(F0, texture(_ssr_diffuseTexture, texCoord).rgb, metalness);
-    vec3 fresnel = _ssr_fresnel(max(dot(wsFragmentNormal, -wsViewDirection), 0.0), F0);
+    vec3 fresnel = _ssr_fresnel(clamp(dot(wsFragmentNormal, -wsViewDirection), 0.0, 1.0), F0);
 
 	vec3 baseColor = vec3(0.0);
 	if (_ssr_useFallbackSkybox) {
