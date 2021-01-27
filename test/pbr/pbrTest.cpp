@@ -18,12 +18,9 @@ DECLARE_TEST_SCENE("PBR", PBRTestScene)
 void PBRTestScene::start() {
     // Add effects
     Engine::renderSys.effectManager.enableEffects();
-    Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
-    auto gammaPost = std::make_shared<GammaCorrection>();
-    gammaPost->setGamma(2.2f);
-    gammaPost->setExposure(1.0f);
-    Engine::renderSys.effectManager.addEffect(gammaPost);
     Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
+    Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
+    Engine::renderSys.effectManager.addEffect(std::make_shared<MotionBlur>());
 
     // Create a camera
     auto camera = Engine::gameObjectManager.createGameObject();

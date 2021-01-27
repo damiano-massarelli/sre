@@ -106,9 +106,9 @@ private:
 
     void finalizeRendering();
 
-    void stencilPass(int lightIndex, float radius);
+    void stencilPass(int lightIndex, float radius, bool renderingToScreen);
 
-    void pointLightPass(DeferredLightShader& shaderWrapper);
+    void pointLightPass(DeferredLightShader& shaderWrapper, bool renderingToScreen);
 
     void directionalLightPass(DeferredLightShader& shaderWrapper);
 
@@ -266,7 +266,7 @@ public:
      * @param shader the shader used to copy the Texture.
      * @param clear whether the dst texture should be cleared before copying. Set it to false if src and destination texture are the same
      */
-    void copyTexture(const Texture& src, RenderTarget& dst, Shader& shader, bool clear = true);
+    void copyTexture(const Texture& src, const RenderTarget& dst, Shader& shader, bool clear = true);
 
     /**
      * Copies some Texture%s into another applying a Shader.
@@ -277,7 +277,7 @@ public:
      * @param shader the Shader used to copy the input Texture%s.
      * @param clear whether the dst texture should be cleared before copying.
      */
-    void copyTexture(const std::vector<std::reference_wrapper<const Texture>>& sources, RenderTarget& dst, Shader& shader, bool clear = true);
+    void copyTexture(const std::vector<std::reference_wrapper<const Texture>>& sources, const RenderTarget& dst, Shader& shader, bool clear = true);
 
     virtual ~RenderSystem() = default;
 };

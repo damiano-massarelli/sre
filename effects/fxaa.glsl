@@ -295,7 +295,7 @@ vec4 FxaaPixelShader(
     bool earlyExit = range < rangeMaxClamped;
 
     if (earlyExit) {
-        return vec4(_gc_toGammaCorrectedLDR(FxaaTexTop(tex, pos).rgb), 1.0);
+        return FxaaTexTop(tex, pos);
     }
 
     float lumaNE = FxaaLuma(FxaaTexOff(tex, posM, ivec2(1, -1), fxaaQualityRcpFrame.xy));
@@ -583,15 +583,19 @@ vec4 FxaaPixelShader(
     float pixelOffsetSubpix = max(pixelOffsetGood, subpixH);
     if (!horzSpan) posM.x += pixelOffsetSubpix * lengthSign;
     if (horzSpan) posM.y += pixelOffsetSubpix * lengthSign;
-    return vec4(_gc_toGammaCorrectedLDR(FxaaTexTop(tex, posM).rgb), 1.0);
+    return FxaaTexTop(tex, posM);
 }
 
-vec4 fxaa(vec4 color) {
-    vec2 rcpFrame = vec2(1. / 1280., 1 / 720.);
+uniform sampler2D inputTexture;
+in vec2 texCoord;
+out vec4 fragColor;
 
-    return vec4(FxaaPixelShader(
+void main() {
+    vec2 rcpFrame = 1. / textureSize(inputTexture, 0);
+
+    fragColor = vec4(FxaaPixelShader(
         texCoord, // vec2 pos,
-        screenTexture, // sampler2D tex,
+        inputTexture, // sampler2D tex,
         rcpFrame, // vec2 fxaaQualityRcpFrame,
         0.75f, // float fxaaQualitySubpix,
         0.166f, // float fxaaQualityEdgeThreshold,

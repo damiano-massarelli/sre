@@ -50,9 +50,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height) {
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-    //	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    //	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
     mWindow = SDL_CreateWindow(
         "sre", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
@@ -326,7 +324,7 @@ void RenderSystem::prepareRendering(const RenderTarget* target) {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     // do not clear stencil buffer, we are just cleaning the screen now
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /* Camera calculations */
     glm::mat4 view = glm::mat4{ 1.0f };
@@ -345,13 +343,13 @@ void RenderSystem::prepareDeferredRendering() {
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer.getFBO());
 
     // set up the stencil test so that only the parts affected by deferred rendering
-    // are actually lit in the deferred rendering directional light pass pass
+    // are actually lit in the deferred rendering directional light pass
     glEnable(GL_STENCIL_TEST);
     glStencilFunc(GL_ALWAYS, 0x00, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     glStencilMask(0xFF);
 
-    // clean the buffers of the deferredRenderingFBO
+    // clear the buffers of the gbuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // blending is disabled
@@ -360,8 +358,10 @@ void RenderSystem::prepareDeferredRendering() {
 
 void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase) {
     auto targetToUse = target;
-    if (target == nullptr)  // target null means render to screen
-        targetToUse = &lightPassRenderTarget;
+    const bool useEffects = effectManager.isEnabled() && effectManager.hasEffects();
+    if (target == nullptr) { // target null means render to screen
+        targetToUse = useEffects ? &lightPassRenderTarget : &RenderTarget::getScreenRenderTarget();
+    }
 
     prepareRendering(targetToUse);
 
@@ -370,8 +370,9 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase) {
     render(RenderPhase::PBR | phase);
 
     // no need to render lights and stuff if render target is not valid
-    if (!targetToUse->isValid())
+    if (!targetToUse->isValid()) {
         return;
+    }
 
     finalizeDeferredRendering(targetToUse);
 
@@ -383,11 +384,15 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase) {
     Engine::particleRenderer.render();
 
     // update the color buffer mipmap if the color buffer needs it
-    targetToUse->getColorBuffer()->updateMipmap();
+    if (targetToUse->getColorBuffer() != nullptr) {
+        targetToUse->getColorBuffer()->updateMipmap();
+    }
 
     // render to screen only if no target specified
     if (target == nullptr) {
-        finalizeRendering();
+        if (useEffects) {
+            effectManager.renderEffects(*lightPassRenderTarget.getColorBuffer(), &RenderTarget::getScreenRenderTarget());
+        }
 
         Engine::uiRenderer.render();
 
@@ -402,12 +407,12 @@ void RenderSystem::render(int phase) {
 
 void RenderSystem::finalizeDeferredRendering(const RenderTarget* target) {
 #ifdef SRE_DEBUG
-    assert(target != nullptr && target->getDepthBuffer() != nullptr && target->getDepthBuffer()->isValid());
+    assert(target != nullptr && (target->isScreenRenderTarget() || (target->getDepthBuffer() != nullptr && target->getDepthBuffer()->isValid())));
 #endif
     glBindFramebuffer(GL_FRAMEBUFFER, target->getFbo());
     // if the target depth buffer is not the same as the one held by the gBuffer
     // then we need to copy the gBuffer data as depth and stencil information is needed in the forward rendering pass.
-    if (target->getDepthBuffer()->getId() != gBuffer.getDepthBuffer().getId()) {
+    if (target->isScreenRenderTarget() || target->getDepthBuffer()->getId() != gBuffer.getDepthBuffer().getId()) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer.getFBO());
         glBlitFramebuffer(0,
             0,
@@ -444,7 +449,7 @@ void RenderSystem::finalizeDeferredRendering(const RenderTarget* target) {
     directionalLightPass(mDirectionalLightDeferredPBR);
 
     // perform point light pass (include shadows)
-    pointLightPass(mPointLightDeferredPBR);
+    pointLightPass(mPointLightDeferredPBR, target->isScreenRenderTarget());
 
     // unbind textures
     for (int i = 3; i >= 0; --i) {
@@ -487,7 +492,7 @@ void RenderSystem::directionalLightPass(DeferredLightShader& shaderWrapper) {
     glDisable(GL_BLEND);
 }
 
-void RenderSystem::stencilPass(int lightIndex, float radius) {
+void RenderSystem::stencilPass(int lightIndex, float radius, bool renderingToScreen) {
     // different for every sphere
     glClear(GL_STENCIL_BUFFER_BIT);
 
@@ -513,12 +518,17 @@ void RenderSystem::stencilPass(int lightIndex, float radius) {
         glBindVertexArray(mPointLightSphere.mVao);
         glDrawElements(GL_TRIANGLES, mPointLightSphere.mIndicesNumber, GL_UNSIGNED_INT, (void*)0);
     }
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    if (renderingToScreen) {
+        glDrawBuffer(GL_BACK);
+    }
+    else {
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    }
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 }
 
-void RenderSystem::pointLightPass(DeferredLightShader& shaderWrapper) {
+void RenderSystem::pointLightPass(DeferredLightShader& shaderWrapper, bool renderingToScreen) {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_STENCIL_BUFFER_BIT);
     glEnable(GL_STENCIL_TEST);
@@ -536,7 +546,7 @@ void RenderSystem::pointLightPass(DeferredLightShader& shaderWrapper) {
 
         float radius = pointLight->getRadius();
 
-        stencilPass(static_cast<std::int32_t>(i), radius);
+        stencilPass(static_cast<std::int32_t>(i), radius, renderingToScreen);
 
         glActiveTexture(GL_TEXTURE4);
         const Texture* depthBuffer = pointLight->getPointShadowTarget().getDepthBuffer();
@@ -561,8 +571,9 @@ void RenderSystem::pointLightPass(DeferredLightShader& shaderWrapper) {
 }
 
 void RenderSystem::finalizeRendering() {
-    effectManager.update();
-    {
+    
+    //effectManager.update();
+    /*{
         ShaderScopedUsage useShader{ effectManager.mPostProcessingShader };
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);  // unbind effects frame buffer
@@ -587,7 +598,7 @@ void RenderSystem::finalizeRendering() {
         glBindTexture(GL_TEXTURE_2D, 0);
 
         glEnable(GL_DEPTH_TEST);
-    }
+    }*/
 }
 
 void RenderSystem::renderShadows() {
@@ -729,7 +740,7 @@ void RenderSystem::setClipPlane(const glm::vec4& clipPlane) const {
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, Shader& shader, bool clear) {
+void RenderSystem::copyTexture(const Texture& src, const RenderTarget& dst, Shader& shader, bool clear) {
     ShaderScopedUsage useShader{ shader };
 
     glBindFramebuffer(GL_FRAMEBUFFER, dst.getFbo());
@@ -756,12 +767,12 @@ void RenderSystem::copyTexture(const Texture& src, RenderTarget& dst, Shader& sh
     glViewport(0, 0, getScreenWidth(), getScreenHeight());
 
     // New content written on texture, regenerate mip maps
-    if (dst.getColorBufferMipMapLevel() == 0) {
-        //dst.getColorBuffer()->updateMipmap();
+    if (dst.getColorBuffer() != nullptr && dst.getColorBufferMipMapLevel() == 0) {
+        dst.getColorBuffer()->updateMipmap();
     }
 }
 
-void RenderSystem::copyTexture(const std::vector<std::reference_wrapper<const Texture>>& sources, RenderTarget& dst, Shader& shader, bool clear) {
+void RenderSystem::copyTexture(const std::vector<std::reference_wrapper<const Texture>>& sources, const RenderTarget& dst, Shader& shader, bool clear) {
     ShaderScopedUsage useShader{ shader };
 
     glBindFramebuffer(GL_FRAMEBUFFER, dst.getFbo());
@@ -796,7 +807,7 @@ void RenderSystem::copyTexture(const std::vector<std::reference_wrapper<const Te
     glViewport(0, 0, getScreenWidth(), getScreenHeight());
 
     // New content written on texture, regenerate mip maps
-    if (dst.getColorBufferMipMapLevel() == 0) {
+    if (dst.getColorBuffer() != nullptr && dst.getColorBufferMipMapLevel() == 0) {
         dst.getColorBuffer()->updateMipmap();
     }
 }

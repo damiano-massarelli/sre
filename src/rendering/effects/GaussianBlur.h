@@ -28,6 +28,7 @@ private:
 
     Shader mHBlur;
     Shader mVBlur;
+    Shader mPassThrough;
 
     void initRenderTargets(RenderTarget* resultBuffer);
 

@@ -7,7 +7,6 @@
 
 class SSR : public Effect {
 private:
-    int mReflectionTextureIndex = -1;
     std::int32_t mCameraPositionLocation = -1;
     std::int32_t mProjectionViewLocation = -1;
     std::int32_t mFrustumPlanesLocation = -1;
@@ -35,9 +34,8 @@ private:
 public:
     SSR();
 
-    void onSetup(Shader& postProcessingShader) override;
-
     void update(Shader& postProcessingShader) override;
+    virtual void applyEffect(const Texture& input, const RenderTarget* dst) override;
 
     void setMaxReflectionDistance(float maxReflectionDistance);
     void setNumSamples(std::int32_t numSamples);
@@ -52,6 +50,4 @@ public:
     float geHitThreshold() const { return mHitThreshold; }
     float getSteepAngleHitThresholdMultiplier() const { return mSteepAngleHitThresholdMultiplier; }
     Texture getFallbackSkyboxTexture() const { return mFallbackSkybox; };
-
-    ~SSR();
 };

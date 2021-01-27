@@ -3,6 +3,10 @@
 #include <glad/glad.h>
 #include <utility>
 
+#include "Engine.h"
+
+RenderTarget RenderTarget::SCREEN_RENDER_TARGET;
+
 RenderTarget::RenderTarget(
     const Texture* colorBuffer, const Texture* depthBuffer, std::int32_t colorLevel, std::int32_t depthLevel)
     : mColorBuffer{ colorBuffer }
@@ -97,10 +101,16 @@ std::uint32_t RenderTarget::getFbo() const {
 }
 
 std::uint32_t RenderTarget::getWidth() const {
+    if (mIsScreenTarget) {
+        return Engine::renderSys.getScreenWidth();
+    }
     return mWidth;
 }
 
 std::uint32_t RenderTarget::getHeight() const {
+    if (mIsScreenTarget) {
+        return Engine::renderSys.getScreenHeight();
+    }
     return mHeight;
 }
 
@@ -112,10 +122,15 @@ std::int32_t RenderTarget::getDepthBufferMipMapLevel() const {
     return mDepthLevel;
 }
 
+bool RenderTarget::isScreenRenderTarget() const
+{
+    return mIsScreenTarget;
+}
+
 bool RenderTarget::isValid() const {
-    return mFbo != 0
+    return mIsScreenTarget || (mFbo != 0
         && ((mColorBuffer != nullptr && mColorBuffer->isValid())
-            || (mDepthBuffer != nullptr && mDepthBuffer->isValid()));
+            || (mDepthBuffer != nullptr && mDepthBuffer->isValid())));
 }
 
 void RenderTarget::cleanUp() {
@@ -123,6 +138,16 @@ void RenderTarget::cleanUp() {
         glDeleteFramebuffers(1, &mFbo);
         mFbo = 0;
     }
+}
+
+const RenderTarget& RenderTarget::getScreenRenderTarget()
+{
+    if (!SCREEN_RENDER_TARGET.isValid()) {
+        SCREEN_RENDER_TARGET = RenderTarget();
+        SCREEN_RENDER_TARGET.mIsScreenTarget = true;
+    }
+
+    return SCREEN_RENDER_TARGET;
 }
 
 RenderTarget::~RenderTarget() {

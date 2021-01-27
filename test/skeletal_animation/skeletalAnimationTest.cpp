@@ -92,7 +92,7 @@ void SkeletalAnimationTestScene::start() {
 
         // Get skeletal animation controller
         auto skeletalAnimController = object->getComponent<SkeletalAnimationControllerComponent>();
-        auto currentAnimation = skeletalAnimController->getCurrentAniamtion();
+        auto currentAnimation = skeletalAnimController->getCurrentAnimation();
         if (currentAnimation == nullptr) {
             ImGui::End();
             return;

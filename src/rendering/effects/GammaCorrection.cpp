@@ -1,7 +1,12 @@
 #include "rendering/effects/GammaCorrection.h"
 
 GammaCorrection::GammaCorrection()
-    : Effect{ "gammaCorrection", "effects/gammaCorrection.glsl" } { }
+    : Effect{ "gammaCorrection", "effects/gammaCorrection.glsl" } {
+
+    ShaderScopedUsage useShader{ mPostProcessingShader };
+    mPostProcessingShader.setFloat("_gc_gamma", mGamma);
+    mPostProcessingShader.setFloat("_gc_exposure", mExposure);
+}
 
 void GammaCorrection::setGamma(float gamma) {
     mGamma = gamma;
@@ -13,17 +18,11 @@ void GammaCorrection::setExposure(float exposure) {
     mNeedUpdate = true;
 }
 
-void GammaCorrection::onSetup(Shader& postProcessingShader) {
-    ShaderScopedUsage useShader{ postProcessingShader };
-    postProcessingShader.setFloat("_gc_gamma", mGamma);
-    postProcessingShader.setFloat("_gc_exposure", mExposure);
-}
-
 void GammaCorrection::update(Shader& postProcessingShader) {
     if (mNeedUpdate) {
-        ShaderScopedUsage useShader{ postProcessingShader };
-        postProcessingShader.setFloat("_gc_gamma", mGamma);
-        postProcessingShader.setFloat("_gc_exposure", mExposure);
+        ShaderScopedUsage useShader{ mPostProcessingShader };
+        mPostProcessingShader.setFloat("_gc_gamma", mGamma);
+        mPostProcessingShader.setFloat("_gc_exposure", mExposure);
         mNeedUpdate = false;
     }
 }

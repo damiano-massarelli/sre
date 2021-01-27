@@ -35,13 +35,15 @@ public:
 
     void removeEffect(std::shared_ptr<Effect> effect);
 
-    [[nodiscard]] bool hasEffect(std::shared_ptr<Effect> effect) const;
+    bool hasEffect(std::shared_ptr<Effect> effect) const;
 
-    template <typename T>[[nodiscard]] bool hasEffect() const {
+    template <typename T> bool hasEffect() const {
         return std::find_if(mEffects.begin(), mEffects.end(), [](auto& effect) {
             return dynamic_cast<T*>(effect.get()) != nullptr;
         }) != mEffects.end();
     }
+
+    bool addEffectBefore(std::shared_ptr<Effect> effect, std::shared_ptr<Effect> next);
 
     void enableEffects();
 
@@ -52,6 +54,12 @@ public:
     void releaseTexture(int texture);
 
     void update();
+
+    const Texture* renderEffects(const Texture& input, const RenderTarget* dst = nullptr);
+
+    bool hasEffects() const;
+
+    bool isEnabled() const;
 
     void cleanUp();
 

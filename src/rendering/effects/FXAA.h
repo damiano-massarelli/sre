@@ -7,9 +7,6 @@
  * FXAA must always be applied after GammaCorrection.
  */
 class FXAA : public Effect {
-private:
-    Shader mPostProcessingShader;
-
 public:
     FXAA();
 

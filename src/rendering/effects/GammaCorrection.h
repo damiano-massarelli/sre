@@ -27,7 +27,5 @@ public:
      */
     void setExposure(float exposure);
 
-    virtual void onSetup(Shader& postProcessingShader) override;
-
     virtual void update(Shader& postProcessingShader) override;
 };

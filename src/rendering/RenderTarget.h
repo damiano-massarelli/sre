@@ -15,6 +15,9 @@
  */
 class RenderTarget {
 private:
+    static RenderTarget SCREEN_RENDER_TARGET;
+
+    bool mIsScreenTarget = false;
     std::uint32_t mFbo = 0;
 
     const Texture* mColorBuffer = nullptr;
@@ -29,6 +32,11 @@ private:
     void cleanUp();
 
 public:
+    /**
+     * Creates a RenderTarget for rendering onto the screen. 
+     */
+    static const RenderTarget& getScreenRenderTarget();
+
     /**
      * Creates an invalid RenderTarget.
      */
@@ -103,6 +111,8 @@ public:
      * @return the mipmap level referenced by this RenderTarget for the depth buffer.
      */
     std::int32_t getDepthBufferMipMapLevel() const;
+
+    bool isScreenRenderTarget() const;
 
     /**
      * @return true if one of the color or depth buffer is valid

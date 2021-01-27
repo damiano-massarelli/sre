@@ -4,7 +4,16 @@
 #include "rendering/materials/Shader.h"
 
 GodRays::GodRays()
-    : Effect{ "godRays", "effects/godRays.glsl" } { }
+    : Effect{ "godRays", "effects/godRays.glsl" } { 
+    
+    ShaderScopedUsage useShader{ mPostProcessingShader };
+    mLightScreenPosLocation = mPostProcessingShader.getLocationOf("_gr_lightScreenPos");
+    mRadiusLocation = mPostProcessingShader.getLocationOf("_gr_radius");
+    mLightColorLocation = mPostProcessingShader.getLocationOf("_gr_lightColor");
+
+    mPostProcessingShader.setInt("inputTexture", 0);
+    mPostProcessingShader.setInt("depthTexture", 1);
+}
 
 void GodRays::setDensity(float density) {
     mDensity = density;
@@ -55,12 +64,6 @@ const GameObjectEH& GodRays::getLight() const {
     return mLight;
 }
 
-void GodRays::onSetup(Shader& postProcessingShader) {
-    mLightScreenPosLocation = postProcessingShader.getLocationOf("_gr_lightScreenPos");
-    mRadiusLocation = postProcessingShader.getLocationOf("_gr_radius");
-    mLightColorLocation = postProcessingShader.getLocationOf("_gr_lightColor");
-}
-
 void GodRays::update(Shader& postProcessingShader) {
 #ifdef SRE_DEBUG
     assert(mLight.isValid() && !mLightComponent.expired());
@@ -86,18 +89,22 @@ void GodRays::update(Shader& postProcessingShader) {
     }
 
     {
-        ShaderScopedUsage useShader{ postProcessingShader };
+        ShaderScopedUsage useShader{ mPostProcessingShader };
 
-        postProcessingShader.setVec3(mLightScreenPosLocation, projectedPos);
-        postProcessingShader.setFloat(mRadiusLocation, projectedRadius);
-        postProcessingShader.setVec3(mLightColorLocation, mLightComponent.lock()->diffuseColor);
+        mPostProcessingShader.setVec3(mLightScreenPosLocation, projectedPos);
+        mPostProcessingShader.setFloat(mRadiusLocation, projectedRadius);
+        mPostProcessingShader.setVec3(mLightColorLocation, mLightComponent.lock()->diffuseColor);
         if (mNeedUpdate) {
-            postProcessingShader.setFloat("_gr_density", mDensity);
-            postProcessingShader.setFloat("_gr_decayRatio", mDecayRatio);
-            postProcessingShader.setFloat("_gr_weight", mWeight);
-            postProcessingShader.setInt("_gr_samples", mNumSamples);
+            mPostProcessingShader.setFloat("_gr_density", mDensity);
+            mPostProcessingShader.setFloat("_gr_decayRatio", mDecayRatio);
+            mPostProcessingShader.setFloat("_gr_weight", mWeight);
+            mPostProcessingShader.setInt("_gr_samples", mNumSamples);
 
             mNeedUpdate = false;
         }
     }
+}
+
+void GodRays::applyEffect(const Texture& input, const RenderTarget* dst) {
+    Effect::applyEffect({input, Engine::renderSys.gBuffer.getDepthBuffer()}, dst);
 }

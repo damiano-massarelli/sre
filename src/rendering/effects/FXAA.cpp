@@ -16,6 +16,4 @@ void FXAA::onSetup(Shader& postProcessingShader) {
     // Make sure bilinear filtering is enabled on the FXAA input texture
     assert(Engine::renderSys.lightPassTarget.getSettings().appearanceOptions.magFilter == GL_LINEAR);
 #endif  // SSR_DEBUG
-
-    mPostProcessingShader = postProcessingShader;
 }

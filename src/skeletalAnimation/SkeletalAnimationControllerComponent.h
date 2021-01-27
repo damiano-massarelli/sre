@@ -145,13 +145,13 @@ public:
      * @return the current animation, the one being played.
      * CAVEAT: this pointer may become invalid if new animations are added.
      */
-    const SkeletalAnimation* getCurrentAniamtion() const;
+    const SkeletalAnimation* getCurrentAnimation() const;
 
     /**
      * @return the current animation, the one being played.
      * CAVEAT: this pointer may become invalid if new animations are added.
      */
-    SkeletalAnimation* getCurrentAniamtion();
+    SkeletalAnimation* getCurrentAnimation();
 
     /**
      * Mapping among external and internal bone representation.

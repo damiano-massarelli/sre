@@ -25,7 +25,9 @@ DECLARE_TEST_SCENE("FXAA", FXAATestScene)
 void FXAATestScene::start() {
     // Setup Effects
     Engine::renderSys.effectManager.enableEffects();
-    Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
+
+    const auto gammaCorrectionEffect = std::make_shared<GammaCorrection>();
+    Engine::renderSys.effectManager.addEffect(gammaCorrectionEffect);
 
     const auto fxaaEffect = std::make_shared<FXAA>();
 
@@ -70,14 +72,14 @@ void FXAATestScene::start() {
     gizmo->transform.setPosition(light->transform.getPosition());
     light->transform.setRotation(glm::quat{ glm::vec3{ glm::radians(180.0f), 0.0f, 0.0f } });
 
-    Engine::uiRenderer.addUIDrawer([fxaaEffect]() {
+    Engine::uiRenderer.addUIDrawer([fxaaEffect, gammaCorrectionEffect]() {
         EffectManager& effectManager = Engine::renderSys.effectManager;
         bool fxaaEnabled = effectManager.hasEffect(fxaaEffect);
 
         ImGui::Begin("FXAA Settings");
 
         if (ImGui::Checkbox("Enabled", &fxaaEnabled)) {
-            fxaaEnabled ? effectManager.addEffect(fxaaEffect) : effectManager.removeEffect(fxaaEffect);
+            fxaaEnabled ? effectManager.addEffectBefore(fxaaEffect, gammaCorrectionEffect) : effectManager.removeEffect(fxaaEffect);
         }
 
         ImGui::End();

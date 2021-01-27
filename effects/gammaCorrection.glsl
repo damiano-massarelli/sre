@@ -1,3 +1,7 @@
+in vec2 texCoord;
+
+uniform sampler2D inputTexture;
+out vec4 fragColor;
 
 uniform float _gc_gamma = 2.2;
 uniform float _gc_exposure = 1.0;
@@ -17,4 +21,8 @@ vec4 gammaCorrection(vec4 color) {
 	color.rgb = _gc_toGammaCorrectedLDR(color.rgb);
 
     return color;
+}
+
+void main() {
+	fragColor = gammaCorrection(texture(inputTexture, texCoord));
 }

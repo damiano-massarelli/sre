@@ -20,10 +20,12 @@ void GaussianBlur::initRenderTargets(RenderTarget* resultBuffer) {
         std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
     mVBlur = Shader::loadFromFile(
         std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
+    mPassThrough = Shader::loadFromFile(std::vector<std::string>{"effects/genericEffectVS.glsl"}, {}, { "effects/passThroughFS.glsl" });
 
     {
         ShaderScopedUsage useShader{ mHBlur };
         mHBlur.setVec2("direction", glm::vec2{ 1.0f, 0.0f });
+        mHBlur.setFloat("srcLod", mResultBuffer->getColorBufferMipMapLevel());
     }
 
     {
@@ -56,18 +58,16 @@ const Texture& GaussianBlur::getBlurred(const Texture& src, int iterations) {
     if (iterations == 0) {
         return src;
     }
-    Texture origin = src;
+    
+    // Reduce src resolution to that of the result buffer, otherwise the final effect will be
+    // more accentuated along the y-axis
+    Engine::renderSys.copyTexture(src, *mResultBuffer, mPassThrough);
     for (int i = 0; i < iterations * 2; i++) {
         if (i % 2 == 0) {
-            if (i != 0 && mResultBuffer->getColorBufferMipMapLevel() != 0) {
-                ShaderScopedUsage useShader{ mHBlur };
-                mHBlur.setFloat("srcLod", mResultBuffer->getColorBufferMipMapLevel()); // TODO optimize me!
-            }
-            Engine::renderSys.copyTexture(origin, mHorizontalTarget, mHBlur);
+            Engine::renderSys.copyTexture(*mResultBuffer->getColorBuffer(), mHorizontalTarget, mHBlur);
         } else {
             Engine::renderSys.copyTexture(*mHorizontalBlurred.get(), *mResultBuffer, mVBlur);
         }
-        origin = *mResultBuffer->getColorBuffer();
     }
 
     return *mResultBuffer->getColorBuffer();

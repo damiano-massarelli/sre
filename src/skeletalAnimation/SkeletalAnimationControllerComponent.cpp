@@ -49,11 +49,11 @@ bool SkeletalAnimationControllerComponent::setCurrentAnimationAndPlay(const std:
     return wasSet;
 }
 
-const SkeletalAnimation* SkeletalAnimationControllerComponent::getCurrentAniamtion() const {
+const SkeletalAnimation* SkeletalAnimationControllerComponent::getCurrentAnimation() const {
     return getAnimation(mCurrentAnimation);
 }
 
-SkeletalAnimation* SkeletalAnimationControllerComponent::getCurrentAniamtion() {
+SkeletalAnimation* SkeletalAnimationControllerComponent::getCurrentAnimation() {
     return getAnimation(mCurrentAnimation);
 }
 
@@ -62,7 +62,7 @@ const std::map<std::string, std::uint32_t>& SkeletalAnimationControllerComponent
 }
 
 void SkeletalAnimationControllerComponent::updateBones(std::int32_t location, const Shader& shaderToUpdate) {
-    const SkeletalAnimation* currentAnimation = getCurrentAniamtion();
+    const SkeletalAnimation* currentAnimation = getCurrentAnimation();
     if (currentAnimation != nullptr) {
 
         // Update playback speed if it changed in the animation
@@ -125,15 +125,15 @@ bool SkeletalAnimationControllerComponent::stopCurrentAnimation() {
 }
 
 bool SkeletalAnimationControllerComponent::isCurrentAnimationPlaying() const {
-    return getCurrentAniamtion() != nullptr && !mTime.isPaused() && !isCurrentAnimationStopped();
+    return getCurrentAnimation() != nullptr && !mTime.isPaused() && !isCurrentAnimationStopped();
 }
 
 bool SkeletalAnimationControllerComponent::isCurrentAnimationPaused() const {
-    return getCurrentAniamtion() != nullptr && !isCurrentAnimationStopped() && mTime.isPaused();
+    return getCurrentAnimation() != nullptr && !isCurrentAnimationStopped() && mTime.isPaused();
 }
 
 bool SkeletalAnimationControllerComponent::isCurrentAnimationStopped() const {
-    const SkeletalAnimation* anim = getCurrentAniamtion();
+    const SkeletalAnimation* anim = getCurrentAnimation();
     return anim != nullptr
         && (!mTime.isStarted()
             || (anim->loopDirection == SkeletalAnimation::LoopDirection::STOP
@@ -141,7 +141,7 @@ bool SkeletalAnimationControllerComponent::isCurrentAnimationStopped() const {
 }
 
 float SkeletalAnimationControllerComponent::getCurrentAnimationTime() const {
-    const SkeletalAnimation* currentAnimation = getCurrentAniamtion();
+    const SkeletalAnimation* currentAnimation = getCurrentAnimation();
     if (currentAnimation == nullptr || isCurrentAnimationStopped()) {
         return 0.f;
     }
@@ -162,7 +162,7 @@ float SkeletalAnimationControllerComponent::getCurrentAnimationTime() const {
 }
 
 void SkeletalAnimationControllerComponent::setCurrentAnimationTime(float time) {
-    if (getCurrentAniamtion() == nullptr) {
+    if (getCurrentAnimation() == nullptr) {
         return;
     }
 

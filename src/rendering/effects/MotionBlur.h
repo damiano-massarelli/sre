@@ -5,11 +5,9 @@
 
 class MotionBlur : public Effect {
 private:
-    glm::mat4 mPrevProjViewMatrix;
+    glm::mat4 mPrevProjViewMatrix = glm::mat4{ 1.F };
     std::int32_t mPrevProjViewMatrixLocation = 0;
     std::int32_t mCurrentProjViewMatrixLocation = 0;
-
-    int mPositionTexture = -1;
 
     float mBlurFactor = 100.0f;
     bool mBlurNeedsUpdate = false;
@@ -23,5 +21,5 @@ public:
 
     virtual void update(Shader& postProcessingShader) override;
 
-    ~MotionBlur();
+    virtual void applyEffect(const Texture& input, const RenderTarget* dst) override;
 };

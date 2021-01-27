@@ -14,9 +14,7 @@ private:
     RenderTarget mTarget;
     Texture mBloom;
     GaussianBlur mGaussianBlur;
-    int mBlurredTexture = -1;
 
-    bool mNeedsUpdate = false;
     float mBloomFactor = 0.7f;
 
 public:
@@ -34,9 +32,7 @@ public:
      */
     Bloom(float scaleFactor = 0.7f);
 
-    virtual void onSetup(Shader& postProcessingShader) override;
-
-    virtual void update(Shader& postProcessingShader) override;
+    virtual void applyEffect(const Texture& input, const RenderTarget* dst = nullptr) override;
 
     /**
      * Sets the impact of the bloom effect on the final image.

@@ -6,7 +6,7 @@
 #include <memory>
 
 /**
- * Good rays effect.
+ * God rays effect.
  */
 class GodRays : public Effect {
 private:
@@ -98,7 +98,7 @@ public:
      */
     const GameObjectEH& getLight() const;
 
-    virtual void onSetup(Shader& postProcessingShader) override;
-
     virtual void update(Shader& postProcessingShader) override;
+
+    virtual void applyEffect(const Texture& input, const RenderTarget* dst = nullptr) override;
 };

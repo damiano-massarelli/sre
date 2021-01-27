@@ -39,14 +39,15 @@ DECLARE_TEST_SCENE("God Rays", GodRayTestScene)
 
 void GodRayTestScene::start() {
     Engine::renderSys.effectManager.enableEffects();
-    Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>());
-    Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
+    Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>(.3f));
 
     auto godRays = std::make_shared<GodRays>();
     godRays->setDensity(1.0F);
-    godRays->setDecayRatio(0.96F);
+    godRays->setDecayRatio(0.89F);
+    godRays->setWeight(0.05F);
     godRays->lightRadius = 10.0F;
     Engine::renderSys.effectManager.addEffect(godRays);
+    Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
 
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";

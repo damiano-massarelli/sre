@@ -8,10 +8,10 @@
 
 SSR::SSR()
     : Effect{ "ssr", "effects/ssr.glsl" } {
-    mReflectionTextureIndex = Engine::renderSys.effectManager.getTexture();
-#ifdef SRE_DEBUG
-    assert(mReflectionTextureIndex != -1);
-#endif
+
+    ShaderScopedUsage useShader{ mPostProcessingShader };
+    mPostProcessingShader.setInt("inputTexture", 0);
+    mPostProcessingShader.setInt("reflectionTexture", 1);
 
     // Create shader to extract reflections
     createAndSetupExtractShader();
@@ -58,11 +58,6 @@ void SSR::createAndSetupExtractShader()
     mFrustumPlanesLocation = mSSRExtract.getLocationOf("_ssr_frustumPlanes");
 }
 
-void SSR::onSetup(Shader& postProcessingShader) {
-    ShaderScopedUsage useShader{ postProcessingShader };
-    postProcessingShader.setInt("_ssr_reflectionTexture", mReflectionTextureIndex);
-}
-
 void SSR::update(Shader& postProcessingShader) {
     RenderSystem& renderSystem = Engine::renderSys;
 
@@ -96,26 +91,30 @@ void SSR::update(Shader& postProcessingShader) {
             return glm::vec4{ plane.getNormal(), plane.getDistanceFromOrigin() };
         });
         mSSRExtract.setVec4Array(mFrustumPlanesLocation, frustumPlanes);
-
-        // Extract SSR into mSSROutputRenderTargets[0]
-        renderSystem.copyTexture({
-            renderSystem.lightPassTarget,
-            renderSystem.gBuffer.getDepthBuffer(),
-            renderSystem.gBuffer.getPositionBuffer(),
-            renderSystem.gBuffer.getNormalBuffer(),
-            renderSystem.gBuffer.getMaterialBuffer(),
-            renderSystem.gBuffer.getDiffuseBuffer(),
-            mFallbackSkybox
-            }, mSSROutpuRenderTargets[0], mSSRExtract, false);
     }
+    
+}
+
+void SSR::applyEffect(const Texture& input, const RenderTarget* dst) {
+    RenderSystem& renderSystem = Engine::renderSys;
+
+    // Extract SSR into mSSROutputRenderTargets[0]
+    renderSystem.copyTexture({
+        renderSystem.lightPassTarget,
+        renderSystem.gBuffer.getDepthBuffer(),
+        renderSystem.gBuffer.getPositionBuffer(),
+        renderSystem.gBuffer.getNormalBuffer(),
+        renderSystem.gBuffer.getMaterialBuffer(),
+        renderSystem.gBuffer.getDiffuseBuffer(),
+        mFallbackSkybox
+        }, mSSROutpuRenderTargets[0], mSSRExtract, false);
+
     // Blur output for roughness
     for (std::size_t i = 0; i < mGaussianBlurEffects.size(); ++i) {
-       mGaussianBlurEffects[i].getBlurred(mSSROutput, i * 2 + 1);
+        mGaussianBlurEffects[i].getBlurred(mSSROutput, i * 2 + 1);
     }
 
-    // Prepare texture for effect rendering
-    glActiveTexture(GL_TEXTURE0 + mReflectionTextureIndex);
-    glBindTexture(GL_TEXTURE_2D, mSSROutput.getId());
+    Effect::applyEffect({ input, mSSROutput }, dst);
 }
 
 void SSR::setMaxReflectionDistance(float maxReflectionDistance) {
@@ -170,8 +169,4 @@ void SSR::setFallbackSkyboxTexture(Texture fallbackSkybox) {
     ShaderScopedUsage useShader{ mSSRExtract };
     mSSRExtract.setInt("_ssr_useFallbackSkybox", fallbackSkybox.isValid() && fallbackSkybox.isCubeMap());
     mFallbackSkybox = fallbackSkybox;
-}
-
-SSR::~SSR() {
-    Engine::renderSys.effectManager.releaseTexture(mReflectionTextureIndex);
 }

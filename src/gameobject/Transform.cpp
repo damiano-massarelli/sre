@@ -155,7 +155,7 @@ void Transform::lookAt(const glm::vec3& position) {
 
     // this engine uses a right-handed system
     // however, the look vector is +z (typical of LH systems)
-    auto rot = glm::quatLookAtLH(dir, up());
+    auto rot = glm::quatLookAtLH(dir, glm::vec3{ 0.F, 1.F, 0.F });
     setRotation(glm::normalize(rot));
 }
 

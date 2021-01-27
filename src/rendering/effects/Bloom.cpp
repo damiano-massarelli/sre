@@ -12,38 +12,25 @@ Bloom::Bloom(float scaleFactor)
 
     mBloom
         = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), loadOptions);
-
     mTarget = RenderTarget{ &mBloom, nullptr };
 
     mBloomExtractor = Shader::loadFromFile(
         std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/bloomExtractFS.glsl" });
 
-    mBlurredTexture = Engine::renderSys.effectManager.getTexture();
+    ShaderScopedUsage useShader{ mPostProcessingShader };
+    mPostProcessingShader.setInt("inputTexture", 0);
+    mPostProcessingShader.setInt("bloomTexture", 1);
 }
 
-void Bloom::onSetup(Shader& postProcessingShader) {
-    postProcessingShader.setInt("bloomTexture", mBlurredTexture);
-}
-
-void Bloom::update(Shader& postProcessingShader) {
-    if (mNeedsUpdate) {
-        ShaderScopedUsage useShader{ postProcessingShader };
-        postProcessingShader.setFloat("_bloom_bloomFactor", mBloomFactor);
-        mNeedsUpdate = false;
-    }
-    RenderSystem& rsys = Engine::renderSys;
-
-    Engine::renderSys.copyTexture(*(rsys.lightPassRenderTarget.getColorBuffer()), mTarget, mBloomExtractor);
-
+void Bloom::applyEffect(const Texture& input, const RenderTarget* dst) {
+    Engine::renderSys.copyTexture(input, mTarget, mBloomExtractor);
     const auto& blurred = mGaussianBlur.getBlurred(mBloom, 1);
-
-    glActiveTexture(GL_TEXTURE0 + mBlurredTexture);
-    glBindTexture(GL_TEXTURE_2D, blurred.getId());
+    Effect::applyEffect({ input, blurred }, dst);
 }
 
 void Bloom::setBloomFactor(float bloomFactor) {
-    mNeedsUpdate = true;
-    mBloomFactor = bloomFactor;
+    ShaderScopedUsage useShader{ mPostProcessingShader };
+    mPostProcessingShader.setFloat("bloomFactor", mBloomFactor);
 }
 
 float Bloom::getBloomFactor() const {
@@ -52,5 +39,4 @@ float Bloom::getBloomFactor() const {
 
 Bloom::~Bloom() {
     mBloomExtractor = Shader{};
-    Engine::renderSys.effectManager.releaseTexture(mBlurredTexture);
 }
