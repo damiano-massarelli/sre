@@ -17,13 +17,11 @@ const Texture* EffectManager::renderEffects(const Texture& input, const RenderTa
     return useDst ? dst->getColorBuffer() : currentInput;
 }
 
-bool EffectManager::hasEffects() const
-{
+bool EffectManager::hasEffects() const {
     return !mEffects.empty();
 }
 
-bool EffectManager::isEnabled() const
-{
+bool EffectManager::isEnabled() const {
     return mEnabled;
 }
 
@@ -46,8 +44,7 @@ bool EffectManager::hasEffect(std::shared_ptr<Effect> effect) const {
     return std::find(mEffects.begin(), mEffects.end(), effect) != mEffects.end();
 }
 
-bool EffectManager::addEffectBefore(std::shared_ptr<Effect> effect, std::shared_ptr<Effect> next)
-{
+bool EffectManager::addEffectBefore(std::shared_ptr<Effect> effect, std::shared_ptr<Effect> next) {
     const auto found = std::find(mEffects.cbegin(), mEffects.cend(), next);
     if (found == mEffects.cend()) {
         return false;

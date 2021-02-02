@@ -2,7 +2,10 @@
 #include "Engine.h"
 
 GammaCorrection::GammaCorrection()
-    : Effect{ {"gc", "effects/gammaCorrection.glsl", {Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight()}, OUTPUT_TEXTURE_SETTINGS} } {
+    : Effect{ { "gc",
+        "effects/gammaCorrection.glsl",
+        { Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight() },
+        OUTPUT_TEXTURE_SETTINGS } } {
 
     ShaderScopedUsage useShader{ mPostProcessingShader };
     mPostProcessingShader.setFloat("_gc_gamma", mGamma);

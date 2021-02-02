@@ -105,8 +105,9 @@ void SSAO::update() {
 void SSAO::applyEffect(const Texture& input, const RenderTarget* dst) {
     RenderSystem& rsys = Engine::renderSys;
 
-    rsys.copyTexture({ rsys.gBuffer.getPositionBuffer(),
-        rsys.gBuffer.getNormalBuffer(), mNoiseTexture }, mSSAOCreationTarget, mSSAOCreationShader);
+    rsys.copyTexture({ rsys.gBuffer.getPositionBuffer(), rsys.gBuffer.getNormalBuffer(), mNoiseTexture },
+        mSSAOCreationTarget,
+        mSSAOCreationShader);
     Effect::applyEffect({ input, mTargetTexture }, dst);
 }
 

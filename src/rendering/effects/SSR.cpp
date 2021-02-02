@@ -19,22 +19,23 @@ SSR::SSR()
     auto settings = GBuffer::DIFFUSE_BUFFER_SETTINGS;
     settings.internalFormat = GL_RGBA16F;
     settings.appearanceOptions.hasMipmap = true;
-    mSSROutput = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), settings);
+    mSSROutput
+        = Texture::load(nullptr, Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight(), settings);
 
     for (int i = 0; i < 6; ++i) {
         mSSROutpuRenderTargets.emplace_back(&mSSROutput, nullptr, i, 0);
     }
 
     // Start at 1, the first mipmap level contains the non-blurred ssr output
-    for (int i = 1; i < 6; ++i) { 
+    for (int i = 1; i < 6; ++i) {
         mGaussianBlurEffects.emplace_back(&(mSSROutpuRenderTargets[i]));
     }
 }
 
-void SSR::createAndSetupExtractShader()
-{
-    mSSRExtract = Shader::loadFromFile(std::vector<std::string>{"effects/genericEffectVS.glsl"}, {}, { "effects/ssrCreateFS.glsl" });
-    
+void SSR::createAndSetupExtractShader() {
+    mSSRExtract = Shader::loadFromFile(
+        std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/ssrCreateFS.glsl" });
+
     ShaderScopedUsage useShader{ mSSRExtract };
     // Textures
     mSSRExtract.setInt("_ssr_sceneTexture", 0);
@@ -44,7 +45,7 @@ void SSR::createAndSetupExtractShader()
     mSSRExtract.setInt("_ssr_materialBuffer", 4);
     mSSRExtract.setInt("_ssr_diffuseTexture", 5);
     mSSRExtract.setInt("_ssr_fallbackSkybox", 6);
-   
+
     // Params
     mSSRExtract.setFloat("_ssr_rayMaxDistance", mMaxReflectionDistance);
     mSSRExtract.setInt("_ssr_numSamples", mNumSamples);
@@ -92,22 +93,22 @@ void SSR::update() {
         });
         mSSRExtract.setVec4Array(mFrustumPlanesLocation, frustumPlanes);
     }
-    
 }
 
 void SSR::applyEffect(const Texture& input, const RenderTarget* dst) {
     RenderSystem& renderSystem = Engine::renderSys;
 
     // Extract SSR into mSSROutputRenderTargets[0]
-    renderSystem.copyTexture({
-        renderSystem.lightPassTarget,
-        renderSystem.gBuffer.getDepthBuffer(),
-        renderSystem.gBuffer.getPositionBuffer(),
-        renderSystem.gBuffer.getNormalBuffer(),
-        renderSystem.gBuffer.getMaterialBuffer(),
-        renderSystem.gBuffer.getDiffuseBuffer(),
-        mFallbackSkybox
-        }, mSSROutpuRenderTargets[0], mSSRExtract, false);
+    renderSystem.copyTexture({ renderSystem.lightPassTarget,
+                                 renderSystem.gBuffer.getDepthBuffer(),
+                                 renderSystem.gBuffer.getPositionBuffer(),
+                                 renderSystem.gBuffer.getNormalBuffer(),
+                                 renderSystem.gBuffer.getMaterialBuffer(),
+                                 renderSystem.gBuffer.getDiffuseBuffer(),
+                                 mFallbackSkybox },
+        mSSROutpuRenderTargets[0],
+        mSSRExtract,
+        false);
 
     // Blur output for roughness
     for (std::size_t i = 0; i < mGaussianBlurEffects.size(); ++i) {
@@ -165,7 +166,7 @@ void SSR::setSteepAngleHitThresholdMultiplier(float multiplier) {
 void SSR::setFallbackSkyboxTexture(Texture fallbackSkybox) {
 #ifdef SRE_DEBUG
     assert(!fallbackSkybox.isValid() || fallbackSkybox.isCubeMap());
-#endif // SRE_DEBUG
+#endif  // SRE_DEBUG
     ShaderScopedUsage useShader{ mSSRExtract };
     mSSRExtract.setInt("_ssr_useFallbackSkybox", fallbackSkybox.isValid() && fallbackSkybox.isCubeMap());
     mFallbackSkybox = fallbackSkybox;

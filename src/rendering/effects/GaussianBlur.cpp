@@ -20,7 +20,8 @@ void GaussianBlur::initRenderTargets(RenderTarget* resultBuffer) {
         std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
     mVBlur = Shader::loadFromFile(
         std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/gaussianBlurFS.glsl" }, false);
-    mPassThrough = Shader::loadFromFile(std::vector<std::string>{"effects/genericEffectVS.glsl"}, {}, { "effects/passThroughFS.glsl" });
+    mPassThrough = Shader::loadFromFile(
+        std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { "effects/passThroughFS.glsl" });
 
     {
         ShaderScopedUsage useShader{ mHBlur };
@@ -58,7 +59,7 @@ const Texture& GaussianBlur::getBlurred(const Texture& src, int iterations) {
     if (iterations == 0) {
         return src;
     }
-    
+
     // Reduce src resolution to that of the result buffer, otherwise the final effect will be
     // more accentuated along the y-axis
     Engine::renderSys.copyTexture(src, *mResultBuffer, mPassThrough, false);

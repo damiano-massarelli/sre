@@ -1,8 +1,8 @@
 #pragma once
 
+#include "rendering/RenderTarget.h"
 #include "rendering/effects/Effect.h"
 #include "rendering/materials/Texture.h"
-#include "rendering/RenderTarget.h"
 
 /**
  * Fast Approximate Anti-Aliasing Effect.

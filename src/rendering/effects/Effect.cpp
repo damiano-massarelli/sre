@@ -3,16 +3,22 @@
 
 Effect::Effect(const Settings& settings) {
     std::cout << static_cast<int>(settings.outputSize.x) << "\n";
-    mOutput = Texture::load(nullptr, static_cast<int>(settings.outputSize.x), static_cast<int>(settings.outputSize.y),
+    mOutput = Texture::load(nullptr,
+        static_cast<int>(settings.outputSize.x),
+        static_cast<int>(settings.outputSize.y),
         settings.outputSettings);
 
     mOutputTarget = RenderTarget(&mOutput, nullptr);
 
-    mPostProcessingShader = Shader::loadFromFile(std::vector<std::string>{"effects/genericEffectVS.glsl"}, {}, { settings.effectPath });
+    mPostProcessingShader
+        = Shader::loadFromFile(std::vector<std::string>{ "effects/genericEffectVS.glsl" }, {}, { settings.effectPath });
 }
 
 Effect::Effect(const std::string& name, const std::string& effectPath)
-    : Effect{ Settings{name, effectPath, glm::vec2{Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight()}, GBuffer::DIFFUSE_BUFFER_SETTINGS} } {}
+    : Effect{ Settings{ name,
+        effectPath,
+        glm::vec2{ Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight() },
+        GBuffer::DIFFUSE_BUFFER_SETTINGS } } { }
 
 const std::string& Effect::getEffectPath() const {
     return mEffectPath;

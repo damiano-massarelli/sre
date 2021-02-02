@@ -3,7 +3,7 @@
 
 MotionBlur::MotionBlur()
     : Effect{ "motionBlur", "effects/motionBlur.glsl" } {
-    
+
     ShaderScopedUsage useShader{ mPostProcessingShader };
     mPrevProjViewMatrixLocation = mPostProcessingShader.getLocationOf("_mb_prevProjView");
     mCurrentProjViewMatrixLocation = mPostProcessingShader.getLocationOf("_mb_currProjView");

@@ -33,7 +33,7 @@ private:
 
 public:
     /**
-     * Creates a RenderTarget for rendering onto the screen. 
+     * Creates a RenderTarget for rendering onto the screen.
      */
     static const RenderTarget& getScreenRenderTarget();
 

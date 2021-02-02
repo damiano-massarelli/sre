@@ -12,7 +12,9 @@ private:
     float mGamma = 2.2f;
     float mExposure = 1.0f;
 
-    static constexpr Texture::Settings OUTPUT_TEXTURE_SETTINGS{ GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, { false, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE } };
+    static constexpr Texture::Settings OUTPUT_TEXTURE_SETTINGS{
+        GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, { false, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE }
+    };
 
 public:
     GammaCorrection();

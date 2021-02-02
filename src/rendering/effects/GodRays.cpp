@@ -4,8 +4,8 @@
 #include "rendering/materials/Shader.h"
 
 GodRays::GodRays()
-    : Effect{ "godRays", "effects/godRays.glsl" } { 
-    
+    : Effect{ "godRays", "effects/godRays.glsl" } {
+
     ShaderScopedUsage useShader{ mPostProcessingShader };
     mLightScreenPosLocation = mPostProcessingShader.getLocationOf("_gr_lightScreenPos");
     mRadiusLocation = mPostProcessingShader.getLocationOf("_gr_radius");
@@ -106,5 +106,5 @@ void GodRays::update() {
 }
 
 void GodRays::applyEffect(const Texture& input, const RenderTarget* dst) {
-    Effect::applyEffect({input, Engine::renderSys.gBuffer.getDepthBuffer()}, dst);
+    Effect::applyEffect({ input, Engine::renderSys.gBuffer.getDepthBuffer() }, dst);
 }

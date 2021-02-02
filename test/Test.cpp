@@ -56,8 +56,7 @@ void TestSceneManager::startTests() {
         ImGui::End();
     });
 }
-bool TestSceneManager::startTest(const std::string& testName)
-{
+bool TestSceneManager::startTest(const std::string& testName) {
     if (mCurrentTest != nullptr) {
         mCurrentTest->end();
         Engine::cleanUp();

@@ -322,7 +322,7 @@ void RenderSystem::prepareRendering(const RenderTarget* target) {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     // do not clear stencil buffer, we are just cleaning the screen now
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /* Camera calculations */
     glm::mat4 view = glm::mat4{ 1.0f };
@@ -357,7 +357,7 @@ void RenderSystem::prepareDeferredRendering() {
 void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase) {
     auto targetToUse = target;
     const bool useEffects = effectManager.isEnabled() && effectManager.hasEffects();
-    if (target == nullptr) { // target null means render to screen
+    if (target == nullptr) {  // target null means render to screen
         targetToUse = useEffects ? &lightPassRenderTarget : &RenderTarget::getScreenRenderTarget();
     }
 
@@ -389,7 +389,8 @@ void RenderSystem::renderScene(const RenderTarget* target, RenderPhase phase) {
     // render to screen only if no target specified
     if (target == nullptr) {
         if (useEffects) {
-            effectManager.renderEffects(*lightPassRenderTarget.getColorBuffer(), &RenderTarget::getScreenRenderTarget());
+            effectManager.renderEffects(
+                *lightPassRenderTarget.getColorBuffer(), &RenderTarget::getScreenRenderTarget());
         }
 
         Engine::uiRenderer.render();
@@ -405,7 +406,9 @@ void RenderSystem::render(int phase) {
 
 void RenderSystem::finalizeDeferredRendering(const RenderTarget* target) {
 #ifdef SRE_DEBUG
-    assert(target != nullptr && (target->isScreenRenderTarget() || (target->getDepthBuffer() != nullptr && target->getDepthBuffer()->isValid())));
+    assert(target != nullptr
+        && (target->isScreenRenderTarget()
+            || (target->getDepthBuffer() != nullptr && target->getDepthBuffer()->isValid())));
 #endif
     glBindFramebuffer(GL_FRAMEBUFFER, target->getFbo());
     // if the target depth buffer is not the same as the one held by the gBuffer
@@ -518,8 +521,7 @@ void RenderSystem::stencilPass(int lightIndex, float radius, bool renderingToScr
     }
     if (renderingToScreen) {
         glDrawBuffer(GL_BACK);
-    }
-    else {
+    } else {
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
     }
     glDisable(GL_DEPTH_TEST);
@@ -569,8 +571,8 @@ void RenderSystem::pointLightPass(DeferredLightShader& shaderWrapper, bool rende
 }
 
 void RenderSystem::finalizeRendering() {
-    
-    //effectManager.update();
+
+    // effectManager.update();
     /*{
         ShaderScopedUsage useShader{ effectManager.mPostProcessingShader };
 
@@ -770,7 +772,10 @@ void RenderSystem::copyTexture(const Texture& src, const RenderTarget& dst, Shad
     }
 }
 
-void RenderSystem::copyTexture(const std::vector<std::reference_wrapper<const Texture>>& sources, const RenderTarget& dst, Shader& shader, bool clear) {
+void RenderSystem::copyTexture(const std::vector<std::reference_wrapper<const Texture>>& sources,
+    const RenderTarget& dst,
+    Shader& shader,
+    bool clear) {
     ShaderScopedUsage useShader{ shader };
 
     glBindFramebuffer(GL_FRAMEBUFFER, dst.getFbo());
@@ -789,8 +794,7 @@ void RenderSystem::copyTexture(const std::vector<std::reference_wrapper<const Te
         const Texture& texture = sources[i];
         if (texture.isCubeMap()) {
             glBindTexture(GL_TEXTURE_CUBE_MAP, texture.getId());
-        }
-        else {
+        } else {
             glBindTexture(GL_TEXTURE_2D, texture.getId());
         }
     }

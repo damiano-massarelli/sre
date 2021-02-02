@@ -122,15 +122,15 @@ std::int32_t RenderTarget::getDepthBufferMipMapLevel() const {
     return mDepthLevel;
 }
 
-bool RenderTarget::isScreenRenderTarget() const
-{
+bool RenderTarget::isScreenRenderTarget() const {
     return mIsScreenTarget;
 }
 
 bool RenderTarget::isValid() const {
-    return mIsScreenTarget || (mFbo != 0
-        && ((mColorBuffer != nullptr && mColorBuffer->isValid())
-            || (mDepthBuffer != nullptr && mDepthBuffer->isValid())));
+    return mIsScreenTarget
+        || (mFbo != 0
+            && ((mColorBuffer != nullptr && mColorBuffer->isValid())
+                || (mDepthBuffer != nullptr && mDepthBuffer->isValid())));
 }
 
 void RenderTarget::cleanUp() {
@@ -140,8 +140,7 @@ void RenderTarget::cleanUp() {
     }
 }
 
-const RenderTarget& RenderTarget::getScreenRenderTarget()
-{
+const RenderTarget& RenderTarget::getScreenRenderTarget() {
     if (!SCREEN_RENDER_TARGET.isValid()) {
         SCREEN_RENDER_TARGET = RenderTarget();
         SCREEN_RENDER_TARGET.mIsScreenTarget = true;

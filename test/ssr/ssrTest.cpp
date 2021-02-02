@@ -1,15 +1,15 @@
+#include "rendering/effects/SSR.h"
 #include "Engine.h"
 #include "Test.h"
 #include "cameras/FreeCameraComponent.h"
 #include "gameobject/GameObjectLoader.h"
-#include "rendering/effects/GammaCorrection.h"
+#include "rendering/effects/Bloom.h"
 #include "rendering/effects/FXAA.h"
+#include "rendering/effects/GammaCorrection.h"
 #include "rendering/light/Light.h"
 #include "rendering/materials/PBRMaterial.h"
 #include "rendering/materials/SkyboxMaterial.h"
-#include "rendering/effects/SSR.h"
 #include "rendering/mesh/MeshCreator.h"
-#include "rendering/effects/Bloom.h"
 
 class CameraSpinComponent : public Component, public EventListener {
 private:
@@ -17,7 +17,8 @@ private:
     float mRadius = 80.F;
 
 public:
-    CameraSpinComponent(GameObjectEH& camera) : Component{camera} {
+    CameraSpinComponent(GameObjectEH& camera)
+        : Component{ camera } {
         Engine::eventManager.addListenerFor(EventManager::ENTER_FRAME_EVENT, this);
     }
 
@@ -60,16 +61,16 @@ void SSRTestScene::start() {
 
     Engine::renderSys.setCamera(camera);
 
-    auto character = GameObjectLoader{}.fromFile(
-        "test_data/skeletal_animation/BrainStem.gltf");
+    auto character = GameObjectLoader{}.fromFile("test_data/skeletal_animation/BrainStem.gltf");
     character->getComponent<SkeletalAnimationControllerComponent>()->setCurrentAnimation("default");
     character->getComponent<SkeletalAnimationControllerComponent>()->playCurrentAnimation();
-    character->getComponent<SkeletalAnimationControllerComponent>()->getCurrentAnimation()->loopDirection = SkeletalAnimation::LoopDirection::BOUNCE;
+    character->getComponent<SkeletalAnimationControllerComponent>()->getCurrentAnimation()->loopDirection
+        = SkeletalAnimation::LoopDirection::BOUNCE;
     character->transform.scaleBy(glm::vec3{ 10.F });
 
     auto trashbin = GameObjectLoader{}.fromFile("test_data/trashbin/trashbin.glb");
     trashbin->transform.moveBy(glm::vec3{ 15.F, 0.F, 15.F });
-    
+
     auto vendingMachine = GameObjectLoader{}.fromFile("test_data/vendingmachine/vendingmachine.glb");
     vendingMachine->transform.moveBy(glm::vec3{ -20.F, 0.F, -15.F });
     vendingMachine->transform.rotateBy(glm::angleAxis(glm::radians(-35.F), glm::vec3{ 0.F, 1.F, 0.F }));
@@ -123,8 +124,7 @@ void SSRTestScene::start() {
         if (ImGui::Checkbox("Enabled", &mSSREnabled)) {
             if (mSSREnabled) {
                 Engine::renderSys.effectManager.addEffectBefore<GammaCorrection>(ssrEffect);
-            }
-            else {
+            } else {
                 Engine::renderSys.effectManager.removeEffect(ssrEffect);
             }
         }
@@ -144,11 +144,10 @@ void SSRTestScene::start() {
             ssrEffect->setSteepAngleHitThresholdMultiplier(steepAngleHitThresholdMult);
         }
 
-        if(ImGui::Checkbox("Use fallback skybox", &mUseFallbackSkybox)) {
+        if (ImGui::Checkbox("Use fallback skybox", &mUseFallbackSkybox)) {
             if (mUseFallbackSkybox) {
                 ssrEffect->setFallbackSkyboxTexture(skyTexture);
-            }
-            else {
+            } else {
                 ssrEffect->setFallbackSkyboxTexture(Texture{});
             }
         }
@@ -180,12 +179,11 @@ void SSRTestScene::start() {
                     planeMaterial->setNormalMap(Texture::loadFromFile(normalMap, settings));
                 }
             }
-            
+
             ImGui::EndCombo();
         }
 
         ImGui::End();
-
     });
 }
 

@@ -1,11 +1,11 @@
 #pragma once
+#include "rendering/RenderTarget.h"
 #include "rendering/materials/Shader.h"
 #include "rendering/materials/Texture.h"
-#include "rendering/RenderTarget.h"
-#include <string>
-#include <glm/vec2.hpp>
-#include <vector>
 #include <functional>
+#include <glm/vec2.hpp>
+#include <string>
+#include <vector>
 
 class Effect {
 private:
@@ -48,7 +48,7 @@ public:
     const std::string& getName() const;
 
     /**
-     * @return the output Texture used by this effect. 
+     * @return the output Texture used by this effect.
      */
     const Texture& getOutput() const;
 
@@ -79,7 +79,8 @@ public:
      * @param dst an optional destination RenderTarget. If dst is not nullptr then it will
      * contain the output. Otherwise, it will be possible to retrieve it using getOutput.
      */
-    virtual void applyEffect(const std::vector<std::reference_wrapper<const Texture>>& inputs, const RenderTarget* dst = nullptr);
+    virtual void applyEffect(
+        const std::vector<std::reference_wrapper<const Texture>>& inputs, const RenderTarget* dst = nullptr);
 
     virtual ~Effect() = default;
 };
