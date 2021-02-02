@@ -1,7 +1,8 @@
 #include "rendering/effects/GammaCorrection.h"
+#include "Engine.h"
 
 GammaCorrection::GammaCorrection()
-    : Effect{ "gammaCorrection", "effects/gammaCorrection.glsl" } {
+    : Effect{ {"gc", "effects/gammaCorrection.glsl", {Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight()}, OUTPUT_TEXTURE_SETTINGS} } {
 
     ShaderScopedUsage useShader{ mPostProcessingShader };
     mPostProcessingShader.setFloat("_gc_gamma", mGamma);
@@ -18,7 +19,7 @@ void GammaCorrection::setExposure(float exposure) {
     mNeedUpdate = true;
 }
 
-void GammaCorrection::update(Shader& postProcessingShader) {
+void GammaCorrection::update() {
     if (mNeedUpdate) {
         ShaderScopedUsage useShader{ mPostProcessingShader };
         mPostProcessingShader.setFloat("_gc_gamma", mGamma);

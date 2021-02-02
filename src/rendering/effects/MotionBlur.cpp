@@ -16,12 +16,12 @@ void MotionBlur::setBlurFactor(float blurFactor) {
     mBlurNeedsUpdate = true;
 }
 
-void MotionBlur::onSetup(Shader& postProcessingShader) {
+void MotionBlur::onSetup() {
     const RenderSystem& rsys = Engine::renderSys;
     mPrevProjViewMatrix = rsys.getProjectionMatrix() * rsys.getViewMatrix(rsys.getCamera()->transform);
 }
 
-void MotionBlur::update(Shader& postProcessingShader) {
+void MotionBlur::update() {
     ShaderScopedUsage useShader{ mPostProcessingShader };
     if (mBlurNeedsUpdate) {
         mBlurNeedsUpdate = false;

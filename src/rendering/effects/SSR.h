@@ -34,8 +34,8 @@ private:
 public:
     SSR();
 
-    void update(Shader& postProcessingShader) override;
-    virtual void applyEffect(const Texture& input, const RenderTarget* dst) override;
+    void update() override;
+    void applyEffect(const Texture& input, const RenderTarget* dst) override;
 
     void setMaxReflectionDistance(float maxReflectionDistance);
     void setNumSamples(std::int32_t numSamples);

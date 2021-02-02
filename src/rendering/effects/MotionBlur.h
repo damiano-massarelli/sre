@@ -17,9 +17,9 @@ public:
 
     void setBlurFactor(float blurFactor);
 
-    virtual void onSetup(Shader& postProcessingShader) override;
+    void onSetup() override;
 
-    virtual void update(Shader& postProcessingShader) override;
+    void update() override;
 
-    virtual void applyEffect(const Texture& input, const RenderTarget* dst) override;
+    void applyEffect(const Texture& input, const RenderTarget* dst) override;
 };

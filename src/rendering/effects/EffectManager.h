@@ -14,22 +14,16 @@ class EffectManager {
 private:
     bool mEnabled = false;
 
-    Shader mPostProcessingShader;
-
-    std::set<int> mInUseTextures;
-
     std::vector<std::shared_ptr<Effect>> mEffects;
 
-    void createShader(std::vector<std::shared_ptr<Effect>> effects);
+    void setupEffects();
 
 public:
-    EffectManager();
+    EffectManager() = default;
 
     EffectManager(const EffectManager& em) = delete;
 
     EffectManager& operator=(const EffectManager& em) = delete;
-
-    void init();
 
     void addEffect(const std::shared_ptr<Effect>& effect);
 
@@ -45,15 +39,23 @@ public:
 
     bool addEffectBefore(std::shared_ptr<Effect> effect, std::shared_ptr<Effect> next);
 
+    template <typename Next> bool addEffectBefore(std::shared_ptr<Effect> effect) {
+        const auto found = std::find_if(mEffects.cbegin(), mEffects.cend(), [](auto& effect) {
+            return dynamic_cast<Next*>(effect.get()) != nullptr;
+        });
+
+        if (found == mEffects.cend()) {
+            return false;
+        }
+
+        mEffects.insert(found, effect);
+        setupEffects();
+        return true;
+    }
+
     void enableEffects();
 
     void disableEffects();
-
-    int getTexture();
-
-    void releaseTexture(int texture);
-
-    void update();
 
     const Texture* renderEffects(const Texture& input, const RenderTarget* dst = nullptr);
 

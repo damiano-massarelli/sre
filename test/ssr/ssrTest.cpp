@@ -1,4 +1,3 @@
-#include "rendering/effects/SSR.h"
 #include "Engine.h"
 #include "Test.h"
 #include "cameras/FreeCameraComponent.h"
@@ -7,11 +6,10 @@
 #include "rendering/effects/FXAA.h"
 #include "rendering/light/Light.h"
 #include "rendering/materials/PBRMaterial.h"
-#include "rendering/materials/PropMaterial.h"
 #include "rendering/materials/SkyboxMaterial.h"
+#include "rendering/effects/SSR.h"
 #include "rendering/mesh/MeshCreator.h"
-#include "rendering/mesh/MeshLoader.h"
-#include "debugUtils/DisplayBoundingBoxComponent.h"
+#include "rendering/effects/Bloom.h"
 
 class CameraSpinComponent : public Component, public EventListener {
 private:
@@ -24,43 +22,40 @@ public:
     }
 
     void onEvent(SDL_Event e) override {
-        const float x = mRadius * glm::cos(mAngle);
-        const float z = mRadius * glm::sin(mAngle);
+        const float delta = (*(static_cast<float*>(e.user.data1))) / 1000.0f;
+        const float x = mRadius * glm::cos(glm::radians(mAngle));
+        const float z = mRadius * glm::sin(glm::radians(mAngle));
         const float y = gameObject->transform.getPosition().y;
 
         gameObject->transform.setPosition(glm::vec3{ x, y, z });
         gameObject->transform.lookAt(glm::vec3{ 0.F });
 
-        mAngle += 0.01F;
+        mAngle += 25.F * delta;
     }
 };
 
 BEGIN_DECLARE_TEST_SCENE(SSRTestScene)
 bool mUseFallbackSkybox = false;
-static constexpr char* FLOOR_MATERIALS[] = { "metal", "tiles", "tiles_green" };
+static constexpr char* FLOOR_MATERIALS[] = { "mirror", "tiles", "tiles_green" };
 std::int8_t mSelectedFloorMaterial = 0;
 bool mUseFallbackSly = false;
 bool mSSREnabled = false;
-
 END_DECLARE_TEST_SCENE("SSR", SSRTestScene)
 
 void SSRTestScene::start() {
-    //Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
     auto ssrEffect = std::make_shared<SSR>();
-    //Engine::renderSys.effectManager.addEffect(ssrEffect);
-    Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
     Engine::renderSys.effectManager.addEffect(std::make_shared<GammaCorrection>());
+    Engine::renderSys.effectManager.addEffect(std::make_shared<FXAA>());
+    Engine::renderSys.effectManager.addEffect(std::make_shared<Bloom>(.55F));
     Engine::renderSys.effectManager.enableEffects();
-
-    //auto fxaaEffect = std::make_shared<FXAA>();
 
     auto camera = Engine::gameObjectManager.createGameObject();
     camera->name = "camera";
-    camera->transform.moveBy(glm::vec3{ 0.0f, 50.0f, 30.0f });
+    camera->transform.moveBy(glm::vec3{ 0.0f, 15.0f, 30.0f });
 
     auto cam = std::make_shared<FreeCameraComponent>(camera);
     camera->addComponent(cam);
-    //camera->addComponent(std::make_shared<CameraSpinComponent>(camera));
+    camera->addComponent(std::make_shared<CameraSpinComponent>(camera));
     camera->transform.setRotation(glm::quat{ glm::vec3{ 0, glm::radians(180.0f), 0 } });
 
     Engine::renderSys.setCamera(camera);
@@ -73,12 +68,15 @@ void SSRTestScene::start() {
     character->transform.scaleBy(glm::vec3{ 10.F });
 
     auto trashbin = GameObjectLoader{}.fromFile("test_data/trashbin/trashbin.glb");
-    trashbin->transform.moveBy(glm::vec3{ 10.F, 0.F, 10.F });
+    trashbin->transform.moveBy(glm::vec3{ 15.F, 0.F, 15.F });
     
     auto vendingMachine = GameObjectLoader{}.fromFile("test_data/vendingmachine/vendingmachine.glb");
-    vendingMachine->transform.moveBy(glm::vec3{ -10.F, 0.F, 10.F });
-    auto cmp = std::make_shared<DisplayBoundingBoxComponent>(vendingMachine);
-    vendingMachine->addComponent(cmp);
+    vendingMachine->transform.moveBy(glm::vec3{ -20.F, 0.F, -15.F });
+    vendingMachine->transform.rotateBy(glm::angleAxis(glm::radians(-35.F), glm::vec3{ 0.F, 1.F, 0.F }));
+
+    auto oldVendingMachine = GameObjectLoader{}.fromFile("test_data/vendingmachine/oldvendingmachine.glb");
+    oldVendingMachine->transform.moveBy(glm::vec3{ 10.F, 0.F, -17.F });
+    oldVendingMachine->transform.rotateBy(glm::angleAxis(glm::radians(-195.F), glm::vec3{ 0.F, 1.F, 0.F }));
 
     auto skyTexture = Texture::loadCubemapFromFile({
         { "front", "test_data/skybox/front.tga" },
@@ -96,27 +94,16 @@ void SSRTestScene::start() {
 
     // Lights
     sun->addComponent(std::make_shared<DirectionalLight>(sun));
-    sun->transform.setPosition(glm::vec3{ 0.0f, 25.0f, -25.0f });
+    sun->transform.setPosition(glm::vec3{ 25.F, 15.F, -5.F });
     Engine::renderSys.addLight(sun);
     sun->getComponent<Light>()->setCastShadowMode(Light::ShadowCasterMode::DYNAMIC);
-    sun->getComponent<Light>()->diffuseColor = glm::vec3{ 10.0f, 10.0f, 10.0f };
+    sun->getComponent<Light>()->diffuseColor = glm::vec3{ 5.0f, 5.0f, 5.0f };
     sun->getComponent<Light>()->ambientColor = glm::vec3{ 1.F };
     sun->transform.lookAt(glm::vec3{ 0.F });
-
-    auto gizmo = MeshCreator::axisGizmo();
-    sun->transform.addChild(gizmo);
-    gizmo->transform.setLocalPosition(glm::vec3{ 0.F });
-    gizmo->transform.setLocalRotation(glm::quat{1.F, 0.F, 0.F, 0.F});
 
     // Ground
     std::shared_ptr<PBRMaterial> planeMaterial = std::make_shared<PBRMaterial>();
     planeMaterial->setUVScale(glm::vec2{ 8.F });
-    
-    //planeMaterial->setAlbedoMap(Texture::loadFromFile("test_data/ssr/textures/checker.png", settings));
-    //planeMaterial->setRoughnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/roughnessMap.jpg", settings));
-    //planeMaterial->setMetalnessMap(Texture::loadFromFile("test_data/ssr/textures/metal/metalness.jpg", settings));
-    //planeMaterial->setNormalMap(Texture::loadFromFile("test_data/ssr/textures/metal/normal.jpg", settings));
-    //planeMaterial->setAmbientOcclusionMap(Texture::loadFromFile("test_data/ssr/textures/metal/ao.jpg", settings));
 
     GameObjectEH plane = Engine::gameObjectManager.createGameObject(MeshCreator::plane(), planeMaterial);
     plane->transform.setRotation(glm::angleAxis(glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f)));
@@ -135,7 +122,7 @@ void SSRTestScene::start() {
         ImGui::Text("SSR Settings");
         if (ImGui::Checkbox("Enabled", &mSSREnabled)) {
             if (mSSREnabled) {
-                Engine::renderSys.effectManager.addEffect(ssrEffect);
+                Engine::renderSys.effectManager.addEffectBefore<GammaCorrection>(ssrEffect);
             }
             else {
                 Engine::renderSys.effectManager.removeEffect(ssrEffect);

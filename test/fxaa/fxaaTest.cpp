@@ -79,7 +79,7 @@ void FXAATestScene::start() {
         ImGui::Begin("FXAA Settings");
 
         if (ImGui::Checkbox("Enabled", &fxaaEnabled)) {
-            fxaaEnabled ? effectManager.addEffectBefore(fxaaEffect, gammaCorrectionEffect) : effectManager.removeEffect(fxaaEffect);
+            fxaaEnabled ? effectManager.addEffect(fxaaEffect) : effectManager.removeEffect(fxaaEffect);
         }
 
         ImGui::End();

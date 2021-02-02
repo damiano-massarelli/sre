@@ -61,12 +61,12 @@ const Texture& GaussianBlur::getBlurred(const Texture& src, int iterations) {
     
     // Reduce src resolution to that of the result buffer, otherwise the final effect will be
     // more accentuated along the y-axis
-    Engine::renderSys.copyTexture(src, *mResultBuffer, mPassThrough);
+    Engine::renderSys.copyTexture(src, *mResultBuffer, mPassThrough, false);
     for (int i = 0; i < iterations * 2; i++) {
         if (i % 2 == 0) {
-            Engine::renderSys.copyTexture(*mResultBuffer->getColorBuffer(), mHorizontalTarget, mHBlur);
+            Engine::renderSys.copyTexture(*mResultBuffer->getColorBuffer(), mHorizontalTarget, mHBlur, false);
         } else {
-            Engine::renderSys.copyTexture(*mHorizontalBlurred.get(), *mResultBuffer, mVBlur);
+            Engine::renderSys.copyTexture(*mHorizontalBlurred.get(), *mResultBuffer, mVBlur, false);
         }
     }
 

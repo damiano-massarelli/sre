@@ -12,10 +12,6 @@
  */
 class SSAO : public Effect {
 private:
-    int mSSAOTextureIndex = -1;
-    int mNoiseTextureIndex = -1;
-    int mNormalTextureIndex = -1;
-
     std::vector<glm::vec3> mSSAOSamples;
 
     Texture mNoiseTexture;
@@ -38,9 +34,9 @@ private:
 public:
     SSAO();
 
-    virtual void onSetup(Shader& postProcessingShader) override;
+    void update() override;
 
-    virtual void update(Shader& postProcessingShader) override;
+    void applyEffect(const Texture& input, const RenderTarget* dst) override;
 
     /**
      * Sets the size of the kernel used to sample for ssao.
@@ -96,6 +92,4 @@ public:
      * @return the blur size
      */
     int getBlurSize() const;
-
-    ~SSAO();
 };

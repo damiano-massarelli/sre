@@ -49,6 +49,8 @@ public:
     void registerTest(std::string name, std::unique_ptr<ITestScene> test);
 
     void startTests();
+
+    bool startTest(const std::string& testName);
 };
 }
 

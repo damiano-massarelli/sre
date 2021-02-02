@@ -7,8 +7,8 @@ layout (std140) uniform ShadowMapParams {
     vec4 _shadowParams; // x: distance, y: fade out range, z: shadow strength, w: outside shadow map (shadow or light?)
 };
 
-const float SHADOWMAP_MIN_BIAS = 0.0001;
-const float SHADOWMAP_MAX_BIAS = 0.0005;
+const float SHADOWMAP_MIN_BIAS = 0.0005;
+const float SHADOWMAP_MAX_BIAS = 0.001;
 
 const int SMOOTH_RANGE = 1;
 

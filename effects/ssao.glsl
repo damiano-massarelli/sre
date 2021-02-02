@@ -1,22 +1,27 @@
-uniform sampler2D _ssao_texture;
+in vec2 texCoord;
 
-uniform float _ssao_darkenFactor = 2.2;
-uniform int _ssao_blurSize = 2;
+uniform sampler2D inputTexture;
+uniform sampler2D aoTexture;
+uniform float darkenFactor = 2.2;
+uniform int blurSize = 2;
 
-vec4 ssao(vec4 color) {
+out vec4 fragColor;
+
+void main() {
+    vec4 color = texture(inputTexture, texCoord);
     float ao = 0.0;
 
-    vec2 texelSize = 1.0 / vec2(textureSize(_ssao_texture, 0));
-    for (int x = -_ssao_blurSize; x < _ssao_blurSize; ++x) {
-        for (int y = -_ssao_blurSize; y < _ssao_blurSize; ++y) {
+    vec2 texelSize = 1.0 / vec2(textureSize(aoTexture, 0));
+    for (int x = -blurSize; x < blurSize; ++x) {
+        for (int y = -blurSize; y < blurSize; ++y) {
             vec2 offset = vec2(float(x), float(y)) * texelSize;
-            ao += texture(_ssao_texture, texCoord + offset).r;
+            ao += texture(aoTexture, texCoord + offset).r;
         }
     }
-    ao /= (_ssao_blurSize * 2 * _ssao_blurSize * 2);
+    ao /= (blurSize * 2 * blurSize * 2);
 
     float aoFactor = (1.0 - ao);
-    aoFactor = pow(aoFactor, _ssao_darkenFactor);
+    aoFactor = pow(aoFactor, darkenFactor);
 
-    return vec4(color.rgb * aoFactor, 1.0);
+    fragColor = vec4(color.rgb * aoFactor, 1.0);
 }

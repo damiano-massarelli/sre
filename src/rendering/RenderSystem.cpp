@@ -81,12 +81,10 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height) {
     initDeferredRendering();
 
     auto settings = GBuffer::DIFFUSE_BUFFER_SETTINGS;
-    settings.appearanceOptions.hasMipmap = true;
     settings.appearanceOptions.minFilter = GL_LINEAR;
     settings.appearanceOptions.magFilter = GL_LINEAR;
-    lightPassTarget = Texture::load(nullptr, width, height, settings);
+    lightPassTarget = Texture::load(nullptr, getScreenWidth(), getScreenHeight(), settings);
     lightPassRenderTarget = RenderTarget{ &lightPassTarget, &(gBuffer.getDepthBuffer()) };
-    effectManager.init();
     fogSettings.init();
     shadowMappingSettings.init();
 

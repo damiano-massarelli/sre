@@ -56,4 +56,18 @@ void TestSceneManager::startTests() {
         ImGui::End();
     });
 }
+bool TestSceneManager::startTest(const std::string& testName)
+{
+    if (mCurrentTest != nullptr) {
+        mCurrentTest->end();
+        Engine::cleanUp();
+    }
+
+    const auto testEntry = mTests.find(testName);
+    if (testEntry == mTests.cend()) {
+        return false;
+    }
+
+    testEntry->second->start();
+}
 }

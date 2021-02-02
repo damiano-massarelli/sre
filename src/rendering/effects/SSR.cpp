@@ -58,7 +58,7 @@ void SSR::createAndSetupExtractShader()
     mFrustumPlanesLocation = mSSRExtract.getLocationOf("_ssr_frustumPlanes");
 }
 
-void SSR::update(Shader& postProcessingShader) {
+void SSR::update() {
     RenderSystem& renderSystem = Engine::renderSys;
 
     {
@@ -111,7 +111,7 @@ void SSR::applyEffect(const Texture& input, const RenderTarget* dst) {
 
     // Blur output for roughness
     for (std::size_t i = 0; i < mGaussianBlurEffects.size(); ++i) {
-        mGaussianBlurEffects[i].getBlurred(mSSROutput, i * 2 + 1);
+        mGaussianBlurEffects[i].getBlurred(mSSROutput, 1);
     }
 
     Effect::applyEffect({ input, mSSROutput }, dst);

@@ -98,7 +98,7 @@ public:
      */
     const GameObjectEH& getLight() const;
 
-    virtual void update(Shader& postProcessingShader) override;
+    void update() override;
 
-    virtual void applyEffect(const Texture& input, const RenderTarget* dst = nullptr) override;
+    void applyEffect(const Texture& input, const RenderTarget* dst = nullptr) override;
 };

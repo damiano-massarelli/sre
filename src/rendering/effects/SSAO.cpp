@@ -3,10 +3,12 @@
 
 SSAO::SSAO()
     : Effect{ "ssao", "effects/ssao.glsl" } {
-    // texture for ssao as an effect
-    mSSAOTextureIndex = Engine::renderSys.effectManager.getTexture();
-    mNoiseTextureIndex = Engine::renderSys.effectManager.getTexture();
-    mNormalTextureIndex = Engine::renderSys.effectManager.getTexture();
+
+    {
+        ShaderScopedUsage useShader{ mPostProcessingShader };
+        mPostProcessingShader.setInt("inputTexture", 0);
+        mPostProcessingShader.setInt("aoTexture", 1);
+    }
 
     Texture::Settings loadOptions;
     loadOptions.dataPixelFormat = GL_RGBA;
@@ -37,8 +39,9 @@ SSAO::SSAO()
         mSSAOCreationShader.bindUniformBlock("CommonMat", Engine::renderSys.COMMON_MAT_UNIFORM_BLOCK_INDEX);
         mSSAOCreationShader.bindUniformBlock("Camera", Engine::renderSys.CAMERA_UNIFORM_BLOCK_INDEX);
         mSSAOCreationShader.setVec3Array("samples", mSSAOSamples);
-        mSSAOCreationShader.setInt("NormalData", mNormalTextureIndex);
-        mSSAOCreationShader.setInt("noise", mNoiseTextureIndex);
+        mSSAOCreationShader.setInt("positionBuffer", 0);
+        mSSAOCreationShader.setInt("normalBuffer", 1);
+        mSSAOCreationShader.setInt("noiseBuffer", 2);
     }
 }
 
@@ -82,45 +85,29 @@ void SSAO::createNoiseTexture(std::uniform_real_distribution<float>& dist, std::
     Texture::Settings loadOptions;
     loadOptions.dataPixelType = GL_FLOAT;
     loadOptions.dataPixelFormat = GL_RGB;
-    loadOptions.internalFormat = GL_RGB16F;
+    loadOptions.internalFormat = GL_RGB;
     loadOptions.appearanceOptions.wrapS = GL_REPEAT;
     loadOptions.appearanceOptions.wrapT = GL_REPEAT;
     loadOptions.appearanceOptions.hasMipmap = false;
     mNoiseTexture = Texture::load(noiseData.data(), res, res, loadOptions);
 }
 
-void SSAO::onSetup(Shader& postProcessingShader) {
-    postProcessingShader.setInt("_ssao_texture", mSSAOTextureIndex);
-}
-
-void SSAO::update(Shader& postProcessingShader) {
+void SSAO::update() {
     if (mNeedsUpdate) {
-        ShaderScopedUsage useShader{ postProcessingShader };
+        ShaderScopedUsage useShader{ mPostProcessingShader };
 
         mNeedsUpdate = false;
-        postProcessingShader.setFloat("_ssao_darkenFactor", mDarkenFactor);
-        postProcessingShader.setInt("_ssao_blurSize", mBlurSize);
+        mPostProcessingShader.setFloat("darkenFactor", mDarkenFactor);
+        mPostProcessingShader.setInt("blurSize", mBlurSize);
     }
+}
 
+void SSAO::applyEffect(const Texture& input, const RenderTarget* dst) {
     RenderSystem& rsys = Engine::renderSys;
 
-    glActiveTexture(GL_TEXTURE0 + mNormalTextureIndex);
-    glBindTexture(GL_TEXTURE_2D, rsys.gBuffer.getNormalBuffer().getId());
-
-    glActiveTexture(GL_TEXTURE0 + mNoiseTextureIndex);
-    glBindTexture(GL_TEXTURE_2D, mNoiseTexture.getId());
-
-    Engine::renderSys.copyTexture(rsys.gBuffer.getPositionBuffer(), mSSAOCreationTarget, mSSAOCreationShader);
-
-    // unbind
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glActiveTexture(GL_TEXTURE0 + mNormalTextureIndex);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    // bind the ssao texture
-    glActiveTexture(GL_TEXTURE0 + mSSAOTextureIndex);
-    glBindTexture(GL_TEXTURE_2D, mTargetTexture.getId());
+    rsys.copyTexture({ rsys.gBuffer.getPositionBuffer(),
+        rsys.gBuffer.getNormalBuffer(), mNoiseTexture }, mSSAOCreationTarget, mSSAOCreationShader);
+    Effect::applyEffect({ input, mTargetTexture }, dst);
 }
 
 void SSAO::setKernelSize(int size) {
@@ -166,10 +153,4 @@ void SSAO::setBlurSize(int size) {
 
 int SSAO::getBlurSize() const {
     return mBlurSize;
-}
-
-SSAO::~SSAO() {
-    Engine::renderSys.effectManager.releaseTexture(mSSAOTextureIndex);
-    Engine::renderSys.effectManager.releaseTexture(mNoiseTextureIndex);
-    Engine::renderSys.effectManager.releaseTexture(mNormalTextureIndex);
 }

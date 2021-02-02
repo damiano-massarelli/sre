@@ -64,7 +64,7 @@ const GameObjectEH& GodRays::getLight() const {
     return mLight;
 }
 
-void GodRays::update(Shader& postProcessingShader) {
+void GodRays::update() {
 #ifdef SRE_DEBUG
     assert(mLight.isValid() && !mLightComponent.expired());
 #endif  // SRE_DEBUG

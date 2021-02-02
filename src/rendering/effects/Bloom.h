@@ -32,7 +32,7 @@ public:
      */
     Bloom(float scaleFactor = 0.7f);
 
-    virtual void applyEffect(const Texture& input, const RenderTarget* dst = nullptr) override;
+    void applyEffect(const Texture& input, const RenderTarget* dst = nullptr) override;
 
     /**
      * Sets the impact of the bloom effect on the final image.

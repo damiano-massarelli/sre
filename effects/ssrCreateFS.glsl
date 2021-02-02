@@ -26,8 +26,8 @@ uniform float _ssr_farPlane;
 
 // Consts
 const float _SSR_MAX_ROUGHNESS = 0.9;
-const float _SSR_MAX_SELF_HIT_INCREMENT = 0.35;
-const float _SSR_MIN_SELF_HIT_INCREMENT = 0.05;
+const float _SSR_MAX_SELF_HIT_INCREMENT = 0.45;
+const float _SSR_MIN_SELF_HIT_INCREMENT = 0.075;
 
 // Data Structures
 struct RayHitInfo {
@@ -144,10 +144,10 @@ RayHitInfo _ssr_castRay(
 		float sceneDepth = _ssr_viewSpaceDepthAt(raySample.xy);
 		float rayDepth = 1. / raySample.z;
 		float depthDelta = rayDepth - sceneDepth;
-		if (depthDelta > 0.) {
+		float distancePercentage = stepPercentage * i;
+		if (depthDelta > 0. && distancePercentage > stepPercentage) {
 
 			// Binary search
-			float distancePercentage = stepPercentage * i;
 			float j = 0;
 			do {
 				stepIncrement /= 2.;

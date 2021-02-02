@@ -55,13 +55,13 @@ public:
     /**
      * Called every time the effect needs to be set up.
      */
-    virtual void onSetup(Shader& postProcessingShader) { }
+    virtual void onSetup() { }
 
     /**
      * Called every time the image is going to be processed
      * by the effect.
      */
-    virtual void update(Shader& postProcessingShader) { }
+    virtual void update() { }
 
     /**
      * Applies the effect on the given Texture.

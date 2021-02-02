@@ -2,6 +2,7 @@
 #include "Engine.h"
 
 Effect::Effect(const Settings& settings) {
+    std::cout << static_cast<int>(settings.outputSize.x) << "\n";
     mOutput = Texture::load(nullptr, static_cast<int>(settings.outputSize.x), static_cast<int>(settings.outputSize.y),
         settings.outputSettings);
 
@@ -11,7 +12,7 @@ Effect::Effect(const Settings& settings) {
 }
 
 Effect::Effect(const std::string& name, const std::string& effectPath)
-    : Effect{ Settings{name, effectPath, glm::vec2{1280, 720}, GBuffer::DIFFUSE_BUFFER_SETTINGS} } {}
+    : Effect{ Settings{name, effectPath, glm::vec2{Engine::renderSys.getScreenWidth(), Engine::renderSys.getScreenHeight()}, GBuffer::DIFFUSE_BUFFER_SETTINGS} } {}
 
 const std::string& Effect::getEffectPath() const {
     return mEffectPath;

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "rendering/effects/Effect.h"
+#include "rendering/materials/Texture.h"
+#include "rendering/RenderTarget.h"
 
 /**
  * Fast Approximate Anti-Aliasing Effect.
@@ -10,5 +12,5 @@ class FXAA : public Effect {
 public:
     FXAA();
 
-    virtual void onSetup(Shader& postProcessingShader) override;
+    void applyEffect(const Texture& input, const RenderTarget* dst) override;
 };
