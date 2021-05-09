@@ -2,7 +2,6 @@
 #include "Engine.h"
 
 Effect::Effect(const Settings& settings) {
-    std::cout << static_cast<int>(settings.outputSize.x) << "\n";
     mOutput = Texture::load(nullptr,
         static_cast<int>(settings.outputSize.x),
         static_cast<int>(settings.outputSize.y),
