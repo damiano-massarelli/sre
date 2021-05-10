@@ -3,9 +3,7 @@
 #include <limits>
 
 SkyboxMaterial::SkyboxMaterial(const Texture& cubemap)
-    : Material{ std::vector<std::string>{ "shaders/skyboxVS.glsl" },
-        {},
-        { "shaders/skyboxFS.glsl" } }
+    : Material{ std::vector<std::string>{ "shaders/skyboxVS.glsl" }, {}, { "shaders/skyboxFS.glsl" } }
     , mCubemap{ cubemap } {
     // do not render during shadow mapping
     unSupportedRenderPhases = RenderPhase::DEFERRED_RENDERING | RenderPhase::SHADOW_MAPPING | RenderPhase::PBR;
