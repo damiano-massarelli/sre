@@ -7,7 +7,9 @@ layout (std140) uniform Lights {
 
 layout (std140) uniform Camera {
     vec3 cameraPosition;
+    float cameraNear;
     vec3 cameraDirection;
+    float cameraFar;
 };
 
 vec3 phongComputeColor(Light light, vec3 diffuseColor, vec3 specularColor, float shininess, vec3 fragPosition, vec3 fragNormal, vec3 cameraPosition) {

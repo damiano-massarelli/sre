@@ -33,6 +33,10 @@ public:
 
         mAngle += 25.F * delta;
     }
+
+    ~CameraSpinComponent() {
+        Engine::eventManager.removeListenerFor(EventManager::ENTER_FRAME_EVENT, this);
+    }
 };
 
 BEGIN_DECLARE_TEST_SCENE(SSRTestScene)

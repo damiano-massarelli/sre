@@ -1,3 +1,0 @@
-
-	FragColor = color;
-}

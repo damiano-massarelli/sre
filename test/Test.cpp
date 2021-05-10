@@ -68,5 +68,6 @@ bool TestSceneManager::startTest(const std::string& testName) {
     }
 
     testEntry->second->start();
+    return true;
 }
 }

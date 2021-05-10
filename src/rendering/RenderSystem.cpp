@@ -85,7 +85,7 @@ void RenderSystem::createWindow(std::uint32_t width, std::uint32_t height) {
     settings.appearanceOptions.magFilter = GL_LINEAR;
     lightPassTarget = Texture::load(nullptr, getScreenWidth(), getScreenHeight(), settings);
     lightPassRenderTarget = RenderTarget{ &lightPassTarget, &(gBuffer.getDepthBuffer()) };
-    fogSettings.init();
+
     shadowMappingSettings.init();
 
     Engine::particleRenderer.init();
@@ -123,7 +123,7 @@ void RenderSystem::initGL(std::uint32_t width, std::uint32_t height) {
     glGenBuffers(1, &mUboCamera);
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
 
-    // size for camera position and direction
+    // size for camera position and direction, near and far
     glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::vec4), nullptr, GL_STREAM_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA_UNIFORM_BLOCK_INDEX, mUboCamera);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -275,14 +275,20 @@ void RenderSystem::updateLights() {
 void RenderSystem::updateCamera() {
     glm::vec3 cameraPosition{ 0.0f };
     glm::vec3 cameraDirection{ 0.0f, 0.0f, 1.0f };
+    float cameraNear = 0.f;
+    float cameraFar = 10000.f;
     if (mCamera) {
         cameraPosition = mCamera->transform.getPosition();
         cameraDirection = mCamera->transform.forward();
+        cameraNear = mCamera->getComponent<CameraComponent>()->getNearPlaneDistance();
+        cameraFar = mCamera->getComponent<CameraComponent>()->getFarPlaneDistance();
     }
 
     glBindBuffer(GL_UNIFORM_BUFFER, mUboCamera);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec3), glm::value_ptr(cameraPosition));
+    glBufferSubData(GL_UNIFORM_BUFFER, 12, sizeof(float), &cameraNear);
     glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(glm::vec3), glm::value_ptr(cameraDirection));
+    glBufferSubData(GL_UNIFORM_BUFFER, 28, sizeof(float), &cameraFar);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -568,37 +574,6 @@ void RenderSystem::pointLightPass(DeferredLightShader& shaderWrapper, bool rende
 
     glDisable(GL_BLEND);
     glDisable(GL_STENCIL_TEST);
-}
-
-void RenderSystem::finalizeRendering() {
-
-    // effectManager.update();
-    /*{
-        ShaderScopedUsage useShader{ effectManager.mPostProcessingShader };
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);  // unbind effects frame buffer
-
-        glViewport(0, 0, getScreenWidth(), getScreenHeight());
-
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_DEPTH_TEST);
-
-        glBindVertexArray(mScreenMesh.mVao);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, lightPassRenderTarget.getColorBuffer()->getId());
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, lightPassRenderTarget.getDepthBuffer()->getId());
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        glEnable(GL_DEPTH_TEST);
-    }*/
 }
 
 void RenderSystem::renderShadows() {

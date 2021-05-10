@@ -7,7 +7,6 @@
 #include "rendering/deferredRendering/DeferredLightShader.h"
 #include "rendering/deferredRendering/DeferredRenderingFBO.h"
 #include "rendering/effects/EffectManager.h"
-#include "rendering/fog/FogSettings.h"
 #include "rendering/light/DirectionalLight.h"
 #include "rendering/light/Light.h"
 #include "rendering/light/PointLight.h"
@@ -104,8 +103,6 @@ private:
     /** Performs all operations needed to finalize deferred rendering: combine g-buffer data */
     void finalizeDeferredRendering(const RenderTarget* target);
 
-    void finalizeRendering();
-
     void stencilPass(int lightIndex, float radius, bool renderingToScreen);
 
     void pointLightPass(DeferredLightShader& shaderWrapper, bool renderingToScreen);
@@ -160,9 +157,6 @@ public:
 
     /** settings for shadow mapping */
     ShadowMappingSettings shadowMappingSettings;
-
-    /** settings for fog */
-    FogSettings fogSettings;
 
     /** The effect manager handles post processing effects */
     EffectManager effectManager;
